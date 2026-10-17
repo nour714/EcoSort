@@ -1,0 +1,370 @@
+/* ==========================================================================
+   EcoSort - تصميم الهوية البصرية وشريط التقدم والتخطيط المتجاوب (RTL)
+   جامعة كفر الشيخ - نظام الفرز والتوجيه الذكي (Step-by-Step Wizard Flow)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+    /* الألوان البيئية والأكاديمية - جامعة كفر الشيخ */
+    --primary-50: #f0fdf4;
+    --primary-100: #dcfce7;
+    --primary-200: #bbf7d0;
+    --primary-500: #10b981;
+    --primary-600: #059669;
+    --primary-700: #047857;
+    --primary-800: #065f46;
+    --primary-900: #064e3b;
+
+    /* درجات رمادية وكحلية أنيقة */
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+
+    /* تدرجات دلالية */
+    --tech-blue: #2563eb;
+    --tech-purple: #7c3aed;
+    --amber-warning: #f59e0b;
+    --rose-danger: #ef4444;
+    --success-green: #10b981;
+
+    /* أسطح وظلال */
+    --surface-card: #ffffff;
+    --border-light: #e2e8f0;
+    --border-focus: #059669;
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.09), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.06);
+
+    /* نصف القطر والمسافات */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* الخطوط */
+    --font-sans: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* إعادة الضبط الأساسي */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+svg {
+    vertical-align: middle;
+}
+
+html {
+    direction: rtl;
+    text-align: right;
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: #f8fafc;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.05) 0px, transparent 50%);
+    color: var(--slate-800);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==================== الهيدر الرئيسي ==================== */
+.app-header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.header-container {
+    max-width: 1180px;
+    margin-inline: auto;
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.brand-section {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.brand-logo-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+    flex-shrink: 0;
+}
+
+.brand-title-wrap h1 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--slate-900);
+    line-height: 1.2;
+}
+
+.brand-title-wrap h1 span {
+    color: var(--primary-600);
+}
+
+.brand-subtitle {
+    font-size: 0.775rem;
+    color: var(--slate-500);
+    font-weight: 500;
+}
+
+.header-badges-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.academic-mini-pill {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid transparent;
+}
+
+.academic-mini-pill.cv {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.academic-mini-pill.ir {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #a7f3d0;
+}
+
+.academic-mini-pill.algo {
+    background: #f5f3ff;
+    color: #6d28d9;
+    border-color: #ddd6fe;
+}
+
+/* ==================== شريط التقدم العلوي (Progress Stepper) ==================== */
+.stepper-nav {
+    background: #ffffff;
+    border-top: 1px solid var(--slate-100);
+    padding: 0.65rem 1.25rem;
+}
+
+.stepper-container {
+    max-width: 820px;
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    z-index: 2;
+    cursor: default;
+    transition: all 0.25s ease;
+}
+
+.step-bubble {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--slate-100);
+    border: 2px solid var(--slate-300);
+    color: var(--slate-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+}
+
+.step-check {
+    display: none;
+    font-size: 1rem;
+}
+
+.step-label {
+    display: flex;
+    flex-direction: column;
+}
+
+.step-title {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: var(--slate-500);
+    line-height: 1.2;
+}
+
+.step-desc {
+    font-size: 0.7rem;
+    color: var(--slate-400);
+}
+
+/* حالة الخطوة النشطة (Active Step) */
+.step-indicator.active .step-bubble {
+    background: var(--primary-600);
+    border-color: var(--primary-600);
+    color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.2);
+    transform: scale(1.08);
+}
+
+.step-indicator.active .step-title {
+    color: var(--slate-900);
+}
+
+.step-indicator.active .step-desc {
+    color: var(--primary-700);
+    font-weight: 600;
+}
+
+/* حالة الخطوة المكتملة (Completed Step) */
+.step-indicator.completed .step-bubble {
+    background: #ecfdf5;
+    border-color: var(--primary-600);
+    color: var(--primary-700);
+}
+
+.step-indicator.completed .step-num {
+    display: none;
+}
+
+.step-indicator.completed .step-check {
+    display: block;
+}
+
+.step-indicator.completed .step-title {
+    color: var(--primary-800);
+}
+
+/* خطوط الربط بين الخطوات */
+.stepper-line {
+    flex: 1;
+    height: 3px;
+    background: var(--slate-200);
+    margin-inline: 0.75rem;
+    position: relative;
+    border-radius: var(--radius-full);
+    transition: background 0.4s ease;
+}
+
+.stepper-line.filled {
+    background: var(--primary-500);
+}
+
+@media (max-width: 640px) {
+    .step-desc {
+        display: none;
+    }
+    .header-badges-wrap {
+        display: none;
+    }
+    .step-indicator {
+        gap: 0.4rem;
+    }
+    .step-bubble {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    .step-title {
+        font-size: 0.75rem;
+    }
+}
+
+/* ==================== حاوية الخطوات المتسلسلة (Wizard Container) ==================== */
+.wizard-main-container {
+    flex: 1;
+    max-width: 1080px;
+    width: 100%;
+    margin-inline: auto;
+    padding: 1.5rem 1.25rem 3rem;
+}
+
+/* شاشة الخطوة مع أنيميشن انتقال ناعم */
+.wizard-step {
+    display: none;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wizard-step.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* أشرطة الإجراءات السفلية */
+.wizard-bottom-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.wizard-bottom-actions.split-actions {
+    justify-content: space-between;
+}
+
+@media (max-width: 640px) {
+    .wizard-bottom-actions.split-actions {
+        flex-direction: column-reverse;
+    }
+    .wizard-bottom-actions button {
+        width: 100%;
+    }
+}
+
+/* الفوتر */
+.app-footer {
+    background: #ffffff;
+    border-top: 1px solid var(--border-light);
+    padding: 1rem 1.25rem;
+    text-align: center;
+    font-size: 0.775rem;
+    color: var(--slate-500);
+    margin-top: auto;
+}
