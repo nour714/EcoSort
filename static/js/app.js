@@ -662,7 +662,31 @@ class EcoSortApp {
                 if (resultCard) {
                     resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
-                this.showToast('تم الفحص بنجاح', `تم التعرف على: ${detection.item.name} بدقة ${detection.confidence}%`);
+                // إظهار إشعار متوافق مع قرار التصنيف (confident, uncertain, rejected) ونسبة الثقة
+                const isEn = this.currentLang === 'en';
+                const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+                const itemName = (isEn && detection.item.nameEn) ? detection.item.nameEn : (detection.item.name || '');
+                const confVal = detection.confidence != null ? detection.confidence : '--';
+
+                let toastTitle, toastMsg, toastType;
+                if (detection.decision === 'rejected') {
+                    toastTitle = t.toastScanRejectedTitle || (isEn ? 'Low Confidence / Rejected ✕' : 'ثقة منخفضة / غير مؤكد ✕');
+                    toastMsg = (t.toastScanRejectedMsg || (isEn ? 'Confidence {confidence}% is below threshold (45%). Please verify manually or retake a clearer photo.' : 'نسبة الثقة {confidence}% أقل من حد القبول (45%). يرجى التحقق يدوياً أو التقاط صورة أوضح.'))
+                        .replace('{item}', itemName).replace('{confidence}', confVal);
+                    toastType = 'rejected';
+                } else if (detection.decision === 'uncertain') {
+                    toastTitle = t.toastScanUncertainTitle || (isEn ? 'Medium Confidence Notice ⚠️' : 'تنبيه: ثقة متوسطة ⚠️');
+                    toastMsg = (t.toastScanUncertainMsg || (isEn ? 'Predicted: {item} with {confidence}% confidence. Please verify or pick manually.' : 'النتيجة: {item} بنسبة ثقة {confidence}%. يرجى التحقق أو اختيار الخامة يدوياً.'))
+                        .replace('{item}', itemName).replace('{confidence}', confVal);
+                    toastType = 'uncertain';
+                } else {
+                    toastTitle = t.toastScanConfidentTitle || (isEn ? 'High-Confidence Detection ✓' : 'تم الفحص بثقة عالية ✓');
+                    toastMsg = (t.toastScanConfidentMsg || (isEn ? 'Identified: {item} with {confidence}% confidence' : 'تم التعرف على: {item} بنسبة ثقة {confidence}%'))
+                        .replace('{item}', itemName).replace('{confidence}', confVal);
+                    toastType = 'confident';
+                }
+
+                this.showToast(toastTitle, toastMsg, toastType);
             }, 600);
 
         } catch (err) {
@@ -1190,8 +1214,13 @@ class EcoSortApp {
             navigator.vibrate([70, 40, 70]);
         }
 
-        const savedCo2 = this.currentWasteItem ? this.currentWasteItem.carbonSavingsGrams : 85;
-        this.showToast('🎉 تم الوصول للحاوية بنجاح!', `تم تسجيل توفير ${savedCo2} جم CO₂ في رصيدك البيئي.`);
+        const isEn = this.currentLang === 'en';
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+        const title = t.toastArrivedTitle || (isEn ? 'Arrived at Bin Successfully! ♻️' : '🎉 تم الوصول للحاوية بنجاح!');
+        const msg = isEn 
+            ? `Carbon emission savings (${savedCo2}g CO₂) registered to your eco balance.`
+            : `تم تسجيل توفير ${savedCo2} جم CO₂ في رصيدك البيئي.`;
+        this.showToast(title, msg, 'arrival');
     }
 
     /**
@@ -1233,25 +1262,46 @@ class EcoSortApp {
 
     /**
      * إظهار رسالة التوست العائمة
+     * يتم إلغاء أي مؤقتات توست سابقة حتى لا تتكدس الرسائل القديمة أو تختفي مبكراً
+     * @param {string} title 
+     * @param {string} message 
+     * @param {'confident'|'uncertain'|'rejected'|'arrival'|'info'} type 
      */
-    showToast(title, message) {
+    showToast(title, message, type = 'info') {
         const toast = document.getElementById('eco-toast-notification');
         const titleElem = document.getElementById('toast-title');
         const msgElem = document.getElementById('toast-message');
+        const iconElem = document.getElementById('toast-icon');
 
         if (!toast) return;
+
+        // إلغاء أي مؤقت توست نشط لتجنب التداخل والتلاشي المبكر
+        if (this._toastTimer) clearTimeout(this._toastTimer);
+        if (this._toastHideTimer) clearTimeout(this._toastHideTimer);
 
         if (titleElem) titleElem.textContent = title;
         if (msgElem) msgElem.textContent = message;
 
-        toast.classList.remove('hidden');
-        // تأخير قصير لتطبيق أنيميشن التلاشي
-        setTimeout(() => toast.classList.add('toast-show'), 10);
+        // تحديث أيقونة التوست
+        if (iconElem) {
+            if (type === 'confident') iconElem.textContent = '✅';
+            else if (type === 'uncertain') iconElem.textContent = '⚠️';
+            else if (type === 'rejected') iconElem.textContent = '❌';
+            else if (type === 'arrival') iconElem.textContent = '🎉';
+            else iconElem.textContent = '💡';
+        }
 
-        setTimeout(() => {
+        // تحديث الصنف اللوني حسب نوع التنبيه
+        toast.classList.remove('toast-confident', 'toast-uncertain', 'toast-rejected', 'toast-arrival');
+        if (type) toast.classList.add(`toast-${type}`);
+
+        toast.classList.remove('hidden');
+        requestAnimationFrame(() => toast.classList.add('toast-show'));
+
+        this._toastTimer = setTimeout(() => {
             toast.classList.remove('toast-show');
-            setTimeout(() => toast.classList.add('hidden'), 350);
-        }, 3800);
+            this._toastHideTimer = setTimeout(() => toast.classList.add('hidden'), 350);
+        }, 4000);
     }
 
     /**

@@ -1398,6 +1398,21 @@
     pointer-events: auto;
 }
 
+.toast-notification.toast-confident {
+    border-color: #10b981;
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.toast-notification.toast-uncertain {
+    border-color: #f59e0b;
+    box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.toast-notification.toast-rejected {
+    border-color: #ef4444;
+    box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
 .toast-icon {
     font-size: 1.4rem;
     flex-shrink: 0;

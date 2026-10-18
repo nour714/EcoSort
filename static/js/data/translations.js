@@ -156,6 +156,12 @@ const ECOSORT_TRANSLATIONS = {
         toastErrWasteTitle: "تنبيه: افحص المخلفات أولاً",
         toastErrWasteMsg: "يرجى فحص قطعة مخلفات في الخطوة 2 قبل الانتقال للخريطة.",
         toastSimulateDone: "تمت محاكاة المسار بنجاح!",
+        toastScanConfidentTitle: "تم الفحص بثقة عالية ✓",
+        toastScanConfidentMsg: "تم التعرف على: {item} بنسبة ثقة {confidence}%",
+        toastScanUncertainTitle: "تنبيه: ثقة متوسطة ⚠️",
+        toastScanUncertainMsg: "النتيجة: {item} بنسبة ثقة {confidence}%. يرجى التحقق أو اختيار الخامة يدوياً.",
+        toastScanRejectedTitle: "ثقة منخفضة / غير مؤكد ✕",
+        toastScanRejectedMsg: "نسبة الثقة {confidence}% أقل من حد القبول (45%). يرجى التحقق يدوياً أو التقاط صورة أوضح.",
 
         // Footer
         footerHtml: "نظام <strong>EcoSort</strong> الذكي &copy; 2026 - جامعة كفر الشيخ | كلية الذكاء الاصطناعي"
@@ -313,6 +319,12 @@ const ECOSORT_TRANSLATIONS = {
         toastErrWasteTitle: "Notice: Inspect Waste First",
         toastErrWasteMsg: "Please inspect a waste item in Step 2 before viewing the map.",
         toastSimulateDone: "Route simulation completed successfully!",
+        toastScanConfidentTitle: "High-Confidence Detection ✓",
+        toastScanConfidentMsg: "Identified: {item} with {confidence}% confidence",
+        toastScanUncertainTitle: "Medium Confidence Notice ⚠️",
+        toastScanUncertainMsg: "Predicted: {item} with {confidence}% confidence. Please verify or pick manually.",
+        toastScanRejectedTitle: "Low Confidence / Rejected ✕",
+        toastScanRejectedMsg: "Confidence {confidence}% is below threshold (45%). Please verify manually or retake a clearer photo.",
 
         // Footer
         footerHtml: "<strong>EcoSort</strong> Smart System &copy; 2026 - Kafrelsheikh University | Faculty of Artificial Intelligence"
