@@ -38,10 +38,10 @@ Universities face critical waste sorting challenges: recyclable items (plastics,
 
 - **Lightweight Thread-Safe Backend**: Python Flask application hosting a native Keras 3 model via a thread-safe singleton inference engine.
 - **Dual-Tier Reliability Guardrails**: Pre-inference statistical checks filter motion blur, under/overexposure, and blank captures before neural inference.
-- **Calibrated Confidence Gating**: Classifies predictions into `confident` ($\ge 75\%$, margin $\ge 20\%$), `uncertain`, or `rejected` ($< 45\%$) states.
-- **Client-Side Image Preprocessing**: Automatic EXIF orientation correction, client-side downscaling ($\le 1024\text{px}$), and alpha compositing over white backgrounds.
+- **Calibrated Confidence Gating**: Classifies predictions into `confident` (`P1 >= 75%`, `margin >= 20%`), `uncertain`, or `rejected` (`P1 < 45%`) states.
+- **Client-Side Image Preprocessing**: Automatic EXIF orientation correction, client-side downscaling (max 1024px), and alpha compositing over white backgrounds.
 - **Dynamic Graph Pathfinding**: Implementation of Dijkstra's algorithm and heuristic A* search over Kafrelsheikh University's 12-landmark pedestrian network with real-time rerouting when bins fill up.
-- **Guaranteed $O(n \log n)$ Bin Ranking**: Pure JavaScript Merge Sort ranks campus bins by walking distance.
+- **Guaranteed O(n log n) Bin Ranking**: Pure JavaScript Merge Sort ranks campus bins by walking distance.
 - **Complete Bilingual Interface**: Full Arabic (RTL) and English (LTR) language support across UI components, notices, and documentation.
 
 ---
@@ -94,7 +94,7 @@ The deployed baseline configuration was evaluated on 300 samples across the 6 st
 | **Expected Calibration Error (ECE)** | **0.0991** |
 | **Average Inference Latency** | **26.04 ms/sample** |
 | **Normalization Mode** | `[0, 1]` (`/255.0`) |
-| **Resize Strategy** | Direct Bilinear ($224 \times 224$) |
+| **Resize Strategy** | Direct Bilinear (224x224) |
 | **Test-Time Augmentation (TTA)** | Disabled (Production Default) |
 
 ### Per-Class Performance Table
@@ -147,9 +147,9 @@ Dual-threshold confidence gating isolates automated decisions from ambiguous or 
 
 | Decision State | Threshold Criteria | Sample Count | Coverage (%) | Selective Accuracy (%) |
 |---|---|---|---|---|
-| **`confident`** | $P_{(1)} \ge 75.0\%$ and $M \ge 20.0\%$ | 149 | 49.67% | **93.96%** |
-| **`uncertain`** | $45.0\% \le P_{(1)} < 75.0\%$ or $M < 20.0\%$ | 109 | 36.33% | 71.56% |
-| **`rejected`** | $P_{(1)} < 45.0\%$ | 42 | 14.00% | 64.29% |
+| **`confident`** | `P1 >= 75.0%` and `margin >= 20.0%` | 149 | 49.67% | **93.96%** |
+| **`uncertain`** | `45.0% <= P1 < 75.0%` or `margin < 20.0%` | 107 | 35.67% | 71.03% |
+| **`rejected`** | `P1 < 45.0%` or `image_empty_or_flat` | 44 | 14.67% | 65.91% |
 | **Overall** | — | 300 | 100.0% | 81.67% |
 
 Within the automated `confident` partition, accuracy reaches **93.96%**, effectively suppressing erroneous routing actions.
@@ -160,10 +160,10 @@ Statistical descriptors evaluated on a 128x128 grayscale thumbnail prior to neur
 
 | Threshold Constant | Config Variable | Default Value | Condition & Warning |
 |---|---|---|---|
-| `BLUR_VAR_MIN` | `BLUR_VAR_MIN` | `35.0` | Laplacian variance $< 35.0 \implies \text{image\_blurry}$ |
-| `DARK_MEAN_MAX` | `DARK_MEAN_MAX` | `30.0` | Mean intensity $< 30.0 \implies \text{image\_too\_dark}$ |
-| `BRIGHT_MEAN_MIN` | `BRIGHT_MEAN_MIN` | `230.0` | Mean intensity $> 230.0 \implies \text{image\_too\_bright}$ |
-| `FLAT_STD_MIN` | `FLAT_STD_MIN` | `15.0` | Standard deviation $< 15.0 \implies \text{image\_empty\_or\_flat}$ |
+| `BLUR_VAR_MIN` | `BLUR_VAR_MIN` | `35.0` | Laplacian variance < 35.0 -> `image_blurry` |
+| `DARK_MEAN_MAX` | `DARK_MEAN_MAX` | `30.0` | Mean intensity < 30.0 -> `image_too_dark` |
+| `BRIGHT_MEAN_MIN` | `BRIGHT_MEAN_MIN` | `230.0` | Mean intensity > 230.0 -> `image_too_bright` |
+| `FLAT_STD_MIN` | `FLAT_STD_MIN` | `15.0` | Standard deviation < 15.0 -> `image_empty_or_flat` |
 
 ---
 
@@ -172,7 +172,7 @@ Statistical descriptors evaluated on a 128x128 grayscale thumbnail prior to neur
 > [!WARNING]
 > **Dataset Provenance**: The 300 benchmark samples originate from the standard TrashNet dataset. The exact train/test split of the original legacy `models/model.keras` cannot be independently verified; therefore, these metrics reflect in-distribution performance and should be considered optimistic upper bounds.
 >
-> **Domain Shift on Campus**: Real-world smartphone captures in cafeteria and hallway lighting differ substantially from clean, white-background laboratory datasets. Literature indicates an expected drop of 15–30 percentage points on wild domain shifts.
+> **Domain Shift on Campus**: Real-world smartphone captures in cafeteria and hallway lighting differ substantially from clean, white-background laboratory datasets. Performance on real campus photos is likely lower; evaluate with `data/campus_photos/`.
 >
 > **Campus Photo Collection**: To validate real-world performance, a dedicated directory structure has been created in `data/campus_photos/`. Once local photos are deposited, run:
 > ```bash
@@ -190,17 +190,16 @@ EcoSort models Kafrelsheikh University campus as a weighted, directed graph span
 | Dimension | Dijkstra's Algorithm | A* Search Algorithm |
 |---|---|---|
 | **Search Strategy** | Uniform Cost Search (uninformed) | Best-First Search with Admissible Heuristic |
-| **Cost Formulation** | $f(n) = g(n)$ | $f(n) = g(n) + h(n)$ |
-| **Heuristic Function** | None ($h(n) = 0$) | Euclidean distance to target bin |
+| **Cost Formulation** | `f(n) = g(n)` | `f(n) = g(n) + h(n)` |
+| **Heuristic Function** | None (`h(n) = 0`) | Euclidean distance to target bin |
 | **Exploration Pattern** | Radial, uniform in all directions | Directed ellipse toward destination |
-| **Visited Nodes** | 100% of reachable perimeter | 40%–60% fewer visited nodes |
-| **Shortest Path Optimality** | Guaranteed optimal | Guaranteed optimal ($h(n)$ is admissible) |
-| **Time Complexity** | $O((V + E) \log V)$ with priority queue | $O(b^d)$ worst case; approaches $O(d)$ |
+| **Shortest Path Optimality** | Guaranteed optimal | Guaranteed optimal (`h(n)` is admissible) |
+| **Time Complexity** | `O((V + E) log V)` with priority queue | `O(b^d)` worst case; approaches `O(d)` |
 
 ### Merge Sort for Distance Ranking
 To display all candidate bins campus-wide in strictly ascending order:
 - **Paradigm**: Divide and Conquer (bisect list, sort sub-lists, merge linearly).
-- **Time Complexity**: Guaranteed $\Theta(n \log n)$ across worst, average, and best cases.
+- **Time Complexity**: Guaranteed `O(n log n)` across worst, average, and best cases.
 - **Stability**: Stable sorting preserves the geographical index order of equidistant bins.
 
 ---
@@ -281,80 +280,64 @@ EcoSort/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                     # GitHub Actions CI workflow (lint + test)
-├── config.py                          # Centralized configuration with env overrides
-├── wsgi.py                            # Production WSGI application entrypoint
 ├── app.py                             # Flask application routes (/predict, /health)
-├── pyproject.toml                     # Ruff linter and tool configuration
-├── requirements.txt                   # Production dependencies
-├── requirements-dev.txt               # Development & testing dependencies
-├── Dockerfile                         # Production multi-stage Docker container
-├── docker-compose.yml                 # Local Docker Compose setup
-├── .env.example                       # Environment configuration template
-├── model.keras                        # Pre-trained deep learning CNN model
+├── wsgi.py                            # Production WSGI application entrypoint
 ├── ecosort/                           # Core Python backend package
 │   ├── __init__.py
-│   ├── inference.py                   # Thread-safe model singleton engine
-│   ├── preprocess.py                  # EXIF correction, quality checks, scaling
-│   ├── gating.py                      # 3-tier confidence gating logic
-│   └── knowledge.py                   # Environmental IR & carbon savings registry
+│   ├── config.py                      # Centralized configuration with env overrides
+│   ├── inference.py                   # Thread-safe model singleton engine & gating
+│   ├── knowledge.py                   # Environmental IR & carbon savings registry
+│   └── preprocess.py                  # EXIF correction, quality checks, scaling
+├── models/
+│   └── model.keras                    # Pre-trained deep learning CNN model
 ├── data/
-│   └── campus_photos/                 # Real-world campus benchmark dataset structure
+│   ├── README.md                      # Dataset documentation and evaluation guide
+│   ├── benchmark/                     # 300 TrashNet evaluation samples across 6 classes
+│   └── campus_photos/                 # Real-world campus photographs
 │       ├── README.md                  # Collection instructions & domain shift guide
-│       ├── cardboard/
-│       ├── glass/
-│       ├── metal/
-│       ├── paper/
-│       ├── plastic/
-│       └── trash/
+│       └── {cardboard,glass,metal,paper,plastic,trash}/
 ├── docs/
 │   ├── DEFENSE_GUIDE.md               # Academic viva defense questions & answers
 │   ├── THRESHOLDS.md                  # Statistical & confidence thresholds reference
 │   └── metrics/
-│       ├── per_class_metrics.json     # Complete verified baseline metrics
 │       ├── ab_experiments.json        # Systematic A/B experiments log
-│       ├── confusion_matrix.png       # Generated confusion matrix heatmap
-│       └── coverage_curve.png         # Generated selective risk-coverage curve
+│       └── per_class_metrics.json     # Complete verified baseline metrics
 ├── scripts/
 │   ├── download_dataset.py            # Dataset acquisition utility
 │   ├── evaluate.py                    # Comprehensive benchmarking script
 │   └── run_experiments.py             # Systematic A/B experiment runner
 ├── static/
+│   ├── assets/images/                 # Favicons, icons, and branding
 │   ├── css/
-│   │   ├── style.css                  # Core CSS & layout definitions
 │   │   ├── components.css             # UI components, modals, toasts
 │   │   ├── responsive.css             # Mobile-first media queries
+│   │   ├── style.css                  # Core CSS & layout definitions
 │   │   └── utilities.css              # Logical properties & RTL utilities
-│   ├── js/
-│   │   ├── app.js                     # Main application coordinator
-│   │   ├── algorithms/
-│   │   │   ├── dijkstra.js            # Dijkstra shortest path implementation
-│   │   │   ├── a-star.js              # A* search with Euclidean heuristic
-│   │   │   └── merge-sort.js          # Merge sort bin distance ranking
-│   │   ├── data/
-│   │   │   ├── campus-graph.js        # 12-landmark campus topology & coordinates
-│   │   │   ├── translations.js        # Comprehensive Arabic/English dictionaries
-│   │   │   └── waste-database.js      # Waste items, resin codes, instructions
-│   │   └── modules/
-│   │       ├── vision-module.js       # Client CV coordinator & /predict client
-│   │       ├── search-ir.js           # Client-side IR & instant search
-│   │       ├── graph-canvas.js        # Interactive HTML5 graph rendering
-│   │       └── evaluation-ui.js       # Academic algorithm benchmark panels
-│   └── assets/
-│       └── images/                    # Favicons, icons, and branding
+│   └── js/                            # Client-side routing, algorithms, and CV modules
 ├── templates/
 │   └── index.html                     # Responsive single-page application wizard
 ├── tests/
 │   ├── conftest.py                    # Pytest test fixtures
 │   ├── test_api.py                    # Flask API endpoint test cases
-│   ├── test_preprocess.py             # Preprocessing & image quality checks
 │   ├── test_gating.py                 # Confidence gating threshold tests
 │   ├── test_knowledge_consistency.py  # IR dictionary consistency tests
+│   ├── test_preprocess.py             # Preprocessing & image quality checks
 │   ├── test_readme_metrics.py         # Regression test preventing metric drift
-│   ├── test_thresholds_consistency.py # Reference documentation sync tests
-│   └── test_regression.py             # End-to-end model regression verification
-└── training/
-    ├── README.md                      # Transfer learning documentation
-    └── train_transfer.py              # Two-stage MobileNetV2 / EfficientNet training
+│   ├── test_regression.py             # End-to-end model regression verification
+│   └── test_thresholds_consistency.py # Reference documentation sync tests
+├── training/
+│   ├── README.md                      # Transfer learning documentation
+│   └── train_transfer.py              # Two-stage MobileNetV2 / EfficientNet training
+├── .dockerignore
+├── .env.example                       # Environment configuration template
+├── .gitignore
+├── Dockerfile                         # Production multi-stage Docker container
+├── docker-compose.yml                 # Local Docker Compose setup
+├── LICENSE
+├── pyproject.toml                     # Ruff linter and tool configuration
+├── README.md
+├── requirements.txt                   # Production dependencies
+└── requirements-dev.txt               # Development & testing dependencies
 ```
 </details>
 
@@ -410,7 +393,7 @@ ruff check .
 pytest -v
 ```
 
-All 20 test cases pass deterministically in under 2 seconds.
+All 21 test cases pass deterministically in under 2 seconds.
 
 ---
 
