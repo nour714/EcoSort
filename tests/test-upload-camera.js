@@ -119,6 +119,41 @@ console.assert(analysisResult.inferenceTimeMs > 0, 'زمن الاستدلال ي
 
 console.log(`✅ التحليل البصري للهيستوجرام اللوني صنف الصورة بدقة إلى: ${analysisResult.item.name} (${analysisResult.confidence}%)`);
 
+console.log('\n--- 5. اختبار استدعاء TensorFlow.js و MobileNet عبر الـ CDN ---');
+console.assert(html.includes('@tensorflow/tfjs'), 'يجب استدعاء مكتبة TensorFlow.js في index.html');
+console.assert(html.includes('@tensorflow-models/mobilenet'), 'يجب استدعاء مكتبة MobileNet في index.html');
+console.log('✅ تم التحقق من استدعاء سكريبتات TensorFlow.js و MobileNet عبر CDN!');
+
+console.log('\n--- 6. اختبار خريطة مطابقة تنبؤات MobileNet الذكية (MobileNet Mapping) ---');
+const testPredictions = [
+    { predictions: [{ className: 'water bottle', probability: 0.95 }], expectedId: 'pet_bottle' },
+    { predictions: [{ className: 'plastic pop bottle, soda bottle', probability: 0.91 }], expectedId: 'pet_bottle' },
+    { predictions: [{ className: 'lotion, shampoo dispenser', probability: 0.88 }], expectedId: 'hdpe_container' },
+    { predictions: [{ className: 'beer can, soda can', probability: 0.93 }], expectedId: 'alu_can' },
+    { predictions: [{ className: 'cardboard carton, box', probability: 0.94 }], expectedId: 'cardboard_box' }
+];
+
+testPredictions.forEach(({ predictions, expectedId }) => {
+    const mapped = vision.mapMobileNetPredictions(predictions);
+    console.assert(mapped && mapped.item && mapped.item.id === expectedId, `التنبؤ "${predictions[0].className}" يجب أن يُطابق ${expectedId}`);
+    console.assert(mapped.confidence >= 75 && mapped.confidence <= 99.9, 'نسبة الثقة يجب أن تتوافق مع احتمالية الموديل');
+});
+console.log('✅ جميع قواعد مطابقة تنبؤات MobileNet لفئات النفايات تعمل بدقة 100%!');
+
+console.log('\n--- 7. اختبار خط الدفاع الثاني: فحص اسم الملف (Filename Fallback) ---');
+const filenameTests = [
+    { fn: 'fresh_shampoo_bottle.jpg', expectedId: 'hdpe_container' },
+    { fn: 'pepsi_can_drink.png', expectedId: 'alu_can' },
+    { fn: 'shipping_carton_box.webp', expectedId: 'cardboard_box' },
+    { fn: 'fresh_apple_food_waste.jpeg', expectedId: 'organic_food' }
+];
+
+filenameTests.forEach(({ fn, expectedId }) => {
+    const fnResult = vision.classifyByFilename(fn);
+    console.assert(fnResult && fnResult.item && fnResult.item.id === expectedId, `الملف "${fn}" يجب أن يصنف كـ ${expectedId}`);
+});
+console.log('✅ محرك الكلمات المفتاحية لاسم الملف يعمل بنجاح كخط دفاع ثانٍ!');
+
 console.log('\n======================================================');
-console.log('✅ كافة اختبارات الرفع والتصوير والكاميرا نجحت 100%!');
+console.log('✅ كافة اختبارات الرفع والتصوير ونموذج MobileNet نجحت 100%!');
 console.log('======================================================');
