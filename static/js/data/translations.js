@@ -207,7 +207,18 @@ const ECOSORT_TRANSLATIONS = {
         toastCameraDeniedTitle: "تعذّر الوصول للكاميرا",
         toastCameraDeniedMsg: "يرجى السماح بالوصول للكاميرا من إعدادات المتصفح أو رفع صورة من الجهاز.",
         toastNetworkErrTitle: "خطأ في الاتصال بالخادم",
-        toastNetworkErrMsg: "تعذّر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والمحاولة مجدداً."
+        toastNetworkErrMsg: "تعذّر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والمحاولة مجدداً.",
+
+        // الفوتر وتيسير الاستخدام
+        footerHtml: "نظام <strong>EcoSort</strong> الذكي &copy; 2026 - جامعة كفر الشيخ | كلية الذكاء الاصطناعي",
+        btnBackToScan: "العودة للفحص",
+        scanErrorTitle: "تعذّر فحص الصورة",
+        scanErrorDesc: "حدث خطأ أثناء معالجة الصورة أو الاتصال بالخادم. يرجى المحاولة مرة أخرى.",
+        btnRetry: "إعادة المحاولة",
+        candidatePrompt: "هل هذه القطعة {material}؟ اضغط للتأكيد:",
+        continueWithLocPrefix: "متابعة من: ",
+        savedLocBannerPrefix: "موقعك الحالي المحدد: ",
+        canvasTextAlt: "خريطة تفاعلية توضح ممرات الحرم الجامعي والحاويات المتاحة وأقصر مسار سير."
     },
 
     en: {
@@ -409,7 +420,18 @@ const ECOSORT_TRANSLATIONS = {
         toastCameraDeniedTitle: "Camera Access Denied",
         toastCameraDeniedMsg: "Please allow camera access in browser settings or upload an image file.",
         toastNetworkErrTitle: "Server Connection Error",
-        toastNetworkErrMsg: "Could not reach the server. Please verify the server is running and try again."
+        toastNetworkErrMsg: "Could not reach the server. Please verify the server is running and try again.",
+
+        // Footer & Accessibility
+        footerHtml: "Smart <strong>EcoSort</strong> System &copy; 2026 - Kafrelsheikh University | Faculty of AI",
+        btnBackToScan: "Back to Inspection",
+        scanErrorTitle: "Could Not Inspect Image",
+        scanErrorDesc: "An error occurred while processing the image or contacting the server. Please try again.",
+        btnRetry: "Try Again",
+        candidatePrompt: "Is this item {material}? Tap to confirm:",
+        continueWithLocPrefix: "Continue from: ",
+        savedLocBannerPrefix: "Your current location: ",
+        canvasTextAlt: "Interactive map displaying campus walkways, available containers, and the shortest walking path."
     }
 };
 

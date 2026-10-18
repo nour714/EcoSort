@@ -20,12 +20,14 @@ class EcoSortApp {
 
     constructor() {
         // إدارة حالة المعالج (Wizard State)
-        this.currentStep = 1;                   // الخطوة الحالية (1, 2, 3)
-        this.currentLocation = null;            // معرف الموقع المختار
-        this.currentWasteType = null;           // نوع الخامة (يحدد بعد الفحص)
-        this.currentWasteItem = null;           // كائن المادة المكتشفة
-        this.activeAlgorithm = 'dijkstra';      // الخوارزمية النشطة
+        this.currentStep = 1;                                                    // الخطوة الحالية (1: الفحص، 2: الموقع، 3: المسار)
+        this.currentLocation = localStorage.getItem('ecosort_user_location') || null; // معرف الموقع المحفوظ
+        this.currentWasteType = null;                                            // نوع الخامة (يحدد بعد الفحص)
+        this.currentWasteItem = null;                                            // كائن المادة المكتشفة
+        this.activeAlgorithm = 'dijkstra';                                       // الخوارزمية النشطة
         this.selectedNodeForModal = null;
+        this.lastUploadedFile = null;
+        this.lastActiveElement = null;
 
         // حالات البحث والتصفية للخطوة الأولى
         this.activeCategoryFilter = 'all';
@@ -82,31 +84,48 @@ class EcoSortApp {
         this.bindStep3Controls();
         this.bindModalControls();
         this.bindLanguageSwitcher();
+        this.initHashNavigation();
 
-        // 6. تطبيق اللغة الحالية
+        // 5. تطبيق اللغة الحالية وتحديث البانر
         this.applyLanguage(this.currentLang);
+        this.updateStep1SavedLocationBanner();
     }
 
     /**
      * الانتقال بين الخطوات المتسلسلة (Wizard Stepper Transition)
      */
-    goToStep(stepNumber) {
+    goToStep(stepNumber, updateHash = true) {
         if (stepNumber < 1 || stepNumber > 3) return;
 
-        // التحقق من تحديد الموقع قبل الانتقال للخطوة 2 أو 3
-        if (stepNumber > 1 && !this.currentLocation) {
-            this.showToast('اختر موقعك أولاً', 'يرجى اختيار موقعك الحالي داخل الجامعة للمتابعة.');
-            return;
-        }
-
         // التحقق من فحص وتحديد نوع المخلفات قبل الانتقال للخطوة 3
-        if (stepNumber === 3 && !this.currentWasteItem) {
-            this.showToast('افحص المخلفات أولاً', 'يرجى التقاط صورة أو رفع صورة للمخلفات للتعرف عليها وتحديد أقرب حاوية.');
-            return;
+        if (stepNumber === 3) {
+            if (!this.currentWasteItem) {
+                const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+                this.showToast(t.toastErrWasteTitle || 'افحص المخلفات أولاً', t.toastErrWasteMsg || 'يرجى التقاط صورة أو اختيار خامة لتحديد أقرب حاوية.');
+                return;
+            }
+            if (!this.currentLocation) {
+                // إذا لم يتم تحديد الموقع بعد، يتم التوجيه إلى شاشة اختيار الموقع
+                this.goToStep(2, updateHash);
+                return;
+            }
         }
 
         this.currentStep = stepNumber;
         this.stopCameraStream();
+
+        // تحديث عنوان الـ Hash لدعم أزرار الرجوع والتقدم بالمتصفح
+        if (updateHash) {
+            const hashes = { 1: '#scan', 2: '#location', 3: '#route' };
+            const targetHash = hashes[stepNumber] || '#scan';
+            if (window.location.hash !== targetHash) {
+                try {
+                    window.history.pushState(null, '', targetHash);
+                } catch (_) {
+                    window.location.hash = targetHash;
+                }
+            }
+        }
 
         // 1. تحديث شريط التقدم (Stepper Indicators)
         for (let s = 1; s <= 3; s++) {
@@ -114,6 +133,8 @@ class EcoSortApp {
             if (!indicator) continue;
 
             indicator.classList.remove('active', 'completed');
+            indicator.setAttribute('aria-selected', s === stepNumber ? 'true' : 'false');
+            indicator.setAttribute('tabindex', s === stepNumber ? '0' : '-1');
             if (s === stepNumber) {
                 indicator.classList.add('active');
             } else if (s < stepNumber) {
@@ -139,12 +160,32 @@ class EcoSortApp {
             }
         }
 
-        // التمرير لأعلى الصفحة بنعومة
+        // التمرير لأعلى الصفحة بنعومة (B8)
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
+        // إعلان قارئات الشاشة وإدارة التركيز (B8 & WCAG 2.1 AA)
+        const announcer = document.getElementById('step-announcer');
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+        const stepTitles = {
+            1: t.step1NavTitle || 'الفحص والتصنيف',
+            2: t.step2NavTitle || 'الموقع في الحرم',
+            3: t.step3NavTitle || 'المسار والحاوية'
+        };
+        if (announcer) {
+            announcer.textContent = `${this.currentLang === 'en' ? 'Step' : 'الخطوة'} ${stepNumber}: ${stepTitles[stepNumber]}`;
+        }
+
+        const heading = document.getElementById(`step-${stepNumber}-title`);
+        if (heading) {
+            heading.setAttribute('tabindex', '-1');
+            heading.focus({ preventScroll: true });
+        }
+
         // 3. إجراءات مخصصة عند فتح الشاشات
-        if (stepNumber === 2) {
-            this.updateStep2LocationBadge();
+        if (stepNumber === 1) {
+            this.updateStep1SavedLocationBanner();
+        } else if (stepNumber === 2) {
+            this.updateStep2LocationUI();
         } else if (stepNumber === 3) {
             this.updateStep3RouteContext();
             setTimeout(() => {
@@ -158,7 +199,89 @@ class EcoSortApp {
     }
 
     /**
-     * توليد بطاقات الكليات والمعالم في الشاشة الأولى (Step 1) مع دعم التصفية والبحث
+     * دعم التنقل عبر روابط الهاش (Hash Navigation: #scan, #location, #route)
+     */
+    initHashNavigation() {
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.toLowerCase();
+            if (hash === '#location') {
+                this.goToStep(2, false);
+            } else if (hash === '#route') {
+                if (this.currentWasteItem) {
+                    this.goToStep(3, false);
+                } else {
+                    this.goToStep(1, false);
+                }
+            } else if (hash === '#scan' || hash === '') {
+                this.goToStep(1, false);
+            }
+        });
+
+        const initHash = window.location.hash.toLowerCase();
+        if (initHash === '#location') {
+            this.goToStep(2, false);
+        } else if (initHash === '#route') {
+            if (this.currentWasteItem) {
+                this.goToStep(3, false);
+            }
+        }
+    }
+
+    /**
+     * تحديث شريط الموقع المحفوظ في الشاشة الأولى
+     */
+    updateStep1SavedLocationBanner() {
+        const banner = document.getElementById('step1-saved-location-banner');
+        const textElem = document.getElementById('step1-saved-location-text');
+        if (!banner) return;
+
+        if (this.currentLocation) {
+            const node = this.graph.getNode(this.currentLocation);
+            if (node) {
+                const isEn = this.currentLang === 'en';
+                const displayName = isEn ? (node.nameEn || node.name) : node.name;
+                if (textElem) textElem.textContent = displayName;
+                banner.style.display = 'flex';
+                return;
+            }
+        }
+        banner.style.display = 'none';
+    }
+
+    /**
+     * تحديث واجهة الخطوة الثانية (اختيار الموقع)
+     */
+    updateStep2LocationUI() {
+        this.renderLocationCards(this.activeCategoryFilter, this.searchQuery);
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+        const isEn = this.currentLang === 'en';
+        const hint = document.getElementById('selected-location-hint');
+        const btnNext = document.getElementById('btn-go-to-step-3');
+        const btnNextText = document.getElementById('btn-go-to-step-3-text');
+
+        if (this.currentLocation) {
+            const node = this.graph.getNode(this.currentLocation);
+            if (node) {
+                const displayName = isEn ? (node.nameEn || node.name) : node.name;
+                if (hint) {
+                    const prefix = t.hintSelectedPrefix || (isEn ? 'Selected Location: ' : 'الموقع المختار: ');
+                    hint.innerHTML = `${prefix}<strong class="text-emerald-700">${displayName}</strong> &check;`;
+                }
+                if (btnNext) btnNext.disabled = false;
+                if (btnNextText) {
+                    btnNextText.textContent = `${t.btnContinueToRoute || 'متابعة إلى المسار الأقرب'} (${displayName})`;
+                }
+                return;
+            }
+        }
+
+        if (btnNext) btnNext.disabled = true;
+        if (hint) hint.textContent = t.hintNoLocation || 'لم يتم تحديد موقع بعد';
+        if (btnNextText) btnNextText.textContent = t.btnContinueToRoute || 'متابعة إلى المسار الأقرب';
+    }
+
+    /**
+     * توليد بطاقات الكليات والمعالم في الشاشة الثانية (Step 2) مع دعم التصفية والبحث
      */
     renderLocationCards(filterCategory = this.activeCategoryFilter, searchQuery = this.searchQuery) {
         const grid = document.getElementById('location-cards-grid');
@@ -264,6 +387,9 @@ class EcoSortApp {
      */
     selectLocation(nodeId) {
         this.currentLocation = nodeId;
+        try {
+            localStorage.setItem('ecosort_user_location', nodeId);
+        } catch (_) {}
         const node = this.graph.getNode(nodeId);
 
         // تحديث المظهر المرئي للبطاقات
@@ -274,19 +400,31 @@ class EcoSortApp {
             c.setAttribute('aria-checked', isMatch ? 'true' : 'false');
         });
 
-        // تفعيل زر التالي
-        const btnNext = document.getElementById('btn-go-to-step-2');
+        // تفعيل زر التالي وتحديث نصه باسم الكلية
+        const btnNext = document.getElementById('btn-go-to-step-3');
+        const btnNextText = document.getElementById('btn-go-to-step-3-text');
+        const isEn = this.currentLang === 'en';
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+        const displayName = node ? (isEn ? (node.nameEn || node.name) : node.name) : '';
+
         if (btnNext) {
             btnNext.disabled = false;
+        }
+        if (btnNextText && displayName) {
+            btnNextText.textContent = `${t.btnContinueToRoute || 'متابعة إلى المسار الأقرب'} (${displayName})`;
         }
 
         const hint = document.getElementById('selected-location-hint');
         if (hint && node) {
-            const isEn = this.currentLang === 'en';
-            const displayName = isEn ? (node.nameEn || node.name) : node.name;
-            const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
             const prefix = t.hintSelectedPrefix || (isEn ? 'Selected Location: ' : 'الموقع المختار: ');
             hint.innerHTML = `${prefix}<strong class="text-emerald-700">${displayName}</strong> &check;`;
+        }
+
+        this.updateStep1SavedLocationBanner();
+        this.updateStep3RouteContext();
+
+        if (this.currentStep === 3) {
+            this.recalculateRoute();
         }
     }
 
@@ -294,52 +432,117 @@ class EcoSortApp {
      * ربط أزرار التنقل الأساسية بين الشاشات
      */
     bindWizardNavigation() {
-        // الشاشة 1 -> الشاشة 2
-        const btnGoStep2 = document.getElementById('btn-go-to-step-2');
-        if (btnGoStep2) {
-            btnGoStep2.addEventListener('click', () => this.goToStep(2));
+        // شريط الخطوات العلوي (Stepper Tabs)
+        for (let s = 1; s <= 3; s++) {
+            const ind = document.getElementById(`stepper-step-${s}`);
+            if (ind) {
+                ind.addEventListener('click', () => this.goToStep(s));
+                ind.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.goToStep(s);
+                    }
+                });
+            }
         }
 
-        // الشاشة 2 -> الشاشة 1 (تغيير الموقع)
-        const btnBackStep1 = document.getElementById('btn-back-to-step-1');
-        const btnChangeLocStep2 = document.getElementById('btn-change-location-step2');
-        if (btnBackStep1) btnBackStep1.addEventListener('click', () => this.goToStep(1));
-        if (btnChangeLocStep2) btnChangeLocStep2.addEventListener('click', () => this.goToStep(1));
+        // شاشة البداية 1: زرا البداية السريعة
+        const btnHeroScan = document.getElementById('btn-hero-scan');
+        if (btnHeroScan) {
+            btnHeroScan.addEventListener('click', () => {
+                const dropzone = document.getElementById('cv-dropzone');
+                if (dropzone) {
+                    dropzone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                this.startCameraStream();
+            });
+        }
 
-        // الشاشة 2 -> الشاشة 3
+        const btnHeroFindBin = document.getElementById('btn-hero-find-bin');
+        if (btnHeroFindBin) {
+            btnHeroFindBin.addEventListener('click', () => this.goToStep(2));
+        }
+
+        // الشاشة 1: تغيير الموقع المحفوظ
+        const btnChangeLoc1 = document.getElementById('btn-change-location-step1');
+        if (btnChangeLoc1) {
+            btnChangeLoc1.addEventListener('click', () => this.goToStep(2));
+        }
+
+        // الشاشة 1: إظهار الخريطة وأقرب حاوية بعد الفحص
+        const btnGoRoute = document.getElementById('btn-go-to-route');
+        if (btnGoRoute) {
+            btnGoRoute.addEventListener('click', () => {
+                const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+                if (!this.currentWasteItem) {
+                    this.showToast(t.toastErrWasteTitle || 'افحص المخلفات أولاً', t.toastErrWasteMsg || 'يرجى التقاط صورة أو اختيار خامة لتحديد أقرب حاوية.', 'uncertain');
+                    return;
+                }
+                if (!this.currentLocation) {
+                    this.goToStep(2);
+                } else {
+                    this.goToStep(3);
+                }
+            });
+        }
+
+        // الشاشة 2: العودة للفحص والمتابعة للمسار
+        const btnBackStep1 = document.getElementById('btn-back-to-step-1');
+        if (btnBackStep1) btnBackStep1.addEventListener('click', () => this.goToStep(1));
+
         const btnGoStep3 = document.getElementById('btn-go-to-step-3');
         if (btnGoStep3) {
-            btnGoStep3.addEventListener('click', () => this.goToStep(3));
+            btnGoStep3.addEventListener('click', () => {
+                const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+                if (!this.currentLocation) {
+                    this.showToast(t.toastErrLocTitle || 'حدد موقعك أولاً', t.toastErrLocMsg || 'يرجى اختيار الكلية أو المنشأة التي تتواجد بها حالياً.', 'uncertain');
+                    return;
+                }
+                if (!this.currentWasteItem) {
+                    this.goToStep(1);
+                    this.showToast(t.toastErrWasteTitle || 'افحص المخلفات أولاً', t.toastErrWasteMsg || 'يرجى التقاط صورة أو اختيار خامة لتحديد أقرب حاوية.', 'uncertain');
+                    return;
+                }
+                this.goToStep(3);
+            });
         }
 
-        // الشاشة 3 -> الشاشة 2 (فحص قطعة أخرى)
-        const btnBackStep2 = document.getElementById('btn-back-to-step-2');
-        const btnRescanStep3 = document.getElementById('btn-rescan-step3');
-        if (btnBackStep2) btnBackStep2.addEventListener('click', () => this.goToStep(2));
-        if (btnRescanStep3) btnRescanStep3.addEventListener('click', () => this.goToStep(2));
+        // الشاشة 3: تغيير الموقع، فحص قطعة أخرى، وبدء دليل المشي
+        const btnChangeLoc3 = document.getElementById('btn-change-location-step3');
+        if (btnChangeLoc3) btnChangeLoc3.addEventListener('click', () => this.goToStep(2));
 
-        // الشاشة 3 -> الشاشة 1 (البدء من جديد)
+        const btnRescanStep3 = document.getElementById('btn-rescan-step3');
+        if (btnRescanStep3) btnRescanStep3.addEventListener('click', () => this.goToStep(1));
+
+        const btnStartWalk = document.getElementById('btn-start-walking-guide');
+        if (btnStartWalk) {
+            btnStartWalk.addEventListener('click', () => this.handleSimulateRouteClick());
+        }
+
         const btnRestartStep1 = document.getElementById('btn-restart-step-1');
         if (btnRestartStep1) btnRestartStep1.addEventListener('click', () => this.goToStep(1));
+
+        const btnScanAnotherBottom = document.getElementById('btn-scan-another-bottom');
+        if (btnScanAnotherBottom) btnScanAnotherBottom.addEventListener('click', () => this.goToStep(1));
     }
 
     /**
-     * ربط أدوات الشاشة 1 (البحث، الفئات، ومحاكاة GPS)
+     * ربط أدوات الشاشة 2 (البحث، الفئات، ومحاكاة الموقع التقريبي)
      */
     bindStep1Controls() {
-        // محاكاة GPS الحقيقي والتمركز الذكي
+        // محاكاة الموقع التقريبي بالحرم الجامعي
         const btnGps = document.getElementById('btn-gps-simulate');
         if (btnGps) {
             btnGps.addEventListener('click', () => {
                 const isEn = this.currentLang === 'en';
                 btnGps.innerHTML = `
                     <span class="gps-pulse-ring"></span>
-                    <span>${isEn ? 'Locating on campus via GPS...' : 'جارِ الاتصال بالأقمار وتحديد موقعك بالحرم...'}</span>
+                    <span>${isEn ? 'Locating on campus...' : 'جارِ تحديد موقعك بالحرم...'}</span>
                 `;
                 btnGps.disabled = true;
 
                 setTimeout(() => {
-                    const sampleColleges = ['ai', 'eng', 'pharmacy', 'science', 'fci'];
+                    const sampleColleges = ['ai', 'eng', 'pharmacy', 'sci', 'fci'];
                     const pickedId = sampleColleges[Math.floor(Math.random() * sampleColleges.length)];
                     this.selectLocation(pickedId);
                     const node = this.graph.getNode(pickedId);
@@ -357,11 +560,25 @@ class EcoSortApp {
             });
         }
 
-        // البحث النصي في الكليات
+        // البحث النصي في الكليات مع زر المسح السريع
         const searchInput = document.getElementById('location-search-input');
+        const btnClearSearch = document.getElementById('btn-clear-search');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 this.searchQuery = e.target.value;
+                if (btnClearSearch) {
+                    btnClearSearch.classList.toggle('hidden', this.searchQuery.length === 0);
+                }
+                this.renderLocationCards(this.activeCategoryFilter, this.searchQuery);
+            });
+        }
+
+        if (btnClearSearch && searchInput) {
+            btnClearSearch.addEventListener('click', () => {
+                searchInput.value = '';
+                this.searchQuery = '';
+                btnClearSearch.classList.add('hidden');
+                searchInput.focus();
                 this.renderLocationCards(this.activeCategoryFilter, this.searchQuery);
             });
         }
@@ -405,6 +622,8 @@ class EcoSortApp {
                 const wasteId = e.target.value;
                 manualSelect.classList.remove('highlight-pulse');
                 this.visionModule.selectPreset(wasteId);
+                const btnGoRoute = document.getElementById('btn-go-to-route');
+                if (btnGoRoute) btnGoRoute.disabled = false;
             });
         }
 
@@ -414,6 +633,19 @@ class EcoSortApp {
             btnBannerRetry.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.startCameraStream();
+            });
+        }
+
+        // زر إعادة المحاولة داخل بطاقة الخطأ
+        const btnScanErrorRetry = document.getElementById('btn-scan-error-retry');
+        if (btnScanErrorRetry) {
+            btnScanErrorRetry.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (this.lastUploadedFile) {
+                    this.processUploadedFile(this.lastUploadedFile);
+                } else if (fileInput) {
+                    fileInput.click();
+                }
             });
         }
 
@@ -520,7 +752,7 @@ class EcoSortApp {
 
         // دعم لصق الصور مباشرة من الحافظة (Ctrl+V / Paste)
         document.addEventListener('paste', (e) => {
-            if (this.currentStep !== 2) return;
+            if (this.currentStep !== 1) return;
             if (e.clipboardData && e.clipboardData.items) {
                 for (const item of e.clipboardData.items) {
                     if (item.type.startsWith('image/')) {
@@ -635,10 +867,26 @@ class EcoSortApp {
 
     async processUploadedFile(file) {
         this.stopCameraStream();
+        this.lastUploadedFile = file;
+
         const dropzone = document.getElementById('cv-dropzone');
         const previewContainer = document.getElementById('cv-image-preview-container');
         const placeholder = document.getElementById('cv-upload-placeholder');
         const previewImg = document.getElementById('cv-uploaded-image');
+
+        const skeletonCard = document.getElementById('card-inspection-skeleton');
+        const errorCard = document.getElementById('card-inspection-error');
+        const resultCard = document.getElementById('card-inspection-result');
+        const awaitingNotice = document.getElementById('awaiting-scan-notice');
+
+        // إظهار بطاقة التحميل الهيكلي وإخفاء الرسائل الأخرى
+        if (awaitingNotice) awaitingNotice.classList.add('hidden');
+        if (errorCard) errorCard.classList.add('hidden');
+        if (resultCard) resultCard.classList.add('hidden');
+        if (skeletonCard) {
+            skeletonCard.classList.remove('hidden');
+            skeletonCard.removeAttribute('aria-hidden');
+        }
 
         try {
             // تشغيل تأثير مسح الليزر الذكي
@@ -655,13 +903,21 @@ class EcoSortApp {
             
             setTimeout(() => {
                 if (dropzone) dropzone.classList.remove('scanning');
+                if (skeletonCard) {
+                    skeletonCard.classList.add('hidden');
+                    skeletonCard.setAttribute('aria-hidden', 'true');
+                }
                 if (previewImg && detection.imageUrl) {
                     previewImg.src = detection.imageUrl;
                 }
-                const resultCard = document.getElementById('card-inspection-result');
-                if (resultCard) {
-                    resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                this.handleWasteDetected(detection);
+
+                const resCard = document.getElementById('card-inspection-result');
+                if (resCard) {
+                    resCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
+
                 // إظهار إشعار متوافق مع قرار التصنيف (confident, uncertain, rejected) ونسبة الثقة
                 const isEn = this.currentLang === 'en';
                 const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
@@ -687,11 +943,17 @@ class EcoSortApp {
                 }
 
                 this.showToast(toastTitle, toastMsg, toastType);
-            }, 600);
+            }, 500);
 
         } catch (err) {
             if (dropzone) dropzone.classList.remove('scanning');
-            this.showToast('تعذّر فحص الصورة', err.message || 'حدث خطأ أثناء معالجة الصورة.');
+            if (skeletonCard) {
+                skeletonCard.classList.add('hidden');
+                skeletonCard.setAttribute('aria-hidden', 'true');
+            }
+            if (errorCard) errorCard.classList.remove('hidden');
+            const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+            this.showToast(t.scanErrorTitle || 'تعذّر فحص الصورة', err.message || t.scanErrorDesc || 'حدث خطأ أثناء معالجة الصورة.', 'rejected');
         }
     }
 
@@ -703,18 +965,22 @@ class EcoSortApp {
         this.currentWasteType = detection.item.binType;
         this.lastDetection = detection;
 
-        // 0. إظهار كارت النتيجة وإخفاء رسالة الانتظار وتفعيل زر الانتقال للخطوة 3
+        // 0. إظهار كارت النتيجة وإخفاء رسالة الانتظار وبطاقة التحميل وبطاقة الخطأ
         const resultCard = document.getElementById('card-inspection-result');
         const awaitingNotice = document.getElementById('awaiting-scan-notice');
-        const btnGoStep3 = document.getElementById('btn-go-to-step-3');
+        const skeletonCard = document.getElementById('card-inspection-skeleton');
+        const errorCard = document.getElementById('card-inspection-error');
+        const btnGoRoute = document.getElementById('btn-go-to-route');
 
         if (awaitingNotice) awaitingNotice.classList.add('hidden');
+        if (skeletonCard) {
+            skeletonCard.classList.add('hidden');
+            skeletonCard.setAttribute('aria-hidden', 'true');
+        }
+        if (errorCard) errorCard.classList.add('hidden');
         if (resultCard) {
             resultCard.classList.remove('hidden');
             resultCard.classList.add('card-fade-in');
-        }
-        if (btnGoStep3) {
-            btnGoStep3.disabled = false;
         }
 
         // 1. تحديث بيانات المادة المكتشفة
@@ -731,8 +997,9 @@ class EcoSortApp {
 
         const isEn = this.currentLang === 'en';
         const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+        const itemName = isEn ? (detection.item.nameEn || detection.item.name) : detection.item.name;
 
-        if (nameElem) nameElem.textContent = isEn ? (detection.item.nameEn || detection.item.name) : detection.item.name;
+        if (nameElem) nameElem.textContent = itemName;
         if (codeElem) codeElem.textContent = detection.item.resinCode || detection.item.category;
 
         // نسبة الثقة وزمن الاستدلال
@@ -762,7 +1029,11 @@ class EcoSortApp {
             }
         }
 
-        if (textureElem) textureElem.textContent = detection.texture;
+        if (textureElem) {
+            textureElem.textContent = isEn 
+                ? (detection.item.textureDescriptionEn || detection.texture || '') 
+                : (detection.item.textureDescription || detection.texture || '');
+        }
 
         if (manualSelect && detection.item && detection.item.id) {
             manualSelect.value = detection.item.id;
@@ -786,52 +1057,27 @@ class EcoSortApp {
                 : (isEn ? `Classified via ${detection.modelName || 'AI'} ✓` : `تم الاستدلال بنجاح عبر ${detection.modelName || 'الذكاء الاصطناعي'} ✓`);
         }
 
-        // 2. شريط قرار الثقة (Decision Banner) و Pulse
-        const decisionBanner = document.getElementById('cv-decision-banner');
-        const decisionIcon = document.getElementById('cv-decision-banner-icon');
-        const decisionTitle = document.getElementById('cv-decision-banner-title');
-        const decisionDesc = document.getElementById('cv-decision-banner-desc');
-        const bannerActions = document.getElementById('cv-decision-banner-actions');
-        const photoAdviceBox = document.getElementById('cv-photo-advice-box');
+        // 2. تحديث خطوات الإعداد الصحيح ومؤشرات توفير الكربون (IR)
+        const stepsContainer = document.getElementById('ir-handling-steps');
+        const co2Elem = document.getElementById('ir-co2-savings-value');
+        const energyElem = document.getElementById('ir-energy-savings-value');
+        const waterElem = document.getElementById('ir-water-savings-value');
 
-        if (decisionBanner) {
-            decisionBanner.classList.remove('hidden', 'decision-banner-confident', 'decision-banner-uncertain', 'decision-banner-rejected');
-            if (manualSelect) manualSelect.classList.remove('highlight-pulse');
-
-            if (detection.isPreset) {
-                decisionBanner.classList.add('decision-banner-confident');
-                if (decisionIcon) decisionIcon.textContent = '📋';
-                if (decisionTitle) decisionTitle.textContent = isEn ? 'Verified Reference Preset' : 'عينة مرجعية تجريبية';
-                if (decisionDesc) decisionDesc.textContent = isEn
-                    ? 'Selected directly from verified campus catalog for testing without running AI.'
-                    : 'تم اختيار هذه الخامة مباشرة كعينة اختبار موثقة لقاعدة بيانات الحرم الجامعي.';
-                if (bannerActions) bannerActions.classList.add('hidden');
-                if (photoAdviceBox) photoAdviceBox.classList.add('hidden');
-            } else if (detection.decision === 'confident') {
-                decisionBanner.classList.add('decision-banner-confident');
-                if (decisionIcon) decisionIcon.textContent = '✅';
-                if (decisionTitle) decisionTitle.textContent = t.decisionConfidentTitle || 'تصنيف مؤكد من الذكاء الاصطناعي';
-                if (decisionDesc) decisionDesc.textContent = t.decisionConfidentDesc || 'تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.';
-                if (bannerActions) bannerActions.classList.add('hidden');
-                if (photoAdviceBox) photoAdviceBox.classList.add('hidden');
-            } else if (detection.decision === 'uncertain') {
-                decisionBanner.classList.add('decision-banner-uncertain');
-                if (decisionIcon) decisionIcon.textContent = '⚠️';
-                if (decisionTitle) decisionTitle.textContent = t.decisionUncertainTitle || 'تنبيه: النموذج غير متأكد تماماً';
-                if (decisionDesc) decisionDesc.textContent = t.decisionUncertainDesc || 'نسبة الثقة أو هامش التمييز منخفض. يُرجى التحقق من القائمة اليدوية أدناه أو إعادة التقاط الصورة بإضاءة أفضل.';
-                if (bannerActions) bannerActions.classList.remove('hidden');
-                if (photoAdviceBox) photoAdviceBox.classList.remove('hidden');
-                if (manualSelect) manualSelect.classList.add('highlight-pulse');
-            } else { // rejected
-                decisionBanner.classList.add('decision-banner-rejected');
-                if (decisionIcon) decisionIcon.textContent = '❌';
-                if (decisionTitle) decisionTitle.textContent = t.decisionRejectedTitle || 'تنبيه: تعذّر التعرف على الجسم بدقة مقبولة';
-                if (decisionDesc) decisionDesc.textContent = t.decisionRejectedDesc || 'الصورة غير واضحة أو أن المادة غير مصنفة بدقة. يُرجى اختيار الخامة يدوياً من القائمة أعلاه أو مراجعة نصائح التصوير أدناه.';
-                if (bannerActions) bannerActions.classList.remove('hidden');
-                if (photoAdviceBox) photoAdviceBox.classList.remove('hidden');
-                if (manualSelect) manualSelect.classList.add('highlight-pulse');
-            }
+        if (stepsContainer) {
+            const steps = (isEn && detection.item.properHandlingEn && detection.item.properHandlingEn.length > 0)
+                ? detection.item.properHandlingEn
+                : (detection.item.properHandling || []);
+            stepsContainer.innerHTML = steps.map((step, idx) => `
+                <li class="handling-step-item">
+                    <span class="step-num">${idx + 1}</span>
+                    <span class="step-text">${EcoSortApp.escapeHtml(step)}</span>
+                </li>
+            `).join('');
         }
+
+        if (co2Elem) co2Elem.textContent = `${detection.item.carbonSavingsGrams || 85} ${isEn ? 'g CO₂' : 'جم CO₂'}`;
+        if (energyElem) energyElem.textContent = isEn ? (detection.item.energySavingsEn || detection.item.energySavings) : (detection.item.energySavings || '3.5 ساعة إضاءة');
+        if (waterElem) waterElem.textContent = `${detection.item.waterSavingsLiters || 2.5} ${isEn ? 'L clean water' : 'لتر مياه نقية'}`;
 
         // 3. تحذيرات جودة الصورة (Quality Warnings)
         const warningsBox = document.getElementById('cv-quality-warnings-box');
@@ -898,35 +1144,112 @@ class EcoSortApp {
             }
         }
 
-        // 5. تحديث خطوات الإعداد الصحيح ومؤشرات توفير الكربون (IR)
-        const stepsContainer = document.getElementById('ir-handling-steps');
-        const co2Elem = document.getElementById('ir-co2-savings-value');
-        const energyElem = document.getElementById('ir-energy-savings-value');
-        const waterElem = document.getElementById('ir-water-savings-value');
+        // 5. اتخاذ القرار والتحكم بعناصر الواجهة حسب Decision (B2)
+        const decisionBanner = document.getElementById('cv-decision-banner');
+        const decisionIcon = document.getElementById('cv-decision-banner-icon');
+        const decisionTitle = document.getElementById('cv-decision-banner-title');
+        const decisionDesc = document.getElementById('cv-decision-banner-desc');
+        const bannerActions = document.getElementById('cv-decision-banner-actions');
+        const photoAdviceBox = document.getElementById('cv-photo-advice-box');
+        const candidateContainer = document.getElementById('cv-candidate-chips-container');
+        const candidatePrompt = document.getElementById('cv-candidate-prompt');
+        const candidateGrid = document.getElementById('cv-candidate-chips-grid');
 
-        if (textureElem) {
-            if (isEn) {
-                textureElem.textContent = detection.item.textureDescriptionEn || detection.texture || '';
-            } else {
-                textureElem.textContent = detection.item.textureDescription || detection.texture || '';
+        const detectionTopRow = document.querySelector('.detection-top-row');
+        const textureBox = document.querySelector('.texture-box');
+        const irDetailsSplit = document.querySelector('.ir-details-split');
+        const techDisclosure = document.getElementById('cv-tech-details-disclosure');
+
+        if (decisionBanner) {
+            decisionBanner.classList.remove('hidden', 'decision-banner-confident', 'decision-banner-uncertain', 'decision-banner-rejected');
+            if (manualSelect) manualSelect.classList.remove('highlight-pulse');
+
+            if (detection.isPreset || detection.decision === 'confident') {
+                decisionBanner.classList.add('decision-banner-confident');
+                if (decisionIcon) decisionIcon.textContent = detection.isPreset ? '📋' : '✅';
+                if (decisionTitle) {
+                    decisionTitle.textContent = detection.isPreset 
+                        ? (isEn ? 'Verified Reference Preset' : 'عينة مرجعية تجريبية') 
+                        : (t.decisionConfidentTitle || 'تصنيف مؤكد من الذكاء الاصطناعي');
+                }
+                if (decisionDesc) {
+                    decisionDesc.textContent = detection.isPreset 
+                        ? (isEn ? 'Selected directly from verified campus catalog for testing without running AI.' : 'تم اختيار هذه الخامة مباشرة كعينة اختبار موثقة لقاعدة بيانات الحرم الجامعي.') 
+                        : (t.decisionConfidentDesc || 'تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.');
+                }
+                if (bannerActions) bannerActions.classList.add('hidden');
+                if (photoAdviceBox) photoAdviceBox.classList.add('hidden');
+                if (candidateContainer) candidateContainer.classList.add('hidden');
+
+                // إظهار كافة التفاصيل
+                if (detectionTopRow) detectionTopRow.classList.remove('hidden');
+                if (textureBox) textureBox.classList.remove('hidden');
+                if (irDetailsSplit) irDetailsSplit.classList.remove('hidden');
+                if (techDisclosure) techDisclosure.classList.remove('hidden');
+
+                if (btnGoRoute) btnGoRoute.disabled = false;
+
+            } else if (detection.decision === 'uncertain') {
+                decisionBanner.classList.add('decision-banner-uncertain');
+                if (decisionIcon) decisionIcon.textContent = '⚠️';
+                if (decisionTitle) decisionTitle.textContent = t.decisionUncertainTitle || 'تنبيه: النموذج غير متأكد تماماً';
+                if (decisionDesc) decisionDesc.textContent = t.decisionUncertainDesc || 'نسبة الثقة أو هامش التمييز منخفض. يُرجى التحقق من الخيارات أدناه أو اختيار الخامة يدوياً.';
+                if (bannerActions) bannerActions.classList.remove('hidden');
+                if (photoAdviceBox) photoAdviceBox.classList.remove('hidden');
+                if (manualSelect) manualSelect.classList.add('highlight-pulse');
+
+                // إظهار التفاصيل
+                if (detectionTopRow) detectionTopRow.classList.remove('hidden');
+                if (textureBox) textureBox.classList.remove('hidden');
+                if (irDetailsSplit) irDetailsSplit.classList.remove('hidden');
+                if (techDisclosure) techDisclosure.classList.remove('hidden');
+
+                // عرض رقائق الترشيحات (Top-3 Candidate Chips)
+                if (candidateContainer && candidateGrid) {
+                    const promptTpl = t.candidatePrompt || (isEn ? 'Is this item {material}? Tap to confirm:' : 'هل هذه القطعة {material}؟ اضغط للتأكيد:');
+                    if (candidatePrompt) candidatePrompt.textContent = promptTpl.replace('{material}', itemName);
+
+                    candidateGrid.innerHTML = '';
+                    const candidates = (detection.topK && detection.topK.length > 0) ? detection.topK : [];
+                    candidates.forEach(cand => {
+                        const chipBtn = document.createElement('button');
+                        chipBtn.type = 'button';
+                        chipBtn.className = 'candidate-chip-btn';
+                        const candName = isEn ? cand.materialNameEn : cand.materialNameAr;
+                        const candConf = cand.confidenceFormatted || `${cand.confidence}%`;
+                        chipBtn.innerHTML = `<span>${candName}</span> <strong class="chip-conf">(${candConf})</strong>`;
+                        chipBtn.addEventListener('click', () => {
+                            this.visionModule.selectPreset(cand.materialId);
+                            if (btnGoRoute) btnGoRoute.disabled = false;
+                        });
+                        candidateGrid.appendChild(chipBtn);
+                    });
+                    candidateContainer.classList.remove('hidden');
+                }
+
+                // الزر يبقى معطلاً حتى يختار المستخدم تأكيداً أو يختار من القائمة اليدوية
+                if (btnGoRoute) btnGoRoute.disabled = true;
+
+            } else { // rejected
+                decisionBanner.classList.add('decision-banner-rejected');
+                if (decisionIcon) decisionIcon.textContent = '❌';
+                if (decisionTitle) decisionTitle.textContent = t.decisionRejectedTitle || 'تنبيه: تعذّر التعرف على الجسم بدقة مقبولة';
+                if (decisionDesc) decisionDesc.textContent = t.decisionRejectedDesc || 'الصورة غير واضحة أو أن المادة غير مصنفة بدقة. يُرجى إعادة التقاط الصورة أو اختيار الخامة يدوياً من القائمة.';
+                if (bannerActions) bannerActions.classList.remove('hidden');
+                if (photoAdviceBox) photoAdviceBox.classList.remove('hidden');
+                if (candidateContainer) candidateContainer.classList.add('hidden');
+                if (manualSelect) manualSelect.classList.add('highlight-pulse');
+
+                // B2: إخفاء تفاصيل المادة الخاطئة وانبعاثات الكربون ودليل التدوير حتى لا يتم تضليل المستخدم
+                if (detectionTopRow) detectionTopRow.classList.add('hidden');
+                if (textureBox) textureBox.classList.add('hidden');
+                if (irDetailsSplit) irDetailsSplit.classList.add('hidden');
+                if (techDisclosure) techDisclosure.classList.add('hidden');
+
+                // إبقاء زر التوجيه معطلاً حتى اختيار خامة يدوية
+                if (btnGoRoute) btnGoRoute.disabled = true;
             }
         }
-
-        if (stepsContainer) {
-            const steps = (isEn && detection.item.properHandlingEn && detection.item.properHandlingEn.length > 0)
-                ? detection.item.properHandlingEn
-                : (detection.item.properHandling || []);
-            stepsContainer.innerHTML = steps.map((step, idx) => `
-                <li class="handling-step-item">
-                    <span class="step-num">${idx + 1}</span>
-                    <span class="step-text">${EcoSortApp.escapeHtml(step)}</span>
-                </li>
-            `).join('');
-        }
-
-        if (co2Elem) co2Elem.textContent = `${detection.item.carbonSavingsGrams || 85} ${isEn ? 'g CO₂' : 'جم CO₂'}`;
-        if (energyElem) energyElem.textContent = isEn ? (detection.item.energySavingsEn || detection.item.energySavings) : (detection.item.energySavings || '3.5 ساعة إضاءة');
-        if (waterElem) waterElem.textContent = `${detection.item.waterSavingsLiters || 2.5} ${isEn ? 'L clean water' : 'لتر مياه نقية'}`;
     }
 
     /**
@@ -1125,6 +1448,76 @@ class EcoSortApp {
 
         // 3. تحديث بطاقة الوجهة الموصى بها وبطاقة الموبايل العائمة
         this.updateTargetInfo(activeResult.targetNodeId, activeResult.totalDistance);
+
+        // 4. بناء قائمة إرشادات السير خطوة بخطوة (Turn-by-turn walking steps)
+        this.renderWalkingStepsList(activeResult.path, activeResult.targetNodeId);
+    }
+
+    /**
+     * بناء قائمة إرشادات السير خطوة بخطوة لمستخدمي قارئات الشاشة والطلاب
+     */
+    renderWalkingStepsList(path, targetNodeId) {
+        const listElem = document.getElementById('metric-walking-steps-list');
+        const summaryElem = document.getElementById('metric-path-summary');
+        if (!listElem) return;
+
+        listElem.innerHTML = '';
+        const isEn = this.currentLang === 'en';
+
+        if (!path || path.length === 0) {
+            if (summaryElem) summaryElem.textContent = isEn ? 'No reachable route available' : 'لا يوجد مسار متاح حالياً';
+            return;
+        }
+
+        if (path.length === 1) {
+            const node = this.graph.getNode(path[0]);
+            const nodeName = node ? (isEn ? (node.nameEn || node.name) : node.name) : path[0];
+            if (summaryElem) {
+                summaryElem.textContent = isEn 
+                    ? `You are directly in front of the matching bin at ${nodeName}!`
+                    : `أنت متواجد بالفعل عند أقرب حاوية متاحة في موقعك الحالي (${nodeName})!`;
+            }
+            const li = document.createElement('li');
+            li.className = 'walking-step-item';
+            li.innerHTML = isEn
+                ? `<strong>Direct Arrival:</strong> The appropriate waste sorting bin is inside or right next to ${nodeName}.`
+                : `<strong>وصول مباشر:</strong> حاوية الفرز المطلوبة متوفرة مباشرة داخل أو بجوار ${nodeName}.`;
+            listElem.appendChild(li);
+            return;
+        }
+
+        // المسار يتكون من عقدتين أو أكثر
+        if (summaryElem) {
+            const names = path.map(id => {
+                const n = this.graph.getNode(id);
+                return n ? (isEn ? (n.nameEn || n.name) : n.name) : id;
+            });
+            const arrow = isEn ? ' &rarr; ' : ' &larr; ';
+            summaryElem.innerHTML = names.join(`<span class="text-emerald-600 font-bold">${arrow}</span>`);
+        }
+
+        path.forEach((nodeId, idx) => {
+            const node = this.graph.getNode(nodeId);
+            const name = node ? (isEn ? (node.nameEn || node.name) : node.name) : nodeId;
+            const li = document.createElement('li');
+            li.className = 'walking-step-item';
+
+            if (idx === 0) {
+                li.innerHTML = isEn 
+                    ? `<strong>Start:</strong> Begin walking from <strong>${name}</strong>.`
+                    : `<strong>نقطة الانطلاق:</strong> ابدأ التحرك من <strong>${name}</strong>.`;
+            } else if (idx === path.length - 1) {
+                const binColor = this.currentWasteItem ? (isEn ? this.currentWasteItem.binColorNameEn : this.currentWasteItem.binColorName) : (isEn ? 'designated' : 'المخصصة');
+                li.innerHTML = isEn
+                    ? `<strong>Arrival:</strong> Reach <strong>${name}</strong> & deposit waste into the <strong>${binColor}</strong> bin.`
+                    : `<strong>نقطة الوصول:</strong> ستصل إلى <strong>${name}</strong>، قم بإيداع المخلفات في <strong>${binColor}</strong>.`;
+            } else {
+                li.innerHTML = isEn
+                    ? `Continue along corridor past <strong>${name}</strong>.`
+                    : `تابع السير عبر الممر مروراً بـ <strong>${name}</strong>.`;
+            }
+            listElem.appendChild(li);
+        });
     }
 
     /**
@@ -1217,6 +1610,7 @@ class EcoSortApp {
         const isEn = this.currentLang === 'en';
         const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
         const title = t.toastArrivedTitle || (isEn ? 'Arrived at Bin Successfully! ♻️' : '🎉 تم الوصول للحاوية بنجاح!');
+        const savedCo2 = this.currentWasteItem ? (this.currentWasteItem.carbonSavingsGrams || 85) : 85;
         const msg = isEn 
             ? `Carbon emission savings (${savedCo2}g CO₂) registered to your eco balance.`
             : `تم تسجيل توفير ${savedCo2} جم CO₂ في رصيدك البيئي.`;
@@ -1307,8 +1701,13 @@ class EcoSortApp {
     /**
      * نافذة تعديل ومراقبة حاويات الكلية (Modal)
      */
+    /**
+     * نافذة تعديل ومراقبة حاويات الكلية (Modal) مع إدارة التركيز (WCAG 2.1 AA)
+     */
     openNodeModal(node) {
         this.selectedNodeForModal = node;
+        this.lastActiveElement = document.activeElement;
+
         const modal = document.getElementById('node-details-modal');
         const title = document.getElementById('modal-node-title');
         const subtitle = document.getElementById('modal-node-subtitle');
@@ -1351,6 +1750,8 @@ class EcoSortApp {
         }
 
         modal.classList.remove('hidden');
+        const closeBtn = document.getElementById('btn-close-node-modal');
+        if (closeBtn) closeBtn.focus();
     }
 
     toggleBinInModal(wasteType) {
@@ -1364,6 +1765,10 @@ class EcoSortApp {
         const modal = document.getElementById('node-details-modal');
         if (modal) modal.classList.add('hidden');
         this.selectedNodeForModal = null;
+        if (this.lastActiveElement && typeof this.lastActiveElement.focus === 'function') {
+            this.lastActiveElement.focus();
+            this.lastActiveElement = null;
+        }
     }
 
     bindModalControls() {
@@ -1379,6 +1784,32 @@ class EcoSortApp {
                 if (e.target === modal) this.closeNodeModal();
             });
         }
+
+        // إغلاق النافذة بزر Escape وحصر التركيز داخلها (Focus Trap)
+        document.addEventListener('keydown', (e) => {
+            if (!modal || modal.classList.contains('hidden')) return;
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.closeNodeModal();
+                return;
+            }
+
+            if (e.key === 'Tab') {
+                const focusables = modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (focusables.length === 0) return;
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        });
     }
 
     /**
@@ -1500,6 +1931,10 @@ class EcoSortApp {
         document.querySelectorAll('[data-i18n-title]').forEach(el => {
             const key = el.getAttribute('data-i18n-title');
             if (t[key] !== undefined) el.setAttribute('title', t[key]);
+        });
+        document.querySelectorAll('[data-i18n-html]').forEach(el => {
+            const key = el.getAttribute('data-i18n-html');
+            if (t[key] !== undefined) el.innerHTML = t[key];
         });
 
         // الخطوة 2
@@ -1689,8 +2124,12 @@ class EcoSortApp {
             this.evaluationUI.updateLanguage();
         }
 
-        this.updateStep2LocationBadge();
+        this.updateStep1SavedLocationBanner();
+        this.updateStep2LocationUI();
         this.updateStep3RouteContext();
+        if (this.currentStep === 3) {
+            this.recalculateRoute();
+        }
 
         // إعادة عرض الفحص الأخير باللغة الجديدة
         if (this.lastDetection) {

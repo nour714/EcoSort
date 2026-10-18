@@ -12,7 +12,9 @@
         } catch(e) {}
     })();
     </script>
-    <meta name="theme-color" content="#059669">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#059669">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#064e3b">
+    <link rel="manifest" href="static/manifest.webmanifest">
     <title>EcoSort - نظام الفرز الذكي بجامعة كفر الشيخ</title>
     <meta name="description" content="منظومة جامعية ذكية لإدارة وفرز المخلفات وإيجاد أقصر مسار للحاويات المتاحة باستخدام الذكاء الاصطناعي وخوارزميات الرؤية الحاسوبية واسترجاع المعلومات">
     
@@ -136,41 +138,41 @@
 
         <!-- شريط التقدم المتسلسل (Progress Stepper) -->
         <nav class="stepper-nav" aria-label="مراحل استخدام النظام">
-            <div class="stepper-container">
-                <div class="step-indicator active" id="stepper-step-1" data-step="1">
+            <div class="stepper-container" role="tablist">
+                <div class="step-indicator active" id="stepper-step-1" data-step="1" role="tab" aria-selected="true" aria-controls="wizard-step-1" tabindex="0">
                     <div class="step-bubble">
                         <span class="step-num">1</span>
                         <span class="step-check">&check;</span>
                     </div>
                     <div class="step-label">
-                        <span class="step-title">الموقع الحالي</span>
-                        <span class="step-desc">أين أنت في الحرم؟</span>
+                        <span class="step-title" data-i18n="step1NavTitle">الفحص والتصنيف</span>
+                        <span class="step-desc" data-i18n="step1NavDesc">صوّر أو اختر المادة</span>
                     </div>
                 </div>
 
                 <div class="stepper-line" id="stepper-line-1"></div>
 
-                <div class="step-indicator" id="stepper-step-2" data-step="2">
+                <div class="step-indicator" id="stepper-step-2" data-step="2" role="tab" aria-selected="false" aria-controls="wizard-step-2" tabindex="-1">
                     <div class="step-bubble">
                         <span class="step-num">2</span>
                         <span class="step-check">&check;</span>
                     </div>
                     <div class="step-label">
-                        <span class="step-title">فحص المخلفات</span>
-                        <span class="step-desc">تصنيف الخامة (CV & IR)</span>
+                        <span class="step-title" data-i18n="step2NavTitle">الموقع في الحرم</span>
+                        <span class="step-desc" data-i18n="step2NavDesc">أين أنت الآن؟</span>
                     </div>
                 </div>
 
                 <div class="stepper-line" id="stepper-line-2"></div>
 
-                <div class="step-indicator" id="stepper-step-3" data-step="3">
+                <div class="step-indicator" id="stepper-step-3" data-step="3" role="tab" aria-selected="false" aria-controls="wizard-step-3" tabindex="-1">
                     <div class="step-bubble">
                         <span class="step-num">3</span>
                         <span class="step-check">&check;</span>
                     </div>
                     <div class="step-label">
-                        <span class="step-title">المسار والخريطة</span>
-                        <span class="step-desc">أقرب حاوية (Algorithms)</span>
+                        <span class="step-title" data-i18n="step3NavTitle">المسار والحاوية</span>
+                        <span class="step-desc" data-i18n="step3NavDesc">أقرب حاوية متاحة</span>
                     </div>
                 </div>
             </div>
@@ -180,27 +182,372 @@
     <!-- ==================== محتوى الخطوات المتسلسلة (Wizard Screens) ==================== -->
     <main class="wizard-main-container" id="main-content" role="main" tabindex="-1">
 
-        <!-- ==================== الخطوة 1: تحديد موقع المستخدم الحالي ==================== -->
-        <section class="wizard-step active" id="wizard-step-1" aria-labelledby="step-1-title">
+        <!-- منبّه القارئات الصوتية عند الانتقال بين الخطوات -->
+        <div id="step-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+        <!-- ==================== الخطوة 1: فحص وتحديد نوع المخلفات (Start & Inspect) ==================== -->
+        <section class="wizard-step active" id="wizard-step-1" aria-labelledby="step-1-title" role="tabpanel">
+            
+            <!-- شاشة البداية ذات الإجرائين (Two-Action Start Screen) -->
+            <div class="start-hero-card">
+                <h2 id="step-1-title" class="start-hero-title" data-i18n="startHeroTitle">فرز ذكي بلمسة واحدة</h2>
+                <p class="start-hero-desc" id="step-1-desc" data-i18n="startHeroDesc">صوّر قطعة المخلفات بكاميرا هاتفك لمعرفة الحاوية المناسبة فوراً وإرشادات تجهيزها للتدوير.</p>
+
+                <!-- أزرار البداية الرئيسية -->
+                <div class="start-actions-bar">
+                    <button type="button" class="btn btn-primary btn-hero-scan" id="btn-hero-scan">
+                        <svg class="btn-icon-svg" width="22" height="22" aria-hidden="true"><use href="#icon-camera"></use></svg>
+                        <div class="btn-hero-text">
+                            <strong data-i18n="startScanPrimary">فحص قطعة مخلفات</strong>
+                            <span class="btn-subtext" data-i18n="startScanSubtitle">التقط صورة بالكاميرا أو ارفع صورة</span>
+                        </div>
+                    </button>
+                    <button type="button" class="btn btn-outline btn-hero-find-bin" id="btn-hero-find-bin">
+                        <svg class="btn-icon-svg" width="22" height="22" aria-hidden="true"><use href="#icon-map-pin"></use></svg>
+                        <div class="btn-hero-text">
+                            <strong data-i18n="startFindBinSecondary">أين أقرب حاوية؟</strong>
+                            <span class="btn-subtext" data-i18n="startFindBinSubtitle">تصفح الحاويات المتاحة في الحرم</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- شريط تذكير الموقع المحفوظ (يظهر إذا كان المستخدم قد اختار موقعاً سابقاً) -->
+                <div class="current-location-banner" id="step1-saved-location-banner" style="display: none;">
+                    <div class="location-banner-info">
+                        <svg width="18" height="18" aria-hidden="true"><use href="#icon-map-pin"></use></svg>
+                        <span><span id="step1-saved-location-label" data-i18n="savedLocBannerPrefix">موقعك الحالي المحدد:</span> <strong id="step1-saved-location-text">كلية الذكاء الاصطناعي</strong></span>
+                    </div>
+                    <button type="button" class="btn btn-outline-sm" id="btn-change-location-step1">
+                        <span data-i18n="btnChangeLoc">تغيير الموقع</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- تخطيط الفحص: عمودان على الديسكتوب وعمود واحد على الموبايل -->
+            <div class="scan-desktop-layout">
+                
+                <!-- العمود الأيسر: منطقة التصوير ورفع الصور -->
+                <div class="scan-col-viewfinder">
+                    <div class="scan-method-card cv-upload-box">
+                        <div class="cv-header-row">
+                            <div class="scan-method-badge">
+                                <svg width="14" height="14" aria-hidden="true"><use href="#icon-sparkles"></use></svg>
+                                <span id="cv-badge-text" data-i18n="cvBadge">التعرف البصري والذكاء الاصطناعي</span>
+                            </div>
+                        </div>
+
+                        <!-- أزرار الإجراءات المباشرة للتصوير والرفع -->
+                        <div class="cv-actions-bar">
+                            <button type="button" class="btn btn-primary cv-action-btn" id="btn-trigger-camera">
+                                <svg width="20" height="20" aria-hidden="true"><use href="#icon-camera"></use></svg>
+                                <span id="btn-trigger-camera-text" data-i18n="btnTriggerCamera">التقاط صورة بالكاميرا</span>
+                            </button>
+                            <button type="button" class="btn btn-outline cv-action-btn" id="btn-trigger-upload">
+                                <svg width="20" height="20" aria-hidden="true"><use href="#icon-upload"></use></svg>
+                                <span id="btn-trigger-upload-text" data-i18n="btnTriggerUpload">رفع صورة من الجهاز</span>
+                            </button>
+                        </div>
+
+                        <!-- مدخلات الملفات الخفية -->
+                        <input type="file" id="waste-image-input" accept="image/*" class="hidden" aria-label="رفع صورة مخلفات من الجهاز">
+                        <input type="file" id="waste-camera-input" accept="image/*" capture="environment" class="hidden" aria-label="التقاط صورة بالكاميرا">
+
+                        <!-- منطقة العرض والفحص التفاعلية (Dropzone) -->
+                        <div class="cv-dropzone" id="cv-dropzone" tabindex="0" role="button" aria-label="انقر لرفع صورة أو اسحب الصورة هنا">
+                            <div class="scanner-laser-line" id="scanner-laser-line"></div>
+                            <div class="scanner-corners" aria-hidden="true">
+                                <span class="corner top-right"></span>
+                                <span class="corner top-left"></span>
+                                <span class="corner bottom-right"></span>
+                                <span class="corner bottom-left"></span>
+                            </div>
+
+                            <!-- حالة البداية / إرشادات الإفلات -->
+                            <div class="cv-upload-placeholder" id="cv-upload-placeholder">
+                                <div class="upload-icon-circle">
+                                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                </div>
+                                <span class="cv-upload-text" id="cv-dropzone-text" data-i18n="dropzoneText">اضغط على أحد الزرين أعلاه، أو اسحب وأفلت صورة هنا</span>
+                                <span class="cv-upload-hint" id="cv-dropzone-hint" data-i18n="dropzoneHint">يدعم التصوير المباشر، سحب الملفات، اللصق من الحافظة (Ctrl+V) وصيغ PNG, JPG, WEBP</span>
+                            </div>
+
+                            <!-- معاينة الكاميرا الحية -->
+                            <div class="cv-camera-stream-container hidden" id="cv-camera-stream-container">
+                                <video id="cv-camera-video" playsinline autoplay muted></video>
+                                <div class="cv-camera-overlay-controls">
+                                    <button type="button" class="btn btn-primary" id="btn-camera-capture">
+                                        <svg width="18" height="18" aria-hidden="true"><use href="#icon-camera"></use></svg>
+                                        <span id="btn-camera-capture-text" data-i18n="btnCaptureNow">التقط الصورة وافحصها</span>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-sm btn-camera-secondary" id="btn-camera-switch" title="تبديل الكاميرا">
+                                        <svg width="14" height="14" aria-hidden="true"><use href="#icon-refresh"></use></svg>
+                                        <span id="btn-camera-switch-text" data-i18n="btnSwitchCamera">تبديل</span>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-sm btn-camera-secondary" id="btn-camera-close" title="إغلاق الكاميرا">
+                                        <svg width="14" height="14" aria-hidden="true"><use href="#icon-x"></use></svg>
+                                        <span id="btn-camera-close-text" data-i18n="btnCloseCamera">إغلاق</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- معاينة الصورة المفحوصة بعد الرفع -->
+                            <div class="cv-image-preview-container hidden" id="cv-image-preview-container">
+                                <img id="cv-uploaded-image" alt="معاينة الصورة المرفوعة">
+                                <div class="cv-preview-badge">
+                                    <span class="text-xs text-emerald-700 font-bold" id="cv-preview-status-text" data-i18n="previewStatus">تم الاستدلال بنجاح عبر الذكاء الاصطناعي &check;</span>
+                                </div>
+                                <div class="cv-preview-actions">
+                                    <button type="button" class="btn btn-outline-sm" id="btn-rescan-camera">
+                                        <svg width="14" height="14" aria-hidden="true"><use href="#icon-camera"></use></svg>
+                                        <span id="btn-rescan-camera-text" data-i18n="btnRescanCamera">التقاط أخرى</span>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-sm" id="btn-reupload-image">
+                                        <svg width="14" height="14" aria-hidden="true"><use href="#icon-upload"></use></svg>
+                                        <span id="btn-reupload-image-text" data-i18n="btnReupload">رفع صورة بديلة</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- العمود الأيمن: نتائج الفحص والقرار والتحذيرات ودليل التدوير -->
+                <div class="scan-col-result">
+                    
+                    <!-- 1. رسالة الانتظار قبل الفحص -->
+                    <div class="awaiting-scan-notice" id="awaiting-scan-notice">
+                        <div class="awaiting-scan-icon">
+                            <svg width="28" height="28" aria-hidden="true"><use href="#icon-search"></use></svg>
+                        </div>
+                        <div class="awaiting-scan-text">
+                            <h4 id="awaiting-scan-title" data-i18n="awaitingTitle">في انتظار التقاط أو رفع صورة للمخلفات</h4>
+                            <p id="awaiting-scan-desc" data-i18n="awaitingDesc">التقط صورة بكاميرا جهازك أو ارفع صورة لقطعة المخلفات ليتم فحصها بصرياً وتحديد نوعها وإرشادات تدويرها وأقرب حاوية ملائمة.</p>
+                        </div>
+                    </div>
+
+                    <!-- 2. بطاقة التحميل الهيكلي (Skeleton Loader) أثناء معالجة الصورة -->
+                    <article class="card result-skeleton-card hidden" id="card-inspection-skeleton" aria-hidden="true">
+                        <div class="skeleton-header">
+                            <div class="skeleton-bar skeleton-title-bar"></div>
+                            <div class="skeleton-pill"></div>
+                        </div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-bar skeleton-line"></div>
+                            <div class="skeleton-bar skeleton-line short"></div>
+                            <div class="skeleton-grid">
+                                <div class="skeleton-box"></div>
+                                <div class="skeleton-box"></div>
+                                <div class="skeleton-box"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton-status-row">
+                            <span class="sim-pulse-dot"></span>
+                            <span id="skeleton-status-text" data-i18n="analyzingPhoto">جاري تحليل الصورة بواسطة الذكاء الاصطناعي...</span>
+                        </div>
+                    </article>
+
+                    <!-- 3. بطاقة الخطأ عند فشل الاتصال أو معالجة الصورة -->
+                    <article class="card result-error-card hidden" id="card-inspection-error" role="alert">
+                        <div class="error-card-body">
+                            <svg class="error-icon" width="32" height="32" aria-hidden="true"><use href="#icon-alert-triangle"></use></svg>
+                            <div class="error-card-content">
+                                <h4 id="scan-error-title" data-i18n="scanErrorTitle">تعذّر فحص الصورة</h4>
+                                <p id="scan-error-desc" data-i18n="scanErrorDesc">حدث خطأ أثناء معالجة الصورة أو الاتصال بالخادم. يرجى المحاولة مرة أخرى.</p>
+                            </div>
+                            <button type="button" class="btn btn-outline-sm" id="btn-scan-error-retry">
+                                <span data-i18n="btnRetry">إعادة المحاولة</span>
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- 4. بطاقة نتيجة الفحص ودليل المعالجة (Decision-First Result Card) -->
+                    <article class="card result-inspection-card hidden" id="card-inspection-result" aria-live="polite">
+                        
+                        <!-- شريط قرار الثقة (Confident / Uncertain / Rejected) -->
+                        <div id="cv-decision-banner" class="decision-banner" role="alert">
+                            <div class="decision-banner-icon" id="cv-decision-banner-icon" aria-hidden="true">🎯</div>
+                            <div class="decision-banner-body">
+                                <strong id="cv-decision-banner-title">تصنيف مؤكد من الذكاء الاصطناعي</strong>
+                                <p id="cv-decision-banner-desc">تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.</p>
+                                
+                                <!-- أزرار تأكيد الخيارات البديلة عند عدم التأكد (Uncertain State Candidate Chips) -->
+                                <div id="cv-candidate-chips-container" class="candidate-chips-container hidden">
+                                    <span class="candidate-prompt" id="cv-candidate-prompt" data-i18n="candidatePrompt">هل هذه القطعة {material}؟ اضغط للتأكيد:</span>
+                                    <div class="candidate-chips-grid" id="cv-candidate-chips-grid"></div>
+                                </div>
+
+                                <div id="cv-decision-banner-actions" class="decision-banner-actions hidden">
+                                    <button type="button" class="btn btn-outline-sm" id="btn-banner-retry">
+                                        <svg width="14" height="14" aria-hidden="true"><use href="#icon-camera"></use></svg>
+                                        <span id="btn-banner-retry-text" data-i18n="btnRetryScan">إعادة التقاط الصورة</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- شريط تحذيرات جودة الصورة -->
+                        <div id="cv-quality-warnings-box" class="quality-warnings-box hidden">
+                            <div class="quality-warnings-header">
+                                <svg width="16" height="16" aria-hidden="true"><use href="#icon-alert-triangle"></use></svg>
+                                <span id="cv-quality-warnings-title" data-i18n="qualityWarningsTitle">ملاحظات جودة الصورة:</span>
+                            </div>
+                            <ul id="cv-quality-warnings-list" class="quality-warnings-list"></ul>
+                        </div>
+
+                        <!-- صندوق نصائح التصوير عند عدم التأكد أو الرفض -->
+                        <div id="cv-photo-advice-box" class="photo-advice-box hidden">
+                            <div class="photo-advice-title" id="cv-photo-advice-title">
+                                <svg width="16" height="16" aria-hidden="true"><use href="#icon-lightbulb"></use></svg>
+                                <span data-i18n="photoAdviceTitle">نصائح لالتقاط صورة دقيقة:</span>
+                            </div>
+                            <ul class="photo-advice-list" id="cv-photo-advice-list">
+                                <li id="photo-advice-1" data-i18n="photoAdvice1">ضع قطعة واحدة فقط في منتصف كادر الكاميرا.</li>
+                                <li id="photo-advice-2" data-i18n="photoAdvice2">تأكد من إضاءة مناسبة وخلفية واضحة ومتباينة.</li>
+                                <li id="photo-advice-3" data-i18n="photoAdvice3">تجنب تقريب الكاميرا بدرجة تسبب تشويش الفوكس (Blur).</li>
+                            </ul>
+                        </div>
+
+                        <!-- تفاصيل النتيجة ودليل الفرز (يتم إخفاؤه عند الرفض لتجنب إعطاء بيانات خاطئة B2) -->
+                        <div class="card-body" id="cv-result-content-body">
+                            
+                            <!-- الرأس: اسم الخامة والحاوية المستهدفة -->
+                            <div class="detection-top-row">
+                                <div class="detected-material-meta">
+                                    <span class="text-xs text-gray-500 font-bold" id="cv-detected-material-label" data-i18n="detectedMatLabel">الخامة المكتشفة:</span>
+                                    <h3 class="text-xl font-black text-slate-900" id="cv-detected-material-name">زجاجة بلاستيك شفافة (PET)</h3>
+                                </div>
+                                <div class="target-bin-display">
+                                    <span class="text-xs text-gray-500 font-bold" id="ir-target-bin-label" data-i18n="targetBinLabel">الحاوية المستهدفة:</span>
+                                    <span class="badge badge-lg badge-yellow" id="ir-target-bin-badge">الحاوية الصفراء</span>
+                                </div>
+                            </div>
+
+                            <!-- التعديل اليدوي للخامة -->
+                            <div class="manual-override-row">
+                                <label for="manual-waste-selector" class="text-xs text-gray-500 font-bold" id="manual-select-label" data-i18n="manualSelectPrompt">تعديل الخامة يدوياً إذا لزم الأمر:</label>
+                                <select id="manual-waste-selector" class="manual-waste-select" aria-label="تعديل نوع المخلفات يدوياً">
+                                    <option value="pet_bottle">زجاجة بلاستيك مياه (PET)</option>
+                                    <option value="hdpe_container">عبوة بلاستيك مقوى (HDPE)</option>
+                                    <option value="alu_can">علبة كانز معدن (Can)</option>
+                                    <option value="cardboard_box">كرتون وأوراق تغليف (Cardboard)</option>
+                                    <option value="paper_sheet">أوراق ومستندات دراسية (Paper)</option>
+                                    <option value="glass_bottle">زجاجات وعبوات زجاجية (Glass)</option>
+                                    <option value="organic_food">مخلفات طعام عضوية</option>
+                                    <option value="e_waste">نفايات إلكترونية وبطاريات</option>
+                                    <option value="mixed_trash">مخلفات عامة ومختلطة (Trash)</option>
+                                </select>
+                            </div>
+
+                            <!-- وصف الملمس والخصائص -->
+                            <div class="texture-box mt-3">
+                                <div class="text-xs font-bold text-gray-800 mb-1" id="cv-texture-label" data-i18n="textureLabel">وصف الملمس والخصائص البصرية:</div>
+                                <p class="text-xs text-gray-600" id="cv-texture-description">
+                                    سطح أملس شديد الشفافية، مرونة جيدة، قاع مقعر مع نقطة حقن دائرية مميزة، خفيف الوزن.
+                                </p>
+                            </div>
+
+                            <!-- خطوات التجهيز الصحيح ومؤشرات توفير الكربون -->
+                            <div class="ir-details-split mt-3">
+                                <div class="handling-steps-col">
+                                    <div class="text-xs font-bold text-gray-800 mb-2" id="ir-handling-label" data-i18n="handlingLabel">الطريقة الصحيحة لإعداد المادة للتدوير:</div>
+                                    <ul class="ir-handling-list" id="ir-handling-steps">
+                                        <li class="handling-step-item">
+                                            <span class="step-num">1</span>
+                                            <span class="step-text">تفريغ أي سوائل متبقية وشطف العبوة بالماء سريعاً.</span>
+                                        </li>
+                                        <li class="handling-step-item">
+                                            <span class="step-num">2</span>
+                                            <span class="step-text">نزع الغطاء البلاستيكي وحلقة العنق.</span>
+                                        </li>
+                                        <li class="handling-step-item">
+                                            <span class="step-num">3</span>
+                                            <span class="step-text">ضغط الزجاجة لتفريغ الهواء وتقليص حجمها بنسبة 70%.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="impact-metrics-col">
+                                    <div class="eco-kpi-card">
+                                        <span class="eco-kpi-val" id="ir-co2-savings-value">85 جم CO₂</span>
+                                        <span class="eco-kpi-lbl" id="ir-co2-label" data-i18n="kpiCo2Label">توفير انبعاثات كربون</span>
+                                    </div>
+                                    <div class="eco-kpi-card">
+                                        <span class="eco-kpi-val" id="ir-energy-savings-value">3.5 ساعة</span>
+                                        <span class="eco-kpi-lbl" id="ir-energy-label" data-i18n="kpiEnergyLabel">طاقة إنارة مصباح LED</span>
+                                    </div>
+                                    <div class="eco-kpi-card">
+                                        <span class="eco-kpi-val" id="ir-water-savings-value">2.8 لتر</span>
+                                        <span class="eco-kpi-lbl" id="ir-water-label" data-i18n="kpiWaterLabel">توفير مياه نقية</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- قائمة قابلة للطي للتفاصيل التقنية (B4: Developer jargon kept collapsed for defense panel) -->
+                            <details class="tech-details-disclosure mt-3" id="cv-tech-details-disclosure">
+                                <summary class="tech-details-summary">
+                                    <svg width="16" height="16" aria-hidden="true"><use href="#icon-info"></use></svg>
+                                    <span data-i18n="techPanelTitle">التفاصيل التقنية للنموذج (لجنة المناقشة)</span>
+                                    <svg class="chevron-icon" width="16" height="16" aria-hidden="true"><use href="#icon-chevron-down"></use></svg>
+                                </summary>
+                                <div class="tech-details-body">
+                                    <div class="tech-meta-row">
+                                        <span><strong data-i18n="techModelName">النموذج:</strong> <span id="cv-active-model-tag">Deep Learning Model (.keras) • Flask Backend</span></span>
+                                        <span><strong data-i18n="techInferenceTime">زمن الاستدلال:</strong> <span id="cv-inference-latency">14.2 ms</span></span>
+                                    </div>
+                                    <div class="confidence-box mt-2">
+                                        <div class="flex justify-between text-xs font-bold text-gray-700 mb-1">
+                                            <span id="cv-confidence-label" data-i18n="confidenceLabel">دقة التعرف (Confidence %):</span>
+                                            <span class="text-emerald-700 font-black" id="cv-confidence-value">96.8%</span>
+                                        </div>
+                                        <div class="cv-confidence-bar">
+                                            <div class="cv-confidence-bar-fill confidence-fill-initial" id="cv-confidence-bar-fill"></div>
+                                        </div>
+                                        <div class="text-2xs text-gray-500 mt-1" id="cv-margin-display">
+                                            <span id="cv-margin-label" data-i18n="marginLabel">الهامش:</span> <strong id="cv-margin-value">25.0%</strong>
+                                        </div>
+                                    </div>
+
+                                    <!-- أعلى الاحتمالات البديلة (Top-3 Candidates) -->
+                                    <div class="top-k-container mt-2" id="cv-top-k-container">
+                                        <div class="text-xs font-bold text-gray-700 mb-1" id="cv-top-k-heading" data-i18n="topCandidatesTitle">أعلى الاحتمالات (Top-3):</div>
+                                        <div class="top-k-list" id="cv-top-k-list"></div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- زر الإجراء الرئيسي: إظهار الخريطة وأقرب حاوية -->
+                        <div class="result-actions-strip">
+                            <button type="button" class="btn btn-primary btn-lg w-full" id="btn-go-to-route" disabled>
+                                <span id="btn-go-to-route-text" data-i18n="btnFindNearestBin">إظهار الخريطة وأقرب حاوية متاحة</span>
+                                <svg width="20" height="20" aria-hidden="true"><use href="#icon-route"></use></svg>
+                            </button>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== الخطوة 2: تحديد موقع المستخدم داخل الحرم ==================== -->
+        <section class="wizard-step" id="wizard-step-2" aria-labelledby="step-2-title" role="tabpanel">
             <div class="step-hero-card">
                 <div class="hero-icon-bubble">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 </div>
-                <h2 id="step-1-title" class="step-hero-title">أهلاً بك في نظام EcoSort الذكي</h2>
-                <p class="step-hero-desc" id="step-1-desc">
+                <h2 id="step-2-title" class="step-hero-title" data-i18n="step1HeroTitle">أهلاً بك في نظام EcoSort الذكي</h2>
+                <p class="step-hero-desc" id="step-2-desc" data-i18n="step1HeroDesc">
                     اختر موقعك الحالي داخل حرم جامعة كفر الشيخ لنتمكن من توجيهك لأقرب حاوية متاحة بأقل مسافة سير.
                 </p>
 
                 <!-- زر محاكاة الـ GPS التلقائي -->
                 <button type="button" class="btn btn-gps-detect" id="btn-gps-simulate">
                     <span class="gps-pulse-ring"></span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <circle cx="12" cy="12" r="10"/><polygon points="12 2 16 12 12 22 8 12 12 2"/>
-                    </svg>
-                    <span id="btn-gps-text">تحديد موقعي تلقائياً (GPS Simulation)</span>
+                    <svg width="18" height="18" aria-hidden="true"><use href="#icon-compass"></use></svg>
+                    <span id="btn-gps-text" data-i18n="btnGps">استخدام موقعي التقريبي (محاكاة الحرم)</span>
                 </button>
+                <span class="text-xs text-gray-500 mt-1" data-i18n="locationSimDesc">محاكاة تقديرية لموقعك داخل الحرم الجامعي</span>
             </div>
 
             <!-- بطاقات اختيار الكليات والمعالم -->
@@ -213,376 +560,125 @@
                             class="search-location-input" 
                             placeholder="ابحث عن كليتك (مثل: الذكاء الاصطناعي، الهندسة، العلوم)..." 
                             aria-label="بحث في الكليات والمعالم"
+                            data-i18n-placeholder="searchPlaceholder"
+                            data-i18n-aria="searchAriaLabel"
                             autocomplete="off"
                         >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                        </svg>
+                        <button type="button" class="btn-clear-search hidden" id="btn-clear-search" aria-label="مسح نص البحث" data-i18n-aria="searchClearAria">
+                            <svg width="16" height="16" aria-hidden="true"><use href="#icon-x"></use></svg>
+                        </button>
+                        <svg width="18" height="18" class="search-icon" aria-hidden="true"><use href="#icon-search"></use></svg>
                     </div>
 
                     <!-- تبويبات التصفية السريعة -->
                     <div class="category-filters-wrap" role="group" aria-label="تصنيفات كليات ومعالم الجامعة">
-                        <button type="button" class="category-pill active" data-category="all">جميع المنشآت (12)</button>
-                        <button type="button" class="category-pill" data-category="tech">علمية وتكنولوجية</button>
-                        <button type="button" class="category-pill" data-category="medical">القطاع الطبي والصحي</button>
-                        <button type="button" class="category-pill" data-category="service">المطاعم والخدمات</button>
+                        <button type="button" class="category-pill active" data-category="all" data-i18n="categoryAll">جميع المنشآت (12)</button>
+                        <button type="button" class="category-pill" data-category="tech" data-i18n="categoryTech">علمية وتكنولوجية</button>
+                        <button type="button" class="category-pill" data-category="medical" data-i18n="categoryMedical">القطاع الطبي والصحي</button>
+                        <button type="button" class="category-pill" data-category="service" data-i18n="categoryService">المطاعم والخدمات</button>
                     </div>
                 </div>
 
                 <div class="section-label-row">
-                    <h3 class="section-subtitle" id="step-1-subtitle">اختر كليتك أو وجهتك الحالية:</h3>
-                    <span class="text-xs text-gray-500 font-semibold" id="selected-location-hint">لم يتم تحديد موقع بعد</span>
+                    <h3 class="section-subtitle" id="step-2-subtitle" data-i18n="step1Subtitle">اختر كليتك أو وجهتك الحالية:</h3>
+                    <span class="text-xs text-gray-500 font-semibold" id="selected-location-hint" data-i18n="hintNoLocation">لم يتم تحديد موقع بعد</span>
                 </div>
 
                 <div class="location-cards-grid" id="location-cards-grid" role="radiogroup" aria-label="كليات ومعالم جامعة كفر الشيخ">
-                    <!-- يتم توليد البطاقات ديناميكياً بواسطة app.js من campus-graph.js -->
+                    <!-- يتم توليد البطاقات ديناميكياً بواسطة app.js -->
                 </div>
             </div>
 
-            <!-- شريط المتابعة الثابت للخطوة الأولى -->
-            <div class="wizard-bottom-actions">
-                <button type="button" class="btn btn-primary btn-lg" id="btn-go-to-step-2" disabled>
-                    <span id="btn-go-to-step-2-text">التالي: فحص وتصنيف المخلفات</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-                    </svg>
-                </button>
-            </div>
-        </section>
-
-
-        <!-- ==================== الخطوة 2: رفع الصورة أو اختيار المخلفات (CV & IR) ==================== -->
-        <section class="wizard-step" id="wizard-step-2" aria-labelledby="step-2-title">
-            
-            <!-- شريط تذكير الموقع المختار -->
-            <div class="current-location-banner">
-                <div class="location-banner-info">
-                    <span class="location-pin-icon">📍</span>
-                    <span><span id="step2-current-location-banner-label">موقعك الحالي المحدد:</span> <strong id="step2-current-location-text">البوابة الرئيسية</strong></span>
-                </div>
-                <button type="button" class="btn btn-outline-sm" id="btn-change-location-step2">
-                    <span id="btn-change-location-step2-text">تغيير الموقع 🔄</span>
-                </button>
-            </div>
-
-            <div class="step-header-text">
-                <h2 id="step-2-title" class="step-title">فحص وتحديد نوع المخلفات</h2>
-                <p class="step-subtitle" id="step-2-subtitle">التقط صورة مباشرة عبر الكاميرا أو ارفع صورة من جهازك للتعرف البصري الآلي (Computer Vision) واستخراج إرشادات الفرز وأقرب حاوية ملائمة:</p>
-            </div>
-
-            <!-- خيار الفحص بالرؤية الحاسوبية والكاميرا -->
-            <div class="scan-methods-container">
-                
-                <div class="scan-method-card cv-upload-box">
-                    <div class="cv-header-row">
-                        <div class="scan-method-badge">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                            <span id="cv-badge-text">التعرف البصري والذكاء الاصطناعي (Computer Vision & AI)</span>
-                        </div>
-                        <span class="cv-model-tag" id="cv-active-model-tag">Deep Learning Model (.keras) • Flask Backend</span>
-                    </div>
-
-                    <!-- أزرار الإجراءات الرئيسية المباشرة للتصوير والرفع -->
-                    <div class="cv-actions-bar">
-                        <button type="button" class="btn btn-primary cv-action-btn" id="btn-trigger-camera">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                            <span id="btn-trigger-camera-text">التقاط صورة بالكاميرا 📷</span>
-                        </button>
-                        <button type="button" class="btn btn-outline cv-action-btn" id="btn-trigger-upload">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            <span id="btn-trigger-upload-text">رفع صورة من الجهاز 📁</span>
-                        </button>
-                    </div>
-
-                    <!-- مدخلات الملفات الخفية: واحد للرفع المباشر وواحد لكاميرا الموبايل -->
-                    <input type="file" id="waste-image-input" accept="image/*" class="hidden" aria-label="رفع صورة مخلفات من الجهاز">
-                    <input type="file" id="waste-camera-input" accept="image/*" capture="environment" class="hidden" aria-label="التقاط صورة بالكاميرا">
-
-                    <!-- منطقة العرض والفحص التفاعلية -->
-                    <div class="cv-dropzone" id="cv-dropzone" tabindex="0" role="button" aria-label="انقر لرفع صورة أو اسحب الصورة هنا">
-                        <!-- مؤشر المسح الضوئي الذكي وزوايا الـ Reticle -->
-                        <div class="scanner-laser-line" id="scanner-laser-line"></div>
-                        <div class="scanner-corners" aria-hidden="true">
-                            <span class="corner top-right"></span>
-                            <span class="corner top-left"></span>
-                            <span class="corner bottom-right"></span>
-                            <span class="corner bottom-left"></span>
-                        </div>
-
-                        <!-- 1. حالة البداية / إرشادات الإفلات واللصق -->
-                        <div class="cv-upload-placeholder" id="cv-upload-placeholder">
-                            <div class="upload-icon-circle">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            </div>
-                            <span class="cv-upload-text" id="cv-dropzone-text">اضغط على أحد الزرين أعلاه، أو اسحب وأفلت صورة هنا</span>
-                            <span class="cv-upload-hint" id="cv-dropzone-hint">يدعم التصوير المباشر، سحب الملفات، اللصق من الحافظة (Ctrl+V) وصيغ PNG, JPG, WEBP</span>
-                        </div>
-
-                        <!-- 2. معاينة الكاميرا الحية (Live Camera Viewfinder) -->
-                        <div class="cv-camera-stream-container hidden" id="cv-camera-stream-container">
-                            <video id="cv-camera-video" playsinline autoplay muted></video>
-                            <div class="cv-camera-overlay-controls">
-                                <button type="button" class="btn btn-primary" id="btn-camera-capture">
-                                    <span id="btn-camera-capture-text">📸 التقط الصورة وافحصها</span>
-                                </button>
-                                <button type="button" class="btn btn-outline-sm btn-camera-secondary" id="btn-camera-switch" title="تبديل الكاميرا">
-                                    <span id="btn-camera-switch-text">🔄 تبديل</span>
-                                </button>
-                                <button type="button" class="btn btn-outline-sm btn-camera-secondary" id="btn-camera-close" title="إغلاق الكاميرا">
-                                    <span id="btn-camera-close-text">✕ إغلاق</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 3. معاينة الصورة المفحوصة بعد المعالجة -->
-                        <div class="cv-image-preview-container hidden" id="cv-image-preview-container">
-                            <img id="cv-uploaded-image" alt="معاينة الصورة المرفوعة">
-                            <div class="cv-preview-badge">
-                                <span class="text-xs text-emerald-700 font-bold" id="cv-preview-status-text">تم الاستدلال بنجاح عبر الذكاء الاصطناعي &check;</span>
-                            </div>
-                            <div class="cv-preview-actions">
-                                <button type="button" class="btn btn-outline-sm" id="btn-rescan-camera">
-                                    <span id="btn-rescan-camera-text">📷 التقاط أخرى</span>
-                                </button>
-                                <button type="button" class="btn btn-outline-sm" id="btn-reupload-image">
-                                    <span id="btn-reupload-image-text">📁 رفع صورة بديلة</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- رسالة إرشادية قبل الفحص -->
-            <div class="awaiting-scan-notice" id="awaiting-scan-notice">
-                <div class="awaiting-scan-icon">🔍</div>
-                <div class="awaiting-scan-text">
-                    <h4 id="awaiting-scan-title">في انتظار التقاط أو رفع صورة للمخلفات</h4>
-                    <p id="awaiting-scan-desc">التقط صورة بكاميرا جهازك أو ارفع صورة لقطعة المخلفات ليتم فحصها بصرياً وتحديد نوعها وإرشادات تدويرها وأقرب حاوية ملائمة.</p>
-                </div>
-            </div>
-
-            <!-- صندوق نتيجة الفحص ودليل المعالجة (CV & IR Result Card) - يظهر تلقائياً بعد إتمام الفحص -->
-            <article class="card result-inspection-card hidden" id="card-inspection-result" aria-live="polite">
-                <div class="card-header">
-                    <div class="card-header-title">
-                        <div class="card-header-icon cv-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-                        </div>
-                        <div>
-                            <h3 class="card-title" id="inspection-result-title">نتيجة الفحص البصري ودليل المعالجة (IR)</h3>
-                            <p class="card-subtitle" id="inspection-result-subtitle">الخصائص المادية وإرشادات التدوير والأثر البيئي</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <select id="manual-waste-selector" class="manual-waste-select" aria-label="تعديل نوع المخلفات يدوياً">
-                            <option value="pet_bottle">زجاجة بلاستيك مياه (PET)</option>
-                            <option value="hdpe_container">عبوة بلاستيك مقوى (HDPE)</option>
-                            <option value="alu_can">علبة كانز معدن (Can)</option>
-                            <option value="cardboard_box">كرتون وأوراق تغليف (Cardboard)</option>
-                            <option value="paper_sheet">أوراق ومستندات دراسية (Paper)</option>
-                            <option value="glass_bottle">زجاجات وعبوات زجاجية (Glass)</option>
-                            <option value="organic_food">مخلفات طعام عضوية</option>
-                            <option value="e_waste">نفايات إلكترونية وبطاريات</option>
-                            <option value="mixed_trash">مخلفات عامة ومختلطة (Trash)</option>
-                        </select>
-                        <span class="badge badge-emerald" id="cv-detected-resin-code">1 - PETE</span>
-                    </div>
-                </div>
-
-                <!-- شريط قرار الثقة (Confident / Uncertain / Rejected) -->
-                <div id="cv-decision-banner" class="decision-banner hidden" role="alert">
-                    <div class="decision-banner-icon" id="cv-decision-banner-icon">🎯</div>
-                    <div class="decision-banner-body">
-                        <strong id="cv-decision-banner-title">تصنيف مؤكد من الذكاء الاصطناعي</strong>
-                        <p id="cv-decision-banner-desc">تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.</p>
-                        <div id="cv-decision-banner-actions" class="decision-banner-actions hidden">
-                            <button type="button" class="btn btn-outline-sm" id="btn-banner-retry">
-                                <span id="btn-banner-retry-text">📷 إعادة التقاط الصورة</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- شريط تحذيرات جودة الصورة -->
-                <div id="cv-quality-warnings-box" class="quality-warnings-box hidden">
-                    <div class="flex items-center gap-1 text-xs font-bold text-amber-900 mb-1">
-                        <span>⚠️</span>
-                        <span id="cv-quality-warnings-title">ملاحظات جودة الصورة:</span>
-                    </div>
-                    <ul id="cv-quality-warnings-list" class="quality-warnings-list"></ul>
-                </div>
-
-                <!-- صندوق نصائح التصوير عند عدم التأكد أو الرفض -->
-                <div id="cv-photo-advice-box" class="photo-advice-box hidden">
-                    <div class="photo-advice-title" id="cv-photo-advice-title">💡 نصائح لالتقاط صورة دقيقة:</div>
-                    <ul class="photo-advice-list" id="cv-photo-advice-list">
-                        <li id="photo-advice-1">ضع قطعة واحدة فقط في منتصف كادر الكاميرا.</li>
-                        <li id="photo-advice-2">تأكد من إضاءة مناسبة وخلفية واضحة ومتباينة.</li>
-                        <li id="photo-advice-3">تجنب تقريب الكاميرا بدرجة تسبب تشويش الفوكس (Blur).</li>
-                    </ul>
-                </div>
-
-                <div class="card-body">
-                    <div class="detection-top-row">
-                        <div class="detected-material-meta">
-                            <span class="text-xs text-gray-500 font-bold" id="cv-detected-material-label">الخامة المكتشفة:</span>
-                            <h4 class="text-lg font-black text-slate-900" id="cv-detected-material-name">زجاجة بلاستيك شفافة (PET)</h4>
-                        </div>
-                        <div class="target-bin-display">
-                            <span class="text-xs text-gray-500 font-bold" id="ir-target-bin-label">الحاوية المستهدفة:</span>
-                            <span class="badge badge-lg badge-yellow" id="ir-target-bin-badge">الحاوية الصفراء</span>
-                        </div>
-                    </div>
-
-                    <!-- شريط نسبة الثقة وملمس الخامة -->
-                    <div class="confidence-texture-grid">
-                        <div class="confidence-box">
-                            <div class="flex justify-between text-xs font-bold text-gray-700 mb-1">
-                                <span id="cv-confidence-label">دقة التعرف (Confidence %):</span>
-                                <span class="text-emerald-700 font-black" id="cv-confidence-value">96.8%</span>
-                            </div>
-                            <div class="cv-confidence-bar">
-                                <div class="cv-confidence-bar-fill confidence-fill-initial" id="cv-confidence-bar-fill"></div>
-                            </div>
-                            <div class="text-2xs text-gray-400 mt-1 flex justify-between">
-                                <span><span id="cv-latency-label">زمن الاستدلال:</span> <strong id="cv-inference-latency">14.2 ms</strong></span>
-                                <span id="cv-margin-display" class="hidden"><span id="cv-margin-label">الهامش:</span> <strong id="cv-margin-value">25.0%</strong></span>
-                            </div>
-
-                            <!-- أعلى الاحتمالات البديلة (Top-3 Candidates) -->
-                            <div class="top-k-container mt-3 hidden" id="cv-top-k-container">
-                                <div class="text-xs font-bold text-gray-700 mb-1" id="cv-top-k-heading">أعلى الاحتمالات (Top-3):</div>
-                                <div class="top-k-list" id="cv-top-k-list"></div>
-                            </div>
-                        </div>
-
-                        <div class="texture-box">
-                            <div class="text-xs font-bold text-gray-800 mb-1" id="cv-texture-label">وصف الملمس والخصائص البصرية:</div>
-                            <p class="text-xs text-gray-600" id="cv-texture-description">
-                                سطح أملس شديد الشفافية، مرونة جيدة، قاع مقعر مع نقطة حقن دائرية مميزة، خفيف الوزن.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- خطوات التجهيز الصحيح ومؤشرات توفير الكربون -->
-                    <div class="ir-details-split">
-                        <div class="handling-steps-col">
-                            <div class="text-xs font-bold text-gray-800 mb-2" id="ir-handling-label">الطريقة الصحيحة لإعداد المادة للتدوير:</div>
-                            <ul class="ir-handling-list" id="ir-handling-steps">
-                                <li class="handling-step-item">
-                                    <span class="step-num">1</span>
-                                    <span class="step-text">تفريغ أي سوائل متبقية وشطف العبوة بالماء سريعاً.</span>
-                                </li>
-                                <li class="handling-step-item">
-                                    <span class="step-num">2</span>
-                                    <span class="step-text">نزع الغطاء البلاستيكي وحلقة العنق.</span>
-                                </li>
-                                <li class="handling-step-item">
-                                    <span class="step-num">3</span>
-                                    <span class="step-text">ضغط الزجاجة لتفريغ الهواء وتقليص حجمها بنسبة 70%.</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="impact-metrics-col">
-                            <div class="eco-kpi-card">
-                                <span class="eco-kpi-val" id="ir-co2-savings-value">85 جم CO₂</span>
-                                <span class="eco-kpi-lbl" id="ir-co2-label">توفير انبعاثات كربون</span>
-                            </div>
-                            <div class="eco-kpi-card">
-                                <span class="eco-kpi-val" id="ir-energy-savings-value">3.5 ساعة</span>
-                                <span class="eco-kpi-lbl" id="ir-energy-label">طاقة إنارة مصباح LED</span>
-                            </div>
-                            <div class="eco-kpi-card">
-                                <span class="eco-kpi-val" id="ir-water-savings-value">2.8 لتر</span>
-                                <span class="eco-kpi-lbl" id="ir-water-label">توفير مياه نقية</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <!-- أزرار التنقل السفلية للخطوة الثانية -->
-            <div class="wizard-bottom-actions split-actions">
+            <!-- شريط المتابعة الثابت للخطوة الثانية (B6: Sticky action on mobile) -->
+            <div class="wizard-bottom-actions sticky-bottom split-actions">
                 <button type="button" class="btn btn-outline" id="btn-back-to-step-1">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                    </svg>
-                    <span id="btn-back-to-step-1-text">تغيير موقعي</span>
+                    <svg width="18" height="18" aria-hidden="true"><use href="#icon-camera"></use></svg>
+                    <span id="btn-back-to-step-1-text" data-i18n="btnBackToScan">العودة للفحص</span>
                 </button>
 
                 <button type="button" class="btn btn-primary btn-lg" id="btn-go-to-step-3" disabled>
-                    <span id="btn-go-to-step-3-text">إظهار الخريطة وأقرب حاوية متاحة 🗺️</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-                    </svg>
+                    <span id="btn-go-to-step-3-text" data-i18n="btnContinueToRoute">متابعة إلى المسار الأقرب</span>
+                    <svg width="20" height="20" aria-hidden="true"><use href="#icon-route"></use></svg>
                 </button>
             </div>
         </section>
 
 
         <!-- ==================== الخطوة 3: الخريطة وأقصر مسار وتقييم الخوارزميات ==================== -->
-        <section class="wizard-step" id="wizard-step-3" aria-labelledby="step-3-title">
+        <section class="wizard-step" id="wizard-step-3" aria-labelledby="step-3-title" role="tabpanel">
             
-            <!-- شريط المسار والهدف -->
+            <!-- شريط سياق المسار -->
             <div class="route-context-bar">
                 <div class="context-pill">
-                    <span class="text-xs text-gray-500" id="step3-start-node-label">نقطة الانطلاق:</span>
+                    <span class="text-xs text-gray-500" id="step3-start-node-label" data-i18n="startNodeLabel">نقطة الانطلاق:</span>
                     <strong id="step3-start-node-name">كلية الذكاء الاصطناعي</strong>
+                    <button type="button" class="btn-change-inline" id="btn-change-location-step3" data-i18n="btnChangeLoc">تغيير</button>
                 </div>
-                <div class="route-arrow" id="route-arrow-symbol">&larr;</div>
+                <div class="route-arrow" id="route-arrow-symbol" aria-hidden="true">&larr;</div>
                 <div class="context-pill">
-                    <span class="text-xs text-gray-500" id="step3-waste-name-label">الخامة المراد التخلص منها:</span>
+                    <span class="text-xs text-gray-500" id="step3-waste-name-label" data-i18n="wasteNameLabel">الخامة المراد التخلص منها:</span>
                     <strong class="text-emerald-700" id="step3-waste-name">زجاجة بلاستيك (PET)</strong>
                 </div>
                 <button type="button" class="btn btn-outline-sm ms-auto" id="btn-rescan-step3">
-                    <span id="btn-rescan-step3-text">فحص قطعة أخرى 🔄</span>
+                    <svg width="14" height="14" aria-hidden="true"><use href="#icon-refresh"></use></svg>
+                    <span id="btn-rescan-step3-text" data-i18n="btnRescanStep3">فحص قطعة أخرى</span>
                 </button>
             </div>
 
-            <!-- كارت الخريطة التفاعلية للجراف -->
-            <article class="card map-card-full">
+            <!-- 1. كارت ملخص المسار والوجهة أولاً (B3 & Item 5: Summary card first!) -->
+            <article class="card result-route-summary-card" id="card-route-summary">
+                <div class="route-summary-header">
+                    <div class="destination-callout">
+                        <span class="badge badge-emerald text-sm" id="rec-dest-badge" data-i18n="recDestBadge">🎯 الوجهة الموصى بها:</span>
+                        <h3 class="destination-name" id="final-target-bin-name">كلية الذكاء الاصطناعي</h3>
+                        <div class="text-xs text-gray-500" id="final-target-bin-desc">حاوية بلاستيك PET متاحة بنسبة 35% سعة</div>
+                    </div>
+
+                    <div class="route-kpis-strip">
+                        <div class="kpi-mini-card">
+                            <span class="kpi-mini-val text-emerald-700" id="metric-total-distance">0 متر</span>
+                            <span class="kpi-mini-lbl" id="metric-dist-label" data-i18n="metricDistance">المسافة الكلية</span>
+                        </div>
+                        <div class="kpi-mini-card">
+                            <span class="kpi-mini-val text-blue-700" id="metric-walking-time">0 دقيقة</span>
+                            <span class="kpi-mini-lbl" id="metric-time-label" data-i18n="metricWalkingTime">زمن المشي التقريبي</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- زر بدء إرشادات المشي المباشرة -->
+                <div class="route-primary-action-wrap mt-3">
+                    <button type="button" class="btn btn-primary btn-lg w-full" id="btn-start-walking-guide">
+                        <svg width="20" height="20" aria-hidden="true"><use href="#icon-compass"></use></svg>
+                        <span id="btn-start-walking-text" data-i18n="btnStartWalkingGuide">بدء دليل المشي خطوة بخطوة</span>
+                    </button>
+                </div>
+            </article>
+
+            <!-- 2. كارت الخريطة التفاعلية للجراف -->
+            <article class="card map-card-full mt-4">
                 <div class="card-header">
                     <div class="card-header-title">
                         <div class="card-header-icon graph-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8.5 8.5 15.5 15.5"/></svg>
+                            <svg width="18" height="18" aria-hidden="true"><use href="#icon-route"></use></svg>
                         </div>
                         <div>
-                            <h2 class="card-title" id="step3-map-title">خريطة حرم جامعة كفر الشيخ (Campus Graph)</h2>
-                            <p class="card-subtitle" id="step3-map-subtitle">تمثيل بياني يوضح الممرات، الحاويات المتاحة (🟢) والممتلئة (🔴)، وأقصر مسار</p>
+                            <h2 class="card-title" id="step3-map-title" data-i18n="mapTitle">خريطة حرم جامعة كفر الشيخ (Campus Graph)</h2>
+                            <p class="card-subtitle" id="step3-map-subtitle" data-i18n="mapSubtitle">تمثيل بياني يوضح الممرات، الحاويات المتاحة والممتلئة، وأقصر مسار</p>
                         </div>
-                    </div>
-
-                    <!-- أزرار الإجراءات على الخريطة ومبدل الخوارزميات -->
-                    <div class="map-header-actions">
-                        <div class="algo-switcher-group" role="group" aria-label="اختيار خوارزمية البحث">
-                            <button type="button" class="algo-switch-btn active" id="btn-algo-dijkstra">
-                                Dijkstra
-                            </button>
-                            <button type="button" class="algo-switch-btn" id="btn-algo-astar">
-                                A* Search
-                            </button>
-                        </div>
-
-                        <button type="button" class="btn btn-primary" id="btn-simulate-route" title="محاكاة مسار مشي الطالب عبر الممرات">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                            <span id="btn-simulate-route-text">محاكاة السير</span>
-                        </button>
                     </div>
                 </div>
 
                 <div class="card-body card-body-compact">
                     <div class="canvas-wrapper">
-                        <canvas id="campus-graph-canvas"></canvas>
+                        <canvas id="campus-graph-canvas" role="img" aria-label="خريطة حرم جامعة كفر الشيخ توضح موقعك وأقرب حاوية"></canvas>
 
                         <!-- أدوات التحكم بالرسم (Zoom & Reset) -->
                         <div class="canvas-controls-overlay">
-                            <button type="button" class="btn btn-icon font-bold" id="btn-zoom-in" title="تكبير الخريطة">+</button>
-                            <button type="button" class="btn btn-icon font-bold" id="btn-zoom-out" title="تصغير الخريطة">&minus;</button>
-                            <button type="button" class="btn btn-icon" id="btn-reset-map-view" title="إعادة ضبط زاوية الرؤية">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            <button type="button" class="btn btn-icon font-bold" id="btn-zoom-in" title="تكبير الخريطة" data-i18n-title="btnZoomInTitle">+</button>
+                            <button type="button" class="btn btn-icon font-bold" id="btn-zoom-out" title="تصغير الخريطة" data-i18n-title="btnZoomOutTitle">&minus;</button>
+                            <button type="button" class="btn btn-icon" id="btn-reset-map-view" title="إعادة ضبط زاوية الرؤية" data-i18n-title="btnResetViewTitle">
+                                <svg width="16" height="16" aria-hidden="true"><use href="#icon-refresh"></use></svg>
                             </button>
                         </div>
 
@@ -590,27 +686,40 @@
                         <div class="canvas-legend-overlay">
                             <div class="legend-item">
                                 <span class="legend-dot student"></span>
-                                <span id="legend-student-text">موقعك</span>
+                                <span id="legend-student-text" data-i18n="legendYou">موقعك</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-dot available"></span>
-                                <span id="legend-available-text">حاوية متاحة 🟢</span>
+                                <span id="legend-available-text" data-i18n="legendAvail">حاوية متاحة 🟢</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-dot full"></span>
-                                <span id="legend-full-text">حاوية ممتلئة 🔴</span>
+                                <span id="legend-full-text" data-i18n="legendFull">حاوية ممتلئة 🔴</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-dot path"></span>
-                                <span id="legend-path-text">المسار الأقصر</span>
+                                <span id="legend-path-text" data-i18n="legendPath">المسار الأقصر</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-xs text-gray-500 mt-2 px-1 flex justify-between items-center">
-                        <span id="step3-academic-tip">💡 <strong>ميزة أكاديمية:</strong> انقر على أي كلية لتعديل حالة حاوياتها لمشاهدة الخوارزمية تتخطى الممتلئ وتعيد التوجيه لحظياً.</span>
-                        <span class="text-xs text-gray-400" id="step3-scroll-pan-tip">تدعم السحب والتقريب (Scroll & Pan)</span>
+                    <!-- بديل نصي للكانفاس لمستخدمي قارئات الشاشة -->
+                    <div class="sr-only" id="canvas-text-alternative" data-i18n="canvasTextAlt">
+                        خريطة تفاعلية توضح ممرات الحرم الجامعي والحاويات المتاحة وأقصر مسار سير.
                     </div>
+                </div>
+            </article>
+
+            <!-- 3. خطوات السير التفصيلية كقائمة مرتبة سهلة القراءة -->
+            <article class="card walking-steps-card mt-4">
+                <div class="card-header">
+                    <h3 class="walking-steps-title" id="walking-steps-title" data-i18n="walkingStepsTitle">🚶 خطوات السير التفصيلية عبر ممرات الحرم:</h3>
+                </div>
+                <div class="card-body">
+                    <div class="walking-steps-path" id="metric-path-summary">
+                        أنت متواجد بالفعل عند أقرب حاوية متاحة في موقعك الحالي!
+                    </div>
+                    <ol class="walking-steps-list" id="metric-walking-steps-list"></ol>
                 </div>
             </article>
 
@@ -618,7 +727,7 @@
             <div class="floating-mobile-route-card" id="floating-mobile-route-card">
                 <div class="mobile-route-top">
                     <div class="mobile-route-dest">
-                        <span class="badge badge-emerald" id="mobile-route-badge">أقرب حاوية 🎯</span>
+                        <span class="badge badge-emerald" id="mobile-route-badge" data-i18n="mobileRouteBadge">أقرب حاوية 🎯</span>
                         <h4 id="mobile-target-bin-name" class="font-extrabold text-slate-900 text-sm mt-0.5">كلية الذكاء الاصطناعي</h4>
                     </div>
                     <div class="mobile-route-metrics">
@@ -628,112 +737,99 @@
                 </div>
                 <div class="mobile-route-actions">
                     <button type="button" class="btn btn-primary btn-sm w-full" id="btn-mobile-simulate-route">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        <span id="btn-mobile-simulate-text">محاكاة السير في المسار</span>
+                        <svg width="14" height="14" aria-hidden="true"><use href="#icon-compass"></use></svg>
+                        <span id="btn-mobile-simulate-text" data-i18n="mobileSimulate">محاكاة السير في المسار</span>
                     </button>
                 </div>
             </div>
 
-            <!-- كارت النتيجة النهائية والتوجيه التفصيلي -->
-            <article class="card result-route-summary-card">
-                <div class="route-summary-header">
-                    <div class="destination-callout">
-                        <span class="badge badge-emerald text-sm" id="rec-dest-badge">🎯 الوجهة الموصى بها:</span>
-                        <h3 class="destination-name" id="final-target-bin-name">كلية الذكاء الاصطناعي</h3>
-                        <div class="text-xs text-gray-500" id="final-target-bin-desc">حاوية بلاستيك PET متاحة بنسبة 35% سعة</div>
+            <!-- 4. خيارات وتفاصيل متقدمة (B5: Dijkstra/A* toggle and academic evaluation inside advanced disclosure) -->
+            <details class="advanced-route-disclosure mt-4" id="advanced-route-disclosure">
+                <summary class="advanced-route-summary">
+                    <svg width="16" height="16" aria-hidden="true"><use href="#icon-sparkles"></use></svg>
+                    <span data-i18n="advancedAlgoToggle">خيارات وتفاصيل متقدمة (خوارزميات التوجيه والمناقشة الأكاديمية)</span>
+                    <svg class="chevron-icon" width="16" height="16" aria-hidden="true"><use href="#icon-chevron-down"></use></svg>
+                </summary>
+                
+                <div class="advanced-route-body">
+                    <div class="advanced-toolbar">
+                        <div class="algo-switcher-group" role="group" aria-label="اختيار خوارزمية البحث">
+                            <button type="button" class="algo-switch-btn active" id="btn-algo-dijkstra">
+                                Dijkstra
+                            </button>
+                            <button type="button" class="algo-switch-btn" id="btn-algo-astar">
+                                A* Search
+                            </button>
+                        </div>
+
+                        <button type="button" class="btn btn-outline" id="btn-simulate-route" title="محاكاة مسار مشي الطالب عبر الممرات">
+                            <svg width="15" height="15" aria-hidden="true"><use href="#icon-compass"></use></svg>
+                            <span id="btn-simulate-route-text" data-i18n="btnSimulate">محاكاة السير</span>
+                        </button>
                     </div>
 
-                    <div class="route-kpis-strip">
-                        <div class="kpi-mini-card">
-                            <span class="kpi-mini-val text-emerald-700" id="metric-total-distance">0 متر</span>
-                            <span class="kpi-mini-lbl" id="metric-dist-label">المسافة الكلية</span>
-                        </div>
-                        <div class="kpi-mini-card">
-                            <span class="kpi-mini-val text-blue-700" id="metric-walking-time">0 دقيقة</span>
-                            <span class="kpi-mini-lbl" id="metric-time-label">زمن المشي التقريبي</span>
-                        </div>
+                    <div class="route-advanced-metrics mt-3">
                         <div class="kpi-mini-card">
                             <span class="kpi-mini-val text-purple-700" id="metric-visited-nodes">1 عُقدة</span>
-                            <span class="kpi-mini-lbl" id="metric-nodes-label">عقد مستكشفة</span>
+                            <span class="kpi-mini-lbl" id="metric-nodes-label" data-i18n="metricVisitedNodes">عقد مستكشفة</span>
                         </div>
                         <div class="kpi-mini-card">
                             <span class="kpi-mini-val text-amber-700" id="metric-execution-time">0.05 ms</span>
-                            <span class="kpi-mini-lbl" id="metric-exec-label">زمن تنفيذ الخوارزمية</span>
+                            <span class="kpi-mini-lbl" id="metric-exec-label" data-i18n="metricExecTime">زمن تنفيذ الخوارزمية</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- مسار العبور خطوة بخطوة -->
-                <div class="walking-steps-container">
-                    <div class="walking-steps-title" id="walking-steps-title">🚶 خطوات السير التفصيلية عبر ممرات الحرم:</div>
-                    <div class="walking-steps-path" id="metric-path-summary">
-                        أنت متواجد بالفعل عند أقرب حاوية متاحة في موقعك الحالي!
+                    <div class="text-xs text-gray-500 mt-3 px-1 flex justify-between items-center">
+                        <span id="step3-academic-tip" data-i18n-html="mapAcademicTip">💡 <strong>ميزة أكاديمية:</strong> انقر على أي كلية لتعديل حالة حاوياتها لمشاهدة الخوارزمية تتخطى الممتلئ وتعيد التوجيه لحظياً.</span>
+                        <span class="text-xs text-gray-400" id="step3-scroll-pan-tip" data-i18n="canvasScrollPan">تدعم السحب والتقريب (Scroll & Pan)</span>
                     </div>
-                </div>
-            </article>
 
-            <!-- جدول المقارنة الأكاديمية للمناقشة (Dijkstra vs A* & Merge Sort) -->
-            <article class="card academic-evaluation-section">
-                <div class="card-header">
-                    <div class="card-header-title">
-                        <div class="card-header-icon eval-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                    <!-- جدول المقارنة الأكاديمية للمناقشة (Dijkstra vs A* & Merge Sort) -->
+                    <div class="academic-evaluation-section mt-4">
+                        <h4 class="text-sm font-extrabold text-gray-900 mb-1" id="eval-panel-title" data-i18n="evalPanelTitle">لوحة تقييم الأداء الأكاديمي (Academic Evaluation Panel)</h4>
+                        <p class="text-xs text-gray-500 mb-3" id="eval-panel-subtitle" data-i18n="evalPanelSubtitle">مقارنة زمنية وعقدية دقيقة بين خوارزميات البحث والترتيب للمناقشة الجامعية</p>
+                        
+                        <div class="table-responsive">
+                            <table class="academic-table" aria-label="مقارنة بين خوارزميتي ديكسترا وإيه ستار">
+                                <thead>
+                                    <tr>
+                                        <th id="th-criteria" data-i18n="colCriteria">المعيار الأكاديمي</th>
+                                        <th id="th-dijkstra" data-i18n="colDijkstra">خوارزمية ديكسترا (Dijkstra)</th>
+                                        <th id="th-astar" data-i18n="colAStar">خوارزمية إيه ستار (A*)</th>
+                                        <th id="th-conclusion" data-i18n="colConclusion">الاستنتاج التحليلي لمادة الخوارزميات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="academic-comparison-table-body"></tbody>
+                            </table>
                         </div>
-                        <div>
-                            <h3 class="card-title" id="eval-panel-title">لوحة تقييم الأداء الأكاديمي (Academic Evaluation Panel)</h3>
-                            <p class="card-subtitle" id="eval-panel-subtitle">مقارنة زمنية وعقدية دقيقة بين خوارزميات البحث والترتيب للمناقشة الجامعية</p>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="card-body">
-                    <!-- جدول مقارنة الخوارزميتين -->
-                    <div class="table-responsive">
-                        <table class="academic-table" aria-label="مقارنة بين خوارزميتي ديكسترا وإيه ستار">
-                            <thead>
-                                <tr>
-                                    <th id="th-criteria">المعيار الأكاديمي</th>
-                                    <th id="th-dijkstra">خوارزمية ديكسترا (Dijkstra)</th>
-                                    <th id="th-astar">خوارزمية إيه ستار (A*)</th>
-                                    <th id="th-conclusion">الاستنتاج التحليلي لمادة الخوارزميات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="academic-comparison-table-body">
-                                <!-- يتم ملؤها ديناميكياً بواسطة evaluation-ui.js -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- قائمة الحاويات المتاحة المرتبة بواسطة خوارزمية Merge Sort -->
-                    <div class="mt-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <div>
-                                <h4 class="text-sm font-extrabold text-gray-900" id="merge-sort-title">
-                                    جميع الحاويات المتاحة بالجامعة مرتبة تصاعدياً حسب مسافة السير
-                                </h4>
-                                <p class="text-xs text-gray-500" id="merge-sort-subtitle">تم الفرز باستخدام خوارزمية الترتيب بالدمج (Merge Sort - Divide & Conquer)</p>
+                        <!-- قائمة الحاويات المتاحة مرتبة بواسطة Merge Sort -->
+                        <div class="mt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <h5 class="text-sm font-extrabold text-gray-900" id="merge-sort-title" data-i18n="mergeSortHeading">
+                                        جميع الحاويات المتاحة بالجامعة مرتبة تصاعدياً حسب مسافة السير
+                                    </h5>
+                                    <p class="text-xs text-gray-500" id="merge-sort-subtitle" data-i18n="mergeSortSubheading">تم الفرز باستخدام خوارزمية الترتيب بالدمج (Merge Sort - Divide & Conquer)</p>
+                                </div>
+                                <span class="badge badge-emerald" id="merge-sort-badge" data-i18n="mergeSortBadge">Merge Sort Active</span>
                             </div>
-                            <span class="badge badge-emerald" id="merge-sort-badge">Merge Sort Active</span>
-                        </div>
-
-                        <div class="sorted-bins-list" id="sorted-bins-list-container">
-                            <!-- يتم ملؤها ديناميكياً بواسطة evaluation-ui.js -->
+                            <div class="sorted-bins-list" id="sorted-bins-list-container"></div>
                         </div>
                     </div>
                 </div>
-            </article>
+            </details>
 
-            <!-- أزرار الإجراءات النهائية للخطوة الثالثة -->
-            <div class="wizard-bottom-actions split-actions">
-                <button type="button" class="btn btn-outline" id="btn-back-to-step-2">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                    </svg>
-                    <span id="btn-back-step2-text">فحص قطعة مخلفات أخرى 🔄</span>
+            <!-- أزرار الإجراءات للخطوة الثالثة -->
+            <div class="wizard-bottom-actions split-actions mt-4">
+                <button type="button" class="btn btn-outline" id="btn-restart-step-1">
+                    <svg width="18" height="18" aria-hidden="true"><use href="#icon-map-pin"></use></svg>
+                    <span id="btn-restart-step-1-text" data-i18n="btnRestart">البدء من جديد وتغيير الموقع</span>
                 </button>
 
-                <button type="button" class="btn btn-primary" id="btn-restart-step-1">
-                    <span id="btn-restart-step-1-text">البدء من جديد وتغيير الموقع 📍</span>
+                <button type="button" class="btn btn-primary" id="btn-scan-another-bottom">
+                    <svg width="18" height="18" aria-hidden="true"><use href="#icon-camera"></use></svg>
+                    <span id="btn-scan-another-text" data-i18n="btnScanAnother">فحص قطعة أخرى</span>
                 </button>
             </div>
         </section>

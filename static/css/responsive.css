@@ -175,12 +175,12 @@ button, input, select, textarea { font: inherit; }
         align-items: stretch;
         gap: 0.6rem;
     }
-    .current-location-banner .btn { width: 100%; }
-
-    .step-hero-card { padding: 1.25rem 1rem; }
-    .step-hero-title { font-size: 1.25rem; }
-    .step-hero-desc { font-size: 0.85rem; }
+    .step-hero-card, .start-hero-card { padding: 1.25rem 1rem; }
+    .step-hero-title, .start-hero-title { font-size: 1.25rem; }
+    .step-hero-desc, .start-hero-desc { font-size: 0.85rem; }
     .hero-icon-bubble { width: 52px; height: 52px; }
+    .start-actions-bar { flex-direction: column; width: 100%; gap: 0.75rem; }
+    .btn-hero-scan, .btn-hero-find-bin { width: 100%; }
 
     /* ----- الخطوة 1: شريط التصنيفات يتمرر أفقياً بدل ما يلف على أسطر ----- */
     .category-filters-wrap {
