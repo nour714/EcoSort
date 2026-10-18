@@ -1,30 +1,45 @@
 /**
- * EcoSort - قاموس الترجمة الشامل ثنائي اللغة (Arabic RTL & English LTR)
- * يدعم التبديل الكلي والشامل لكافة عناصر وواجهات التطبيق
+ * =========================================================================================
+ * EcoSort - ملف الترجمة الموحد والنصوص التفاعلية (Arabic & English Localization)
+ * جامعة كفر الشيخ - الحرم الجامعي الذكي
+ * =========================================================================================
+ * يدعم المعايير الأكاديمية ونظام التوجيه السلس الخالي من الإيموجي في النصوص
+ * =========================================================================================
  */
 
 const ECOSORT_TRANSLATIONS = {
     ar: {
-        pageTitle: "EcoSort - نظام الفرز الذكي واسترجاع المسارات بجامعة كفر الشيخ",
+        pageTitle: "EcoSort - نظام الفرز والتوجيه الذكي بجامعة كفر الشيخ",
         brandTitleHtml: "| <span>جامعة كفر الشيخ</span>",
         brandSubtitle: "نظام الفرز والتوجيه الذكي للحرم الجامعي",
         langBtnText: "English",
+        skipLink: "تخطي إلى المحتوى الرئيسي",
 
-        // Stepper
-        step1NavTitle: "الموقع الحالي",
-        step1NavDesc: "أين أنت في الحرم؟",
-        step2NavTitle: "فحص المخلفات",
-        step2NavDesc: "تصنيف الخامة (CV & IR)",
-        step3NavTitle: "المسار والخريطة",
-        step3NavDesc: "أقرب حاوية (Algorithms)",
+        // شريط المراحل Stepper
+        step1NavTitle: "الفحص والتصنيف",
+        step1NavDesc: "صوّر أو اختر المادة",
+        step2NavTitle: "الموقع في الحرم",
+        step2NavDesc: "أين أنت الآن؟",
+        step3NavTitle: "المسار والحاوية",
+        step3NavDesc: "أقرب حاوية متاحة",
 
-        // Step 1
+        // شاشة البداية ذات الإجرائين (Two-Action Start Screen)
+        startHeroTitle: "فرز ذكي بلمسة واحدة",
+        startHeroDesc: "صوّر قطعة المخلفات بكاميرا هاتفك لمعرفة الحاوية المناسبة فوراً وإرشادات تجهيزها للتدوير.",
+        startScanPrimary: "فحص قطعة مخلفات",
+        startScanSubtitle: "التقط صورة بالكاميرا أو ارفع صورة من جهازك",
+        startFindBinSecondary: "أين أقرب حاوية؟",
+        startFindBinSubtitle: "تصفح الحاويات المتاحة في كليات الحرم",
+
+        // الخطوة 1 / الموقع الحالي
         step1HeroTitle: "أهلاً بك في نظام EcoSort الذكي",
         step1HeroDesc: "اختر موقعك الحالي داخل حرم جامعة كفر الشيخ لنتمكن من توجيهك لأقرب حاوية متاحة بأقل مسافة سير.",
-        btnGps: "تحديد موقعي تلقائياً (GPS Simulation)",
+        btnGps: "استخدام موقعي التقريبي (محاكاة الحرم)",
+        locationSimDesc: "محاكاة تقديرية لموقعك داخل الحرم الجامعي",
         searchPlaceholder: "ابحث عن كليتك (مثل: الذكاء الاصطناعي، الهندسة، العلوم)...",
         searchAriaLabel: "بحث في الكليات والمعالم",
-        searchEmpty: "لم نجد أي منشأة مطابقة لكلمة البحث \"{q}\". جرب كلمة أخرى.",
+        searchNoResults: "لم يتم العثور على منشأة مطابقة. جرّب كتابة كلمة أخرى مثل 'علوم' أو 'هندسة'.",
+        searchClearAria: "مسح نص البحث",
         categoryAll: "جميع المنشآت (12)",
         categoryTech: "علمية وتكنولوجية",
         categoryMedical: "القطاع الطبي والصحي",
@@ -33,29 +48,31 @@ const ECOSORT_TRANSLATIONS = {
         hintNoLocation: "لم يتم تحديد موقع بعد",
         hintSelectedPrefix: "الموقع المختار: ",
         btnNextStep2: "التالي: فحص وتصنيف المخلفات",
+        btnContinueToRoute: "متابعة إلى المسار الأقرب",
 
-        // Step 2
+        // الخطوة 2 / فحص وتحديد نوع المخلفات
         step2BannerLoc: "موقعك الحالي المحدد:",
-        btnChangeLoc: "تغيير الموقع 🔄",
+        btnChangeLoc: "تغيير الموقع",
         step2Title: "فحص وتحديد نوع المخلفات",
-        step2Subtitle: "التقط صورة مباشرة عبر الكاميرا أو ارفع صورة من جهازك للتعرف البصري الآلي (Computer Vision) واستخراج إرشادات الفرز وأقرب حاوية ملائمة:",
-        cvBadge: "التعرف البصري والذكاء الاصطناعي (Computer Vision & AI)",
+        step2Subtitle: "التقط صورة مباشرة عبر الكاميرا أو ارفع صورة للتعرف الآلي واستخراج إرشادات الفرز وأقرب حاوية ملائمة:",
+        cvBadge: "التعرف البصري والذكاء الاصطناعي",
         activeModelTag: "Deep Learning Model (.keras) • Flask Backend",
-        btnTriggerCamera: "التقاط صورة بالكاميرا 📷",
-        btnTriggerUpload: "رفع صورة من الجهاز 📁",
+        btnTriggerCamera: "التقاط صورة بالكاميرا",
+        btnTriggerUpload: "رفع صورة من الجهاز",
         dropzoneText: "اضغط على أحد الزرين أعلاه، أو اسحب وأفلت صورة هنا",
         dropzoneHint: "يدعم التصوير المباشر، سحب الملفات، اللصق من الحافظة (Ctrl+V) وصيغ PNG, JPG, WEBP",
-        btnCaptureNow: "📸 التقط الصورة وافحصها",
-        btnSwitchCamera: "🔄 تبديل",
-        btnCloseCamera: "✕ إغلاق",
-        previewStatus: "تم الاستدلال بنجاح عبر الذكاء الاصطناعي ✓",
-        btnRescanCamera: "📷 التقاط أخرى",
-        btnReupload: "📁 رفع صورة بديلة",
+        btnCaptureNow: "التقط الصورة وافحصها",
+        btnSwitchCamera: "تبديل الكاميرا",
+        btnCloseCamera: "إغلاق الكاميرا",
+        previewStatus: "تم الاستدلال بنجاح عبر الذكاء الاصطناعي",
+        btnRescanCamera: "التقاط أخرى",
+        btnReupload: "رفع صورة بديلة",
         awaitingTitle: "في انتظار التقاط أو رفع صورة للمخلفات",
         awaitingDesc: "التقط صورة بكاميرا جهازك أو ارفع صورة لقطعة المخلفات ليتم فحصها بصرياً وتحديد نوعها وإرشادات تدويرها وأقرب حاوية ملائمة.",
-        resultTitle: "نتيجة الفحص البصري ودليل المعالجة (IR)",
+        resultTitle: "نتيجة الفحص البصري ودليل المعالجة",
         resultSubtitle: "الخصائص المادية وإرشادات التدوير والأثر البيئي",
         manualSelectAria: "تعديل نوع المخلفات يدوياً",
+        manualSelectPrompt: "تعديل الخامة يدوياً إذا لزم الأمر:",
         manualOptions: {
             pet_bottle: "زجاجة بلاستيك مياه (PET)",
             hdpe_container: "عبوة بلاستيك مقوى (HDPE)",
@@ -68,28 +85,50 @@ const ECOSORT_TRANSLATIONS = {
             mixed_trash: "مخلفات عامة ومختلطة (Trash)"
         },
 
-        // Gating, Decisions & Warnings
-        decisionConfidentTitle: "تصنيف مؤكد من الذكاء الاصطناعي",
+        // قرارات النموذج (Decisions: Confident, Uncertain, Rejected)
+        decisionConfidentTitle: "تصنيف مؤكد",
         decisionConfidentDesc: "تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.",
         decisionUncertainTitle: "تنبيه: النموذج غير متأكد تماماً",
-        decisionUncertainDesc: "نسبة الثقة أو هامش التمييز منخفض. يُرجى التحقق من القائمة اليدوية أدناه أو إعادة التقاط الصورة بإضاءة أفضل.",
-        decisionRejectedTitle: "تنبيه: تعذّر التعرف على الجسم بدقة مقبولة",
-        decisionRejectedDesc: "الصورة غير واضحة أو أن المادة غير مصنفة بدقة. يُرجى اختيار الخامة يدوياً من القائمة أعلاه أو مراجعة نصائح التصوير أدناه.",
-        btnRetryScan: "📷 إعادة التقاط الصورة",
+        decisionUncertainDesc: "نسبة الثقة متوسطة. يرجى تأكيد نوع المادة بالضغط على أحد الخيارات التالية:",
+        decisionUncertainQuestion: "هل هذه القطعة {material}؟",
+        decisionRejectedTitle: "تعذّر التعرف على الجسم بدقة مقبولة",
+        decisionRejectedDesc: "الصورة غير واضحة أو أن المادة غير مصنفة بدقة. يُرجى إعادة التقاط الصورة أو اختيار الخامة يدوياً.",
+        btnRetryScan: "إعادة التقاط الصورة",
+        btnManualSelect: "اختيار الخامة من القائمة اليدوية",
+        btnFindNearestBin: "إظهار الخريطة وأقرب حاوية",
+        analyzingPhoto: "جاري تحليل الصورة بواسطة الذكاء الاصطناعي...",
+
+        // تحذيرات جودة الصورة والنصائح
         qualityWarningsTitle: "ملاحظات جودة الصورة:",
         warnBlur: "الصورة بها غبشة أو اهتزاز حركي (Blur)",
         warnDark: "الإضاءة منخفضة جداً (Dark)",
         warnBright: "الإضاءة شديدة أو بها سطوع زائد (Overexposed)",
         warnFlat: "الصورة فارغة أو شبه موحدة اللون (Low Variance)",
-        photoAdviceTitle: "💡 نصائح لالتقاط صورة دقيقة:",
+        fixBlur: "ثبّت يدك جيداً وأعد التقاط الصورة بدون حركة.",
+        fixDark: "اقترب من مصدر إضاءة أو استخدم فلاش الهاتف.",
+        fixBright: "تجنب الانعكاس المباشر أو الظلال الشديدة.",
+        fixFlat: "ضع قطعة المخلفات في منتصف الكادر بخلفية متباينة.",
+        photoAdviceTitle: "نصائح لالتقاط صورة دقيقة:",
         photoAdvice1: "ضع قطعة واحدة فقط في منتصف كادر الكاميرا.",
         photoAdvice2: "تأكد من إضاءة مناسبة وخلفية واضحة ومتباينة.",
         photoAdvice3: "تجنب تقريب الكاميرا بدرجة تسبب تشويش الفوكس (Blur).",
 
-        // Step 2 Labels
+        // لوحة التفاصيل التقنية للجنة التحكيم (Technical Details Disclosure)
+        techPanelTitle: "التفاصيل التقنية للنموذج (لجنة المناقشة)",
+        techPanelSubtitle: "مقاييس زمن الاستدلال والاحتمالات وهامش الثقة",
+        techModelName: "النموذج:",
+        techInferenceTime: "زمن الاستدلال:",
+        techConfidenceMargin: "هامش الفصل (Margin):",
+        techTopKTitle: "أعلى 3 احتمالات بديلة (Top-3):",
+        techDecisionRule: "قاعدة القرار:",
+
+        // نصوص كارت النتيجة والـ IR
         detectedMatLabel: "الخامة المكتشفة:",
         targetBinLabel: "الحاوية المستهدفة:",
         confidenceLabel: "دقة التعرف (Confidence %):",
+        confLevelHigh: "ثقة مرتفعة",
+        confLevelMedium: "ثقة متوسطة",
+        confLevelLow: "ثقة منخفضة",
         latencyLabel: "زمن الاستدلال:",
         marginLabel: "الهامش:",
         topCandidatesTitle: "أعلى الاحتمالات (Top-3):",
@@ -99,33 +138,38 @@ const ECOSORT_TRANSLATIONS = {
         kpiEnergyLabel: "طاقة إنارة مصباح LED",
         kpiWaterLabel: "توفير مياه نقية",
         btnBackStep1: "تغيير موقعي",
-        btnGoStep3: "إظهار الخريطة وأقرب حاوية متاحة 🗺️",
+        btnGoStep3: "إظهار الخريطة وأقرب حاوية متاحة",
 
-        // Step 3
+        // الخطوة 3 / الخريطة وأقصر مسار
         startNodeLabel: "نقطة الانطلاق:",
         wasteNameLabel: "الخامة المراد التخلص منها:",
-        btnRescanStep3: "فحص قطعة أخرى 🔄",
+        btnRescanStep3: "فحص قطعة أخرى",
         mapTitle: "خريطة حرم جامعة كفر الشيخ (Campus Graph)",
-        mapSubtitle: "تمثيل بياني يوضح الممرات، الحاويات المتاحة (🟢) والممتلئة (🔴)، وأقصر مسار",
+        mapSubtitle: "تمثيل بياني يوضح الممرات، الحاويات المتاحة والممتلئة، وأقصر مسار",
         btnSimulate: "محاكاة السير",
         btnZoomInTitle: "تكبير الخريطة",
         btnZoomOutTitle: "تصغير الخريطة",
         btnResetViewTitle: "إعادة ضبط زاوية الرؤية",
         legendYou: "موقعك",
-        legendAvail: "حاوية متاحة 🟢",
-        legendFull: "حاوية ممتلئة 🔴",
+        legendAvail: "حاوية متاحة",
+        legendFull: "حاوية ممتلئة",
         legendPath: "المسار الأقصر",
-        mapAcademicTip: "💡 <strong>ميزة أكاديمية:</strong> انقر على أي كلية لتعديل حالة حاوياتها لمشاهدة الخوارزمية تتخطى الممتلئ وتعيد التوجيه لحظياً.",
+        mapAcademicTip: "<strong>ميزة أكاديمية:</strong> انقر على أي كلية لتعديل حالة حاوياتها لمشاهدة الخوارزمية تتخطى الممتلئ وتعيد التوجيه لحظياً.",
         canvasScrollPan: "تدعم السحب والتقريب (Scroll & Pan)",
-        mobileRouteBadge: "أقرب حاوية 🎯",
+        mobileRouteBadge: "أقرب حاوية",
         mobileSimulate: "محاكاة السير في المسار",
-        recDestBadge: "🎯 الوجهة الموصى بها:",
+        recDestBadge: "الوجهة الموصى بها:",
         metricDistance: "المسافة الكلية",
         metricWalkingTime: "زمن المشي التقريبي",
         metricVisitedNodes: "عقد مستكشفة",
         metricExecTime: "زمن تنفيذ الخوارزمية",
-        walkingStepsTitle: "🚶 خطوات السير التفصيلية عبر ممرات الحرم:",
+        walkingStepsTitle: "خطوات السير التفصيلية عبر ممرات الحرم:",
         sameLocationMsg: "أنت متواجد بالفعل عند أقرب حاوية متاحة في موقعك الحالي!",
+        routeSummaryCardTitle: "ملخص المسار وأقرب حاوية",
+        btnStartWalkingGuide: "بدء دليل المشي خطوة بخطوة",
+        advancedAlgoToggle: "خيارات خوارزميات التوجيه المتقدمة",
+
+        // التقييم الأكاديمي
         evalPanelTitle: "لوحة تقييم الأداء الأكاديمي (Academic Evaluation Panel)",
         evalPanelSubtitle: "مقارنة زمنية وعقدية دقيقة بين خوارزميات البحث والترتيب للمناقشة الجامعية",
         colCriteria: "المعيار الأكاديمي",
@@ -135,90 +179,102 @@ const ECOSORT_TRANSLATIONS = {
         mergeSortHeading: "جميع الحاويات المتاحة بالجامعة مرتبة تصاعدياً حسب مسافة السير",
         mergeSortSubheading: "تم الفرز باستخدام خوارزمية الترتيب بالدمج (Merge Sort - Divide & Conquer)",
         mergeSortBadge: "Merge Sort Active",
-        btnBackStep2: "فحص قطعة مخلفات أخرى 🔄",
-        btnRestart: "البدء من جديد وتغيير الموقع 📍",
+        btnBackStep2: "فحص قطعة مخلفات أخرى",
+        btnRestart: "البدء من جديد وتغيير الموقع",
 
-        // Modal
+        // تأكيد الوصول بعد الإيداع
+        arrivalTitle: "تم الوصول بنجاح للحاوية!",
+        arrivalDesc: "أحسنت! وضعت المخلفات في الحاوية المناسبة وساهمت في نظافة وتدوير بيئة الجامعة.",
+        btnScanAnother: "فحص قطعة أخرى",
+
+        // النافذة المنبثقة لتفاصيل الكلية
         modalSubtitle: "حالة الحاويات ونقاط التجميع",
         modalCloseAria: "إغلاق النافذة",
-        modalFooterHint: "💡 تبديل الحالة هنا يؤدي لإعادة حساب المسار الأقصر فوراً وتخطي الحاوية الممتلئة.",
-        modalBinAvail: "🟢 متاحة",
-        modalBinFull: "🔴 ممتلئة",
+        modalFooterHint: "تبديل الحالة هنا يؤدي لإعادة حساب المسار الأقصر فوراً وتخطي الحاوية الممتلئة.",
+        modalBinAvail: "متاحة",
+        modalBinFull: "ممتلئة",
         modalToggleToFull: "تغيير إلى ممتلئة",
         modalToggleToAvail: "تغيير إلى متاحة",
         modalCapacityPrefix: "سعة الامتلاء الحالية: ",
 
-        // Toasts
-        toastArrivedTitle: "وصلت بنجاح للحاوية! ♻️",
+        // الإشعارات والتوست
+        toastArrivedTitle: "وصلت بنجاح للحاوية!",
         toastArrivedMsg: "تم تسجيل توفير انبعاثات الكربون في رصيدك البيئي.",
         toastErrLocTitle: "تنبيه: اختر موقعك أولاً",
-        toastErrLocMsg: "يرجى اختيار كليتك الحالية في الخطوة 1 قبل المتابعة.",
+        toastErrLocMsg: "يرجى اختيار كليتك الحالية للمتابعة.",
         toastErrWasteTitle: "تنبيه: افحص المخلفات أولاً",
-        toastErrWasteMsg: "يرجى فحص قطعة مخلفات في الخطوة 2 قبل الانتقال للخريطة.",
-        toastSimulateDone: "تمت محاكاة المسار بنجاح!",
-        toastScanConfidentTitle: "تم الفحص بثقة عالية ✓",
-        toastScanConfidentMsg: "تم التعرف على: {item} بنسبة ثقة {confidence}%",
-        toastScanUncertainTitle: "تنبيه: ثقة متوسطة ⚠️",
-        toastScanUncertainMsg: "النتيجة: {item} بنسبة ثقة {confidence}%. يرجى التحقق أو اختيار الخامة يدوياً.",
-        toastScanRejectedTitle: "ثقة منخفضة / غير مؤكد ✕",
-        toastScanRejectedMsg: "نسبة الثقة {confidence}% أقل من حد القبول (45%). يرجى التحقق يدوياً أو التقاط صورة أوضح.",
-
-        // Footer
-        footerHtml: "نظام <strong>EcoSort</strong> الذكي &copy; 2026 - جامعة كفر الشيخ | كلية الذكاء الاصطناعي"
+        toastErrWasteMsg: "يرجى فحص قطعة مخلفات قبل عرض المسار.",
+        toastCameraDeniedTitle: "تعذّر الوصول للكاميرا",
+        toastCameraDeniedMsg: "يرجى السماح بالوصول للكاميرا من إعدادات المتصفح أو رفع صورة من الجهاز.",
+        toastNetworkErrTitle: "خطأ في الاتصال بالخادم",
+        toastNetworkErrMsg: "تعذّر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والمحاولة مجدداً."
     },
 
     en: {
-        pageTitle: "EcoSort - Smart Waste Sorting & Route Guidance (Kafrelsheikh University)",
+        pageTitle: "EcoSort - Smart Waste Sorting & Campus Route Guidance (Kafrelsheikh University)",
         brandTitleHtml: "| <span>Kafrelsheikh University</span>",
         brandSubtitle: "Smart Campus Waste Sorting & Route Guidance System",
         langBtnText: "العربية",
+        skipLink: "Skip to main content",
 
         // Stepper
-        step1NavTitle: "Current Location",
-        step1NavDesc: "Where are you on campus?",
-        step2NavTitle: "Waste Inspection",
-        step2NavDesc: "Material Classifier (CV & IR)",
-        step3NavTitle: "Route & Map",
-        step3NavDesc: "Nearest Bin (Algorithms)",
+        step1NavTitle: "Inspect & Classify",
+        step1NavDesc: "Scan or pick waste item",
+        step2NavTitle: "Campus Location",
+        step2NavDesc: "Where are you now?",
+        step3NavTitle: "Route & Container",
+        step3NavDesc: "Nearest available bin",
 
-        // Step 1
-        step1HeroTitle: "Welcome to EcoSort Smart System",
-        step1HeroDesc: "Select your current location on Kafrelsheikh University campus to guide you to the nearest available recycling bin with the shortest walking route.",
-        btnGps: "Auto-Detect Location (GPS Simulation)",
-        searchPlaceholder: "Search your faculty (e.g. AI, Engineering, Science)...",
-        searchAriaLabel: "Search campus faculties and landmarks",
-        searchEmpty: "No facilities found matching \"{q}\". Try another keyword.",
+        // Two-Action Start Screen
+        startHeroTitle: "Smart Sorting in Seconds",
+        startHeroDesc: "Capture a photo with your phone camera to instantly find the correct bin and recycling instructions.",
+        startScanPrimary: "Scan an Item",
+        startScanSubtitle: "Take a photo with camera or upload an image",
+        startFindBinSecondary: "Where is the nearest bin?",
+        startFindBinSubtitle: "Browse campus bins based on your location",
+
+        // Step 1 / Current Location
+        step1HeroTitle: "Welcome to EcoSort Campus Assistant",
+        step1HeroDesc: "Select your current starting point within Kafrelsheikh University campus to guide you to the nearest available container with the shortest walk.",
+        btnGps: "Use my approximate location (Campus Simulation)",
+        locationSimDesc: "Simulation of your current position on campus",
+        searchPlaceholder: "Search your faculty (e.g., AI, Engineering, Science)...",
+        searchAriaLabel: "Search faculties and campus landmarks",
+        searchNoResults: "No matching facility found. Try searching for 'Science' or 'Engineering'.",
+        searchClearAria: "Clear search query",
         categoryAll: "All Facilities (12)",
-        categoryTech: "Tech & Science",
+        categoryTech: "Science & Engineering",
         categoryMedical: "Medical & Health",
         categoryService: "Dining & Services",
         step1Subtitle: "Choose your faculty or starting point:",
         hintNoLocation: "No location selected yet",
         hintSelectedPrefix: "Selected Location: ",
         btnNextStep2: "Next: Waste Inspection & AI",
+        btnContinueToRoute: "Continue to Nearest Route",
 
-        // Step 2
+        // Step 2 / Inspect & Classify
         step2BannerLoc: "Your Selected Location:",
-        btnChangeLoc: "Change Location 🔄",
+        btnChangeLoc: "Change Location",
         step2Title: "Inspect & Classify Waste Material",
-        step2Subtitle: "Capture a photo via camera or upload an image for automated Computer Vision recognition and retrieval of proper sorting guidelines:",
-        cvBadge: "Visual Recognition & AI (Computer Vision & AI)",
+        step2Subtitle: "Capture a photo via camera or upload an image for automated recognition and retrieval of proper sorting guidelines:",
+        cvBadge: "Visual Recognition & AI",
         activeModelTag: "Deep Learning Model (.keras) • Flask Backend",
-        btnTriggerCamera: "Take Photo with Camera 📷",
-        btnTriggerUpload: "Upload Image File 📁",
+        btnTriggerCamera: "Take Photo with Camera",
+        btnTriggerUpload: "Upload Image File",
         dropzoneText: "Click a button above, or drag and drop an image here",
         dropzoneHint: "Supports live camera, drag & drop, clipboard paste (Ctrl+V), and PNG, JPG, WEBP formats",
-        btnCaptureNow: "📸 Capture & Inspect",
-        btnSwitchCamera: "🔄 Switch",
-        btnCloseCamera: "✕ Close",
-        previewStatus: "AI Inference Succeeded ✓",
-        btnRescanCamera: "📷 Retake Photo",
-        btnReupload: "📁 Upload Another",
+        btnCaptureNow: "Capture & Inspect",
+        btnSwitchCamera: "Switch Camera",
+        btnCloseCamera: "Close Camera",
+        previewStatus: "AI Inference Succeeded",
+        btnRescanCamera: "Retake Photo",
+        btnReupload: "Upload Another",
         awaitingTitle: "Waiting for waste photo capture or upload",
         awaitingDesc: "Take a picture of the waste item using your camera or upload a photo to inspect with Deep Learning AI, extract proper handling steps and nearest container.",
-        resultTitle: "AI Vision Classification & Handling Guide (IR)",
+        resultTitle: "AI Vision Classification & Handling Guide",
         resultSubtitle: "Material properties, recycling guidelines & environmental impact",
         manualSelectAria: "Adjust waste type manually",
+        manualSelectPrompt: "Adjust material manually if needed:",
         manualOptions: {
             pet_bottle: "Plastic Water Bottle (PET)",
             hdpe_container: "Rigid Plastic Container (HDPE)",
@@ -232,27 +288,49 @@ const ECOSORT_TRANSLATIONS = {
         },
 
         // Gating, Decisions & Warnings
-        decisionConfidentTitle: "Confident AI Classification",
+        decisionConfidentTitle: "Confirmed AI Classification",
         decisionConfidentDesc: "Material recognized with high confidence and sufficient class margin.",
-        decisionUncertainTitle: "Warning: Low Classification Confidence",
-        decisionUncertainDesc: "Confidence score or classification margin is low. Please verify using the dropdown below or retake the photo under better lighting.",
-        decisionRejectedTitle: "Advisory: Object Unrecognized",
-        decisionRejectedDesc: "Image is ambiguous or low quality. Please select the material manually from the dropdown above or follow the photo tips.",
-        btnRetryScan: "📷 Retake Photo",
+        decisionUncertainTitle: "Low Classification Confidence",
+        decisionUncertainDesc: "Confidence is medium. Please confirm the correct item by tapping below:",
+        decisionUncertainQuestion: "Is this item {material}?",
+        decisionRejectedTitle: "Object Unrecognized",
+        decisionRejectedDesc: "Image is ambiguous or low quality. Please retake the photo or choose the material from the manual list.",
+        btnRetryScan: "Retake Photo",
+        btnManualSelect: "Select Material Manually",
+        btnFindNearestBin: "Show Map & Nearest Bin",
+        analyzingPhoto: "Analyzing photo with deep learning model...",
+
+        // Image Quality Warnings & Guidance
         qualityWarningsTitle: "Image Quality Warnings:",
         warnBlur: "Image is blurry or motion-shaken (Blur)",
         warnDark: "Lighting is too dark (Dark)",
         warnBright: "Image is overexposed or too bright (Overexposed)",
         warnFlat: "Image has low contrast / uniform color (Low Variance)",
-        photoAdviceTitle: "💡 Tips for Accurate Photo Classification:",
+        fixBlur: "Hold your phone steady and take another photo without motion.",
+        fixDark: "Move closer to a light source or turn on the camera flash.",
+        fixBright: "Avoid direct reflections or heavy glare.",
+        fixFlat: "Place the waste item centered against a contrasting background.",
+        photoAdviceTitle: "Tips for Accurate Photo Classification:",
         photoAdvice1: "Place only one waste item in the center of the frame.",
         photoAdvice2: "Ensure bright, even lighting and a plain background.",
         photoAdvice3: "Avoid holding the camera too close to maintain sharp focus.",
+
+        // Technical Details Panel
+        techPanelTitle: "Technical Model Details (Defense Panel)",
+        techPanelSubtitle: "Inference latency, probabilities and confidence margins",
+        techModelName: "Model:",
+        techInferenceTime: "Inference Time:",
+        techConfidenceMargin: "Class Margin:",
+        techTopKTitle: "Top-3 Alternative Candidates:",
+        techDecisionRule: "Decision Rule:",
 
         // Step 2 Labels
         detectedMatLabel: "Detected Material:",
         targetBinLabel: "Target Bin:",
         confidenceLabel: "Confidence Score (%):",
+        confLevelHigh: "High Confidence",
+        confLevelMedium: "Medium Confidence",
+        confLevelLow: "Low Confidence",
         latencyLabel: "Inference Time:",
         marginLabel: "Margin:",
         topCandidatesTitle: "Top-3 Candidates:",
@@ -262,33 +340,38 @@ const ECOSORT_TRANSLATIONS = {
         kpiEnergyLabel: "LED Lamp Power Equivalent",
         kpiWaterLabel: "Clean Water Saved",
         btnBackStep1: "Change Location",
-        btnGoStep3: "Show Route & Nearest Available Bin 🗺️",
+        btnGoStep3: "Show Route & Nearest Available Bin",
 
-        // Step 3
+        // Step 3 / Route & Map
         startNodeLabel: "Starting Point:",
         wasteNameLabel: "Material to Dispose:",
-        btnRescanStep3: "Scan Another Item 🔄",
+        btnRescanStep3: "Scan Another Item",
         mapTitle: "Kafrelsheikh University Campus Map (Graph)",
-        mapSubtitle: "Visual graph of pathways, available bins (🟢), full bins (🔴), and shortest route",
+        mapSubtitle: "Visual graph of pathways, available bins, full bins, and shortest route",
         btnSimulate: "Simulate Walk",
         btnZoomInTitle: "Zoom In",
         btnZoomOutTitle: "Zoom Out",
         btnResetViewTitle: "Reset Map View",
         legendYou: "You are here",
-        legendAvail: "Available Bin 🟢",
-        legendFull: "Full Bin 🔴",
+        legendAvail: "Available Bin",
+        legendFull: "Full Bin",
         legendPath: "Shortest Route",
-        mapAcademicTip: "💡 <strong>Academic Feature:</strong> Click any faculty to toggle bin status and watch algorithms skip full bins in real-time.",
+        mapAcademicTip: "<strong>Academic Feature:</strong> Click any faculty to toggle bin status and watch algorithms skip full bins in real-time.",
         canvasScrollPan: "Supports Drag & Zoom (Scroll & Pan)",
-        mobileRouteBadge: "Nearest Bin 🎯",
+        mobileRouteBadge: "Nearest Bin",
         mobileSimulate: "Simulate Walk Along Route",
-        recDestBadge: "🎯 Recommended Destination:",
+        recDestBadge: "Recommended Destination:",
         metricDistance: "Total Distance",
         metricWalkingTime: "Est. Walking Time",
         metricVisitedNodes: "Visited Nodes",
         metricExecTime: "Algorithm Execution Time",
-        walkingStepsTitle: "🚶 Turn-by-Turn Campus Walking Directions:",
+        walkingStepsTitle: "Turn-by-Turn Campus Walking Directions:",
         sameLocationMsg: "You are already at the closest available bin in your current location!",
+        routeSummaryCardTitle: "Route Summary & Nearest Bin",
+        btnStartWalkingGuide: "Start Step-by-Step Walking Guide",
+        advancedAlgoToggle: "Advanced Routing & Algorithm Options",
+
+        // Academic Evaluation Panel
         evalPanelTitle: "Academic Performance Evaluation Panel",
         evalPanelSubtitle: "Rigorous time and node comparison between search algorithms for university defense",
         colCriteria: "Academic Metric",
@@ -298,37 +381,42 @@ const ECOSORT_TRANSLATIONS = {
         mergeSortHeading: "All Available Campus Bins Sorted Ascending by Walking Distance",
         mergeSortSubheading: "Sorted via Merge Sort Algorithm (Divide & Conquer - O(n log n))",
         mergeSortBadge: "Merge Sort Active",
-        btnBackStep2: "Inspect Another Item 🔄",
-        btnRestart: "Start Over & Change Location 📍",
+        btnBackStep2: "Inspect Another Item",
+        btnRestart: "Start Over & Change Location",
+
+        // Arrival Confirmation
+        arrivalTitle: "Arrived at Bin Successfully!",
+        arrivalDesc: "Well done! You disposed of your item in the correct container and helped keep campus sustainable.",
+        btnScanAnother: "Scan Another Item",
 
         // Modal
         modalSubtitle: "Bin Status & Collection Points",
         modalCloseAria: "Close Window",
-        modalFooterHint: "💡 Toggling status here triggers instant route recalculation, skipping full bins.",
-        modalBinAvail: "🟢 Available",
-        modalBinFull: "🔴 Full",
+        modalFooterHint: "Toggling status here triggers instant route recalculation, skipping full bins.",
+        modalBinAvail: "Available",
+        modalBinFull: "Full",
         modalToggleToFull: "Mark as Full",
         modalToggleToAvail: "Mark as Available",
         modalCapacityPrefix: "Current capacity: ",
 
         // Toasts
-        toastArrivedTitle: "Arrived at Bin Successfully! ♻️",
+        toastArrivedTitle: "Arrived at Bin Successfully!",
         toastArrivedMsg: "Carbon emission savings registered to your eco balance.",
         toastErrLocTitle: "Notice: Select Location First",
-        toastErrLocMsg: "Please select your current faculty in Step 1 before proceeding.",
+        toastErrLocMsg: "Please select your current faculty before proceeding.",
         toastErrWasteTitle: "Notice: Inspect Waste First",
-        toastErrWasteMsg: "Please inspect a waste item in Step 2 before viewing the map.",
-        toastSimulateDone: "Route simulation completed successfully!",
-        toastScanConfidentTitle: "High-Confidence Detection ✓",
-        toastScanConfidentMsg: "Identified: {item} with {confidence}% confidence",
-        toastScanUncertainTitle: "Medium Confidence Notice ⚠️",
-        toastScanUncertainMsg: "Predicted: {item} with {confidence}% confidence. Please verify or pick manually.",
-        toastScanRejectedTitle: "Low Confidence / Rejected ✕",
-        toastScanRejectedMsg: "Confidence {confidence}% is below threshold (45%). Please verify manually or retake a clearer photo.",
-
-        // Footer
-        footerHtml: "<strong>EcoSort</strong> Smart System &copy; 2026 - Kafrelsheikh University | Faculty of Artificial Intelligence"
+        toastErrWasteMsg: "Please inspect a waste item before viewing the route.",
+        toastCameraDeniedTitle: "Camera Access Denied",
+        toastCameraDeniedMsg: "Please allow camera access in browser settings or upload an image file.",
+        toastNetworkErrTitle: "Server Connection Error",
+        toastNetworkErrMsg: "Could not reach the server. Please verify the server is running and try again."
     }
 };
 
-window.ECOSORT_TRANSLATIONS = ECOSORT_TRANSLATIONS;
+if (typeof window !== 'undefined') {
+    window.ECOSORT_TRANSLATIONS = ECOSORT_TRANSLATIONS;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ECOSORT_TRANSLATIONS;
+}

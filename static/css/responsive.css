@@ -208,8 +208,8 @@ button, input, select, textarea { font: inherit; }
     }
 
     /* ----- الخطوة 3: الخريطة ----- */
-    .canvas-controls-overlay { top: 8px; left: 8px; gap: 0.3rem; }
-    .canvas-controls-overlay .btn-icon { width: 40px; height: 40px; }
+    .canvas-controls-overlay { top: 8px; left: 8px; gap: 0.35rem; }
+    .canvas-controls-overlay .btn-icon { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
     .map-header-actions { gap: 0.5rem; }
 
     .walking-steps-path { font-size: 0.85rem; line-height: 1.8; }

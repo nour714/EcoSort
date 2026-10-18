@@ -241,8 +241,8 @@ class EvaluationUI {
 
         if (!sortedBins || sortedBins.length === 0) {
             const emptyMsg = isEn 
-                ? '⚠️ No available bins for this waste type currently on campus.' 
-                : '⚠️ لا توجد حاويات متاحة حالياً لهذا النوع في حرم الجامعة.';
+                ? 'No available bins for this waste type currently on campus.' 
+                : 'لا توجد حاويات متاحة حالياً لهذا النوع في حرم الجامعة.';
             container.innerHTML = `
                 <div class="empty-state p-4 text-center text-gray-500">
                     <p>${emptyMsg}</p>
@@ -255,7 +255,7 @@ class EvaluationUI {
         sortedBins.forEach((bin, index) => {
             const isClosest = index === 0;
             const rankBadge = isClosest 
-                ? (isEn ? '<span class="badge badge-emerald">Closest to You 🥇</span>' : '<span class="badge badge-emerald">الأقرب إليك 🥇</span>')
+                ? (isEn ? '<span class="badge badge-emerald">Closest to You</span>' : '<span class="badge badge-emerald">الأقرب إليك</span>')
                 : (isEn ? `<span class="badge badge-gray">Rank #${index + 1}</span>` : `<span class="badge badge-gray">الترتيب #${index + 1}</span>`);
 
             const nodeObj = window.CAMPUS_GRAPH_DATA ? window.CAMPUS_GRAPH_DATA.nodes.find(n => n.id === bin.nodeId) : null;
