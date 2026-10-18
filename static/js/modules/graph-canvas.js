@@ -329,7 +329,30 @@ class CampusGraphCanvas {
     }
 
     startAnimationLoop() {
+        let isTabHidden = typeof document !== 'undefined' ? document.hidden : false;
+        if (typeof document !== 'undefined') {
+            document.addEventListener('visibilitychange', () => {
+                isTabHidden = document.hidden;
+                if (!isTabHidden && !this.animFrameId) {
+                    this.animFrameId = requestAnimationFrame(animate);
+                }
+            });
+        }
+
         const animate = () => {
+            if (isTabHidden) {
+                this.animFrameId = null;
+                return;
+            }
+
+            // Pause high-frequency rendering if canvas is currently hidden in an inactive wizard tab
+            if (this.canvas.offsetParent === null && !this.isSimulating && !this.isDepositing) {
+                setTimeout(() => {
+                    this.animFrameId = requestAnimationFrame(animate);
+                }, 400);
+                return;
+            }
+
             this.dashOffset = (this.dashOffset - 0.7) % 24;
 
             // تحديث محاكاة المشي إذا كانت نشطة عبر ممرات الحرم (مسار متعدد العقد)
