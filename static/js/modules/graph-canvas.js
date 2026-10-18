@@ -506,11 +506,15 @@ class CampusGraphCanvas {
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // كتابة المسافة بالمتر في منتصف الممر
-            const midX = (uNode.x + vNode.x) / 2;
-            const midY = (uNode.y + vNode.y) / 2;
-
-            this.drawDistancePill(ctx, midX, midY, `${edge.weight}م`, false);
+            // كتابة المسافة بالمتر في منتصف الممر فقط عند التحويم (A7: منع التداخل)
+            // تُعرض المسافات دائماً على المسار النشط فقط عبر drawActivePath
+            const isHovered = this.hoveredNodeId && (edge.from === this.hoveredNodeId || edge.to === this.hoveredNodeId);
+            if (isHovered) {
+                const midX = (uNode.x + vNode.x) / 2;
+                const midY = (uNode.y + vNode.y) / 2;
+                const isEn = document.documentElement.lang === 'en';
+                this.drawDistancePill(ctx, midX, midY, `${edge.weight}${isEn ? 'm' : 'م'}`, false);
+            }
         });
     }
 
@@ -680,23 +684,34 @@ class CampusGraphCanvas {
             if (isStart) {
                 ctx.fillText(isEn ? 'You' : 'أنت هنا', node.x, node.y - 1);
             } else if (isTarget) {
-                ctx.fillText(isEn ? 'Target 🎯' : 'الهدف 🎯', node.x, node.y - 1);
+                ctx.fillText(isEn ? 'Target' : 'الهدف', node.x, node.y - 1);
             } else {
                 ctx.fillText(isAvailable ? (isEn ? 'Open' : 'متاح') : (isEn ? 'Full' : 'ممتلئ'), node.x, node.y - 1);
             }
 
-            // كتابة اسم الكلية أسفل العقدة
+            // كتابة اسم الكلية - A7: منع التصادم الذكي
             ctx.fillStyle = '#0f172a';
             ctx.font = 'bold 12px Cairo, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.fillText(isEn ? (node.nameEn || node.name) : node.name, node.x, node.y + radius + 6);
 
-            // وصف الكلية أو التصنيف الفرعي بخط أصغر
-            ctx.fillStyle = '#64748b';
-            ctx.font = '10px Cairo, sans-serif';
-            const subtitleText = isEn ? (node.subtitleEn || node.subtitle) : node.subtitle;
-            ctx.fillText(subtitleText || '', node.x, node.y + radius + 22);
+            let labelY = node.y + radius + 6;
+            // قلب التسمية للأعلى إذا كانت العقدة في قاع الخريطة لتجنب الخروج أو التداخل
+            if (node.y > 520) {
+                labelY = node.y - radius - 18;
+                ctx.textBaseline = 'bottom';
+            }
+            ctx.fillText(isEn ? (node.nameEn || node.name) : node.name, node.x, labelY);
+
+            // وصف الكلية أو التصنيف الفرعي - A7: إخفاؤه عند التصغير أو الشاشات الضيقة لمنع التداخل
+            const showSubtitles = this.scale >= 0.82 && this.displayWidth >= 600;
+            if (showSubtitles) {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '10px Cairo, sans-serif';
+                const subtitleText = isEn ? (node.subtitleEn || node.subtitle) : node.subtitle;
+                const subY = node.y > 520 ? labelY - 14 : labelY + 16;
+                ctx.fillText(subtitleText || '', node.x, subY);
+            }
 
             ctx.restore();
         });
@@ -742,7 +757,7 @@ class CampusGraphCanvas {
         ctx.font = 'bold 10px Cairo, sans-serif';
         ctx.textAlign = 'center';
         const isEn = document.documentElement.lang === 'en';
-        ctx.fillText(isEn ? '🏃 Walking...' : '🏃 جارِ التوجه', currentX, currentY - 16);
+        ctx.fillText(isEn ? 'Walking...' : 'جارِ التوجه...', currentX, currentY - 16);
 
         ctx.restore();
     }
@@ -780,22 +795,26 @@ class CampusGraphCanvas {
             ctx.stroke();
         }
 
-        // 3. لافتة "تم الفرز والإيداع 🎯" الصاعدة
+        // 3. لافتة "تم الفرز والإيداع" الصاعدة
         const badgeY = node.y - 36 - p * 16;
         ctx.fillStyle = `rgba(5, 150, 105, ${opacity})`;
         ctx.font = 'bold 12px Cairo, sans-serif';
         ctx.textAlign = 'center';
         const isEn = document.documentElement.lang === 'en';
-        ctx.fillText(isEn ? 'Deposited & Sorted 🎯' : 'تم الفرز والإيداع 🎯', node.x, badgeY);
+        ctx.fillText(isEn ? 'Deposited & Sorted' : 'تم الفرز والإيداع', node.x, badgeY);
 
         ctx.restore();
     }
 
     /**
-     * إعادة رسم اللوحة فوراً عند تغيير اللغة أو حالة العقد
+     * إعادة رسم اللوحة فوراً عند تغيير اللغة أو حالة العقد (A1 Fix)
      */
+    draw() {
+        this.render();
+    }
+
     refresh() {
-        this.draw();
+        this.render();
     }
 }
 

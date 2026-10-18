@@ -1478,8 +1478,32 @@ class EcoSortApp {
         // إعادة توليد بطاقات الكليات
         this.renderLocationCards();
 
+        // 0. A4: Comprehensive data-i18n automatic translation pass
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (t[key] !== undefined) {
+                if (key.endsWith('Html')) {
+                    el.innerHTML = t[key];
+                } else {
+                    el.textContent = t[key];
+                }
+            }
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (t[key] !== undefined) el.placeholder = t[key];
+        });
+        document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+            const key = el.getAttribute('data-i18n-aria');
+            if (t[key] !== undefined) el.setAttribute('aria-label', t[key]);
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (t[key] !== undefined) el.setAttribute('title', t[key]);
+        });
+
         // الخطوة 2
-        const step2LocBannerLabel = document.getElementById('step2-loc-banner-label');
+        const step2LocBannerLabel = document.getElementById('step2-current-location-banner-label') || document.getElementById('step2-loc-banner-label');
         const btnChangeLocStep2 = document.getElementById('btn-change-location-step2');
         const step2Title = document.getElementById('step-2-title');
         const step2Subtitle = document.getElementById('step-2-subtitle');
@@ -1493,7 +1517,7 @@ class EcoSortApp {
         const btnCameraCloseText = document.getElementById('btn-camera-close-text');
         const previewStatusText = document.getElementById('cv-preview-status-text');
         const btnRescanCameraText = document.getElementById('btn-rescan-camera-text');
-        const btnReuploadText = document.getElementById('btn-reupload-text');
+        const btnReuploadText = document.getElementById('btn-reupload-image-text') || document.getElementById('btn-reupload-text');
         const awaitingTitle = document.getElementById('awaiting-scan-title');
         const awaitingDesc = document.getElementById('awaiting-scan-desc');
         const inspectionResultTitle = document.getElementById('inspection-result-title');
@@ -1501,21 +1525,21 @@ class EcoSortApp {
         const manualSelector = document.getElementById('manual-waste-selector');
         const btnBannerRetryText = document.getElementById('btn-banner-retry-text');
         const cvQualityWarningsTitle = document.getElementById('cv-quality-warnings-title');
-        const photoAdviceTitle = document.getElementById('photo-advice-title');
-        const photoAdviceTip1 = document.getElementById('photo-advice-tip-1');
-        const photoAdviceTip2 = document.getElementById('photo-advice-tip-2');
-        const photoAdviceTip3 = document.getElementById('photo-advice-tip-3');
-        const cvDetectedMatLabel = document.getElementById('cv-detected-mat-label');
-        const cvTargetBinLabel = document.getElementById('cv-target-bin-label');
+        const photoAdviceTitle = document.getElementById('cv-photo-advice-title') || document.getElementById('photo-advice-title');
+        const photoAdviceTip1 = document.getElementById('photo-advice-1') || document.getElementById('photo-advice-tip-1');
+        const photoAdviceTip2 = document.getElementById('photo-advice-2') || document.getElementById('photo-advice-tip-2');
+        const photoAdviceTip3 = document.getElementById('photo-advice-3') || document.getElementById('photo-advice-tip-3');
+        const cvDetectedMatLabel = document.getElementById('cv-detected-material-label') || document.getElementById('cv-detected-mat-label');
+        const cvTargetBinLabel = document.getElementById('ir-target-bin-label') || document.getElementById('cv-target-bin-label');
         const cvConfidenceLabel = document.getElementById('cv-confidence-label');
         const cvLatencyLabel = document.getElementById('cv-latency-label');
         const cvMarginLabel = document.getElementById('cv-margin-label');
-        const cvTopKTitle = document.getElementById('cv-top-k-title');
+        const cvTopKTitle = document.getElementById('cv-top-k-heading') || document.getElementById('cv-top-k-title');
         const cvTextureLabel = document.getElementById('cv-texture-label');
         const irHandlingLabel = document.getElementById('ir-handling-label');
-        const irCo2KpiLabel = document.getElementById('ir-co2-kpi-label');
-        const irEnergyKpiLabel = document.getElementById('ir-energy-kpi-label');
-        const irWaterKpiLabel = document.getElementById('ir-water-kpi-label');
+        const irCo2KpiLabel = document.getElementById('ir-co2-label') || document.getElementById('ir-co2-kpi-label');
+        const irEnergyKpiLabel = document.getElementById('ir-energy-label') || document.getElementById('ir-energy-kpi-label');
+        const irWaterKpiLabel = document.getElementById('ir-water-label') || document.getElementById('ir-water-kpi-label');
         const btnBackStep1Text = document.getElementById('btn-back-to-step-1-text');
         const btnGoStep3Text = document.getElementById('btn-go-to-step-3-text');
 

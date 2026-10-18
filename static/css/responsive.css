@@ -151,7 +151,8 @@ button, input, select, textarea { font: inherit; }
     .step-indicator:not(.active) .step-label { display: none; }
     .step-indicator { gap: 0.45rem; min-width: 0; }
     .step-label { min-width: 0; }
-    .step-title { white-space: nowrap; }
+    .step-indicator .step-title { white-space: nowrap; }
+    .step-header-text .step-title, .step-title { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
     .stepper-line { margin-inline: 0.5rem; min-width: 12px; }
 
     /* ----- الحاويات والكروت ----- */
@@ -294,7 +295,7 @@ button, input, select, textarea { font: inherit; }
     .brand-title-wrap h1 { font-size: 0.95rem; }
     .brand-title-wrap h1 span { display: none; } /* "| جامعة كفر الشيخ" */
     .step-bubble { width: 30px; height: 30px; }
-    .step-title { font-size: 0.7rem; }
+    .step-indicator .step-title { font-size: 0.7rem; }
     .kpi-mini-val { font-size: 1rem; }
     .kpi-mini-card { padding: 0.45rem 0.5rem; }
     .btn { padding-inline: 0.9rem; }

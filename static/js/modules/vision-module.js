@@ -138,7 +138,8 @@ class VisionModule {
         const formData = new FormData();
         formData.append('file', file);
 
-        const resp = await fetch('/predict', {
+        const endpoint = (typeof window !== 'undefined' && window.ECOSORT_API_URL) ? window.ECOSORT_API_URL : '/predict';
+        const resp = await fetch(endpoint, {
             method: 'POST',
             body: formData
         });
@@ -175,7 +176,7 @@ class VisionModule {
                 confidenceFormatted: k.confidence_formatted || `${k.confidence}%`
             })),
             inferenceTimeMs: data.inference_time_ms || 18.5,
-            modelName: `Keras Deep Learning (.keras) &bull; Flask Server`,
+            modelName: 'Keras Deep Learning (.keras) • Flask Server',
             texture: data.texture_description_ar || wasteItem.textureDescription,
             opticalFeatures: `موديل Deep Learning: تم تصنيف المادة كـ "${data.material_name_ar || data.material}" بنسبة ثقة ${data.confidence_formatted || (data.confidence + '%')}`,
             sourceType: 'flask-keras-backend',

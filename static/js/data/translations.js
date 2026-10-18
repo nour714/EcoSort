@@ -6,7 +6,7 @@
 const ECOSORT_TRANSLATIONS = {
     ar: {
         pageTitle: "EcoSort - نظام الفرز الذكي واسترجاع المسارات بجامعة كفر الشيخ",
-        brandTitleHtml: "EcoSort <span>| جامعة كفر الشيخ</span>",
+        brandTitleHtml: "| <span>جامعة كفر الشيخ</span>",
         brandSubtitle: "نظام الفرز والتوجيه الذكي للحرم الجامعي",
         langBtnText: "English",
 
@@ -40,7 +40,7 @@ const ECOSORT_TRANSLATIONS = {
         step2Title: "فحص وتحديد نوع المخلفات",
         step2Subtitle: "التقط صورة مباشرة عبر الكاميرا أو ارفع صورة من جهازك للتعرف البصري الآلي (Computer Vision) واستخراج إرشادات الفرز وأقرب حاوية ملائمة:",
         cvBadge: "التعرف البصري والذكاء الاصطناعي (Computer Vision & AI)",
-        activeModelTag: "Deep Learning Model (.keras) &bull; Flask Backend",
+        activeModelTag: "Deep Learning Model (.keras) • Flask Backend",
         btnTriggerCamera: "التقاط صورة بالكاميرا 📷",
         btnTriggerUpload: "رفع صورة من الجهاز 📁",
         dropzoneText: "اضغط على أحد الزرين أعلاه، أو اسحب وأفلت صورة هنا",
@@ -169,7 +169,7 @@ const ECOSORT_TRANSLATIONS = {
 
     en: {
         pageTitle: "EcoSort - Smart Waste Sorting & Route Guidance (Kafrelsheikh University)",
-        brandTitleHtml: "EcoSort <span>| Kafrelsheikh University</span>",
+        brandTitleHtml: "| <span>Kafrelsheikh University</span>",
         brandSubtitle: "Smart Campus Waste Sorting & Route Guidance System",
         langBtnText: "العربية",
 
@@ -203,7 +203,7 @@ const ECOSORT_TRANSLATIONS = {
         step2Title: "Inspect & Classify Waste Material",
         step2Subtitle: "Capture a photo via camera or upload an image for automated Computer Vision recognition and retrieval of proper sorting guidelines:",
         cvBadge: "Visual Recognition & AI (Computer Vision & AI)",
-        activeModelTag: "Deep Learning Model (.keras) &bull; Flask Backend",
+        activeModelTag: "Deep Learning Model (.keras) • Flask Backend",
         btnTriggerCamera: "Take Photo with Camera 📷",
         btnTriggerUpload: "Upload Image File 📁",
         dropzoneText: "Click a button above, or drag and drop an image here",
