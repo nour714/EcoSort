@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  ecosort-web:
+    build: .
+    container_name: ecosort-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - HOST=0.0.0.0
+      - CONF_HIGH=75.0
+      - CONF_LOW=45.0
+      - MARGIN_MIN=20.0
+      - TTA_ENABLED=False
+    volumes:
+      - ./model.keras:/app/model.keras:ro
