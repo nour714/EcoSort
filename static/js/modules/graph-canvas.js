@@ -470,7 +470,8 @@ class CampusGraphCanvas {
         ctx.fillStyle = '#0284c7';
         ctx.font = '10px Cairo, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('ميدان الجامعة', 380, 314);
+        const isEn = document.documentElement.lang === 'en';
+        ctx.fillText(isEn ? 'Campus Square' : 'ميدان الجامعة', 380, 314);
     }
 
     drawEdges(ctx) {
@@ -675,12 +676,13 @@ class CampusGraphCanvas {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
+            const isEn = document.documentElement.lang === 'en';
             if (isStart) {
-                ctx.fillText('أنت هنا', node.x, node.y - 1);
+                ctx.fillText(isEn ? 'You' : 'أنت هنا', node.x, node.y - 1);
             } else if (isTarget) {
-                ctx.fillText('الهدف 🎯', node.x, node.y - 1);
+                ctx.fillText(isEn ? 'Target 🎯' : 'الهدف 🎯', node.x, node.y - 1);
             } else {
-                ctx.fillText(isAvailable ? 'متاح' : 'ممتلئ', node.x, node.y - 1);
+                ctx.fillText(isAvailable ? (isEn ? 'Open' : 'متاح') : (isEn ? 'Full' : 'ممتلئ'), node.x, node.y - 1);
             }
 
             // كتابة اسم الكلية أسفل العقدة
@@ -688,12 +690,13 @@ class CampusGraphCanvas {
             ctx.font = 'bold 12px Cairo, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.fillText(node.name, node.x, node.y + radius + 6);
+            ctx.fillText(isEn ? (node.nameEn || node.name) : node.name, node.x, node.y + radius + 6);
 
             // وصف الكلية أو التصنيف الفرعي بخط أصغر
             ctx.fillStyle = '#64748b';
             ctx.font = '10px Cairo, sans-serif';
-            ctx.fillText(node.subtitle || '', node.x, node.y + radius + 22);
+            const subtitleText = isEn ? (node.subtitleEn || node.subtitle) : node.subtitle;
+            ctx.fillText(subtitleText || '', node.x, node.y + radius + 22);
 
             ctx.restore();
         });
@@ -738,7 +741,8 @@ class CampusGraphCanvas {
         ctx.fillStyle = '#78350f';
         ctx.font = 'bold 10px Cairo, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('🏃 جارِ التوجه', currentX, currentY - 16);
+        const isEn = document.documentElement.lang === 'en';
+        ctx.fillText(isEn ? '🏃 Walking...' : '🏃 جارِ التوجه', currentX, currentY - 16);
 
         ctx.restore();
     }
@@ -781,9 +785,17 @@ class CampusGraphCanvas {
         ctx.fillStyle = `rgba(5, 150, 105, ${opacity})`;
         ctx.font = 'bold 12px Cairo, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('تم الفرز والإيداع 🎯', node.x, badgeY);
+        const isEn = document.documentElement.lang === 'en';
+        ctx.fillText(isEn ? 'Deposited & Sorted 🎯' : 'تم الفرز والإيداع 🎯', node.x, badgeY);
 
         ctx.restore();
+    }
+
+    /**
+     * إعادة رسم اللوحة فوراً عند تغيير اللغة أو حالة العقد
+     */
+    refresh() {
+        this.draw();
     }
 }
 

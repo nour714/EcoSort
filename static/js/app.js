@@ -175,6 +175,8 @@ class EcoSortApp {
         };
 
         const queryNorm = searchQuery.trim().toLowerCase();
+        const isEn = this.currentLang === 'en';
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
 
         const filteredNodes = nodes.filter(node => {
             // فحص التصنيف
@@ -183,11 +185,14 @@ class EcoSortApp {
                 if (!allowedIds.includes(node.id)) return false;
             }
 
-            // فحص البحث النصي
+            // فحص البحث النصي ثنائي اللغة (عربي وإنجليزي)
             if (queryNorm.length > 0) {
-                const nameNorm = node.name.toLowerCase();
+                const nameNorm = (node.name || '').toLowerCase();
                 const subNorm = (node.subtitle || '').toLowerCase();
-                if (!nameNorm.includes(queryNorm) && !subNorm.includes(queryNorm)) {
+                const nameEnNorm = (node.nameEn || '').toLowerCase();
+                const subEnNorm = (node.subtitleEn || '').toLowerCase();
+                if (!nameNorm.includes(queryNorm) && !subNorm.includes(queryNorm) &&
+                    !nameEnNorm.includes(queryNorm) && !subEnNorm.includes(queryNorm)) {
                     return false;
                 }
             }
@@ -195,9 +200,10 @@ class EcoSortApp {
         });
 
         if (filteredNodes.length === 0) {
+            const emptyTemplate = t.searchEmpty || 'لم نجد أي منشأة مطابقة لكلمة البحث "{q}". جرب كلمة أخرى.';
             grid.innerHTML = `
                 <div class="col-span-full p-4 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
-                    <p>لم نجد أي منشأة مطابقة لكلمة البحث "${EcoSortApp.escapeHtml(searchQuery)}". جرب كلمة أخرى.</p>
+                    <p>${emptyTemplate.replace('{q}', EcoSortApp.escapeHtml(searchQuery))}</p>
                 </div>
             `;
             return;
@@ -225,11 +231,14 @@ class EcoSortApp {
                 iconSvg = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31M14 2v7.31M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/></svg>`;
             }
 
+            const displayName = isEn ? (node.nameEn || node.name) : node.name;
+            const displaySub = isEn ? (node.subtitleEn || node.subtitle) : (node.subtitle || 'مبنى جامعي');
+
             card.innerHTML = `
                 <div class="loc-card-icon">${iconSvg}</div>
                 <div class="loc-card-content">
-                    <div class="loc-card-title">${node.name}</div>
-                    <div class="loc-card-desc">${node.subtitle || 'مبنى جامعي'}</div>
+                    <div class="loc-card-title">${displayName}</div>
+                    <div class="loc-card-desc">${displaySub}</div>
                 </div>
                 <div class="loc-card-check">&check;</div>
             `;
@@ -273,9 +282,11 @@ class EcoSortApp {
 
         const hint = document.getElementById('selected-location-hint');
         if (hint && node) {
-            const displayName = this.currentLang === 'en' ? (node.nameEn || node.name) : node.name;
-            const prefix = this.currentLang === 'en' ? 'Selected Location:' : 'الموقع المحدد:';
-            hint.innerHTML = `${prefix} <strong class="text-emerald-700">${displayName}</strong> &check;`;
+            const isEn = this.currentLang === 'en';
+            const displayName = isEn ? (node.nameEn || node.name) : node.name;
+            const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+            const prefix = t.hintSelectedPrefix || (isEn ? 'Selected Location: ' : 'الموقع المختار: ');
+            hint.innerHTML = `${prefix}<strong class="text-emerald-700">${displayName}</strong> &check;`;
         }
     }
 
@@ -869,8 +880,19 @@ class EcoSortApp {
         const energyElem = document.getElementById('ir-energy-savings-value');
         const waterElem = document.getElementById('ir-water-savings-value');
 
-        if (stepsContainer && detection.item.properHandling) {
-            stepsContainer.innerHTML = detection.item.properHandling.map((step, idx) => `
+        if (textureElem) {
+            if (isEn) {
+                textureElem.textContent = detection.item.textureDescriptionEn || detection.texture || '';
+            } else {
+                textureElem.textContent = detection.item.textureDescription || detection.texture || '';
+            }
+        }
+
+        if (stepsContainer) {
+            const steps = (isEn && detection.item.properHandlingEn && detection.item.properHandlingEn.length > 0)
+                ? detection.item.properHandlingEn
+                : (detection.item.properHandling || []);
+            stepsContainer.innerHTML = steps.map((step, idx) => `
                 <li class="handling-step-item">
                     <span class="step-num">${idx + 1}</span>
                     <span class="step-text">${EcoSortApp.escapeHtml(step)}</span>
@@ -879,7 +901,7 @@ class EcoSortApp {
         }
 
         if (co2Elem) co2Elem.textContent = `${detection.item.carbonSavingsGrams || 85} ${isEn ? 'g CO₂' : 'جم CO₂'}`;
-        if (energyElem) energyElem.textContent = detection.item.energySavings || (isEn ? '3.5h LED Lighting' : '3.5 ساعة إضاءة');
+        if (energyElem) energyElem.textContent = isEn ? (detection.item.energySavingsEn || detection.item.energySavings) : (detection.item.energySavings || '3.5 ساعة إضاءة');
         if (waterElem) waterElem.textContent = `${detection.item.waterSavingsLiters || 2.5} ${isEn ? 'L clean water' : 'لتر مياه نقية'}`;
     }
 
@@ -890,7 +912,14 @@ class EcoSortApp {
         const textElem = document.getElementById('step2-current-location-text');
         if (textElem && this.currentLocation) {
             const node = this.graph.getNode(this.currentLocation);
-            textElem.textContent = node ? `${node.name} (${node.subtitle || ''})` : this.currentLocation;
+            if (node) {
+                const isEn = this.currentLang === 'en';
+                const name = isEn ? (node.nameEn || node.name) : node.name;
+                const sub = isEn ? (node.subtitleEn || node.subtitle) : node.subtitle;
+                textElem.textContent = sub ? `${name} (${sub})` : name;
+            } else {
+                textElem.textContent = this.currentLocation;
+            }
         }
     }
 
@@ -900,14 +929,15 @@ class EcoSortApp {
     updateStep3RouteContext() {
         const startElem = document.getElementById('step3-start-node-name');
         const wasteElem = document.getElementById('step3-waste-name');
+        const isEn = this.currentLang === 'en';
 
         if (startElem && this.currentLocation) {
             const node = this.graph.getNode(this.currentLocation);
-            startElem.textContent = node ? node.name : this.currentLocation;
+            startElem.textContent = node ? (isEn ? (node.nameEn || node.name) : node.name) : this.currentLocation;
         }
 
         if (wasteElem && this.currentWasteItem) {
-            wasteElem.textContent = this.currentWasteItem.name;
+            wasteElem.textContent = isEn ? (this.currentWasteItem.nameEn || this.currentWasteItem.name) : this.currentWasteItem.name;
         }
     }
 
@@ -1084,10 +1114,12 @@ class EcoSortApp {
         const mobileTargetName = document.getElementById('mobile-target-bin-name');
         const mobileTargetDist = document.getElementById('mobile-target-distance');
         const mobileWalkingTime = document.getElementById('mobile-walking-time');
+        const isEn = this.currentLang === 'en';
 
         if (targetNode) {
-            if (targetTitleElem) targetTitleElem.textContent = targetNode.name;
-            if (mobileTargetName) mobileTargetName.textContent = targetNode.name;
+            const name = isEn ? (targetNode.nameEn || targetNode.name) : targetNode.name;
+            if (targetTitleElem) targetTitleElem.textContent = name;
+            if (mobileTargetName) mobileTargetName.textContent = name;
 
             if (targetDescElem) {
                 const bin = targetNode.bins.find(b => {
@@ -1096,18 +1128,20 @@ class EcoSortApp {
                     }
                     return b.type === this.currentWasteType && b.available;
                 });
+                const binLabel = isEn ? (bin ? (bin.labelEn || bin.label) : 'Available sorting bin') : (bin ? bin.label : 'حاوية متاحة');
                 targetDescElem.textContent = bin 
-                    ? `${bin.label} (متاحة - نسبة الامتلاء الحالية: ${bin.capacity}%)` 
-                    : 'حاوية متاحة';
+                    ? (isEn ? `${binLabel} (Available - Current capacity: ${bin.capacity}%)` : `${bin.label} (متاحة - نسبة الامتلاء الحالية: ${bin.capacity}%)`) 
+                    : (isEn ? 'Available matching sorting bin' : 'حاوية متاحة');
             }
         }
 
         if (mobileTargetDist) {
-            mobileTargetDist.textContent = totalDistance === Infinity ? 'غير متصل' : `${totalDistance} م`;
+            const unit = isEn ? 'm' : 'م';
+            mobileTargetDist.textContent = totalDistance === Infinity ? (isEn ? 'Unreachable' : 'غير متصل') : `${totalDistance} ${unit}`;
         }
         if (mobileWalkingTime) {
             const mins = totalDistance === Infinity ? '-' : (totalDistance / 80).toFixed(1);
-            mobileWalkingTime.textContent = `(${mins} د مشي)`;
+            mobileWalkingTime.textContent = isEn ? `(${mins} min walk)` : `(${mins} د مشي)`;
         }
     }
 
@@ -1232,23 +1266,28 @@ class EcoSortApp {
 
         if (!modal) return;
 
-        if (title) title.textContent = node.name;
-        if (subtitle) subtitle.textContent = node.subtitle;
+        const isEn = this.currentLang === 'en';
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+
+        if (title) title.textContent = isEn ? (node.nameEn || node.name) : node.name;
+        if (subtitle) subtitle.textContent = isEn ? (node.subtitleEn || node.subtitle) : (node.subtitle || t.modalSubtitle);
 
         if (binsList) {
             binsList.innerHTML = node.bins.map(bin => {
                 const statusBadge = bin.available 
-                    ? '<span class="badge badge-success">🟢 متاحة</span>' 
-                    : '<span class="badge badge-danger">🔴 ممتلئة</span>';
+                    ? `<span class="badge badge-success">${t.modalBinAvail || '🟢 متاحة'}</span>` 
+                    : `<span class="badge badge-danger">${t.modalBinFull || '🔴 ممتلئة'}</span>`;
                 
-                const btnLabel = bin.available ? 'تغيير إلى ممتلئة' : 'تغيير إلى متاحة';
+                const btnLabel = bin.available ? (t.modalToggleToFull || 'تغيير إلى ممتلئة') : (t.modalToggleToAvail || 'تغيير إلى متاحة');
                 const btnClass = bin.available ? 'btn-danger-sm' : 'btn-success-sm';
+                const binLabel = isEn ? (bin.labelEn || bin.label) : bin.label;
+                const capPrefix = t.modalCapacityPrefix || 'سعة الامتلاء الحالية: ';
 
                 return `
                     <div class="modal-bin-item">
                         <div class="bin-desc">
-                            <strong>${bin.label}</strong>
-                            <div class="text-xs text-gray-500">سعة الامتلاء الحالية: ${bin.capacity}%</div>
+                            <strong>${binLabel}</strong>
+                            <div class="text-xs text-gray-500">${capPrefix}${bin.capacity}%</div>
                         </div>
                         <div class="bin-actions">
                             ${statusBadge}
@@ -1316,6 +1355,7 @@ class EcoSortApp {
         if (!t) return;
 
         const isRtl = lang === 'ar';
+        const isEn = lang === 'en';
         document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
         document.documentElement.lang = lang;
         document.title = t.pageTitle;
@@ -1325,6 +1365,8 @@ class EcoSortApp {
         if (langBtnText) langBtnText.textContent = t.langBtnText;
 
         // الهيدر والشعار
+        const brandTitleUniv = document.getElementById('brand-title-university');
+        if (brandTitleUniv) brandTitleUniv.innerHTML = t.brandTitleHtml;
         const brandSubtitle = document.getElementById('brand-subtitle');
         if (brandSubtitle) brandSubtitle.textContent = t.brandSubtitle;
 
@@ -1347,21 +1389,30 @@ class EcoSortApp {
         const step1Desc = document.getElementById('step-1-desc');
         const btnGpsText = document.getElementById('btn-gps-text');
         const searchInput = document.getElementById('location-search-input');
-        const mapTitle = document.getElementById('step1-map-title');
-        const mapDesc = document.getElementById('step1-map-desc');
-        const btnRecenterText = document.getElementById('btn-recenter-text');
-        const btnNextStep2 = document.getElementById('btn-go-to-step-2');
+        const btnNextStep2 = document.getElementById('btn-go-to-step-2-text');
+        const step1Subtitle = document.getElementById('step-1-subtitle');
 
         if (step1Title) step1Title.textContent = t.step1HeroTitle;
         if (step1Desc) step1Desc.textContent = t.step1HeroDesc;
         if (btnGpsText) btnGpsText.textContent = t.btnGps;
-        if (searchInput) searchInput.placeholder = t.searchPlaceholder;
-        if (mapTitle) mapTitle.textContent = t.step1MapTitle;
-        if (mapDesc) mapDesc.textContent = t.step1MapDesc;
-        if (btnRecenterText) btnRecenterText.textContent = t.btnRecenter;
-        if (btnNextStep2) {
-            const span = btnNextStep2.querySelector('span');
-            if (span) span.textContent = t.btnNextStep2;
+        if (searchInput) {
+            searchInput.placeholder = t.searchPlaceholder;
+            searchInput.setAttribute('aria-label', t.searchAriaLabel);
+        }
+        if (step1Subtitle) step1Subtitle.textContent = t.step1Subtitle;
+        if (btnNextStep2) btnNextStep2.textContent = t.btnNextStep2;
+
+        // تلميح الموقع المختار في الخطوة 1
+        const hint = document.getElementById('selected-location-hint');
+        if (hint) {
+            if (this.currentLocation) {
+                const node = this.graph.getNode(this.currentLocation);
+                const displayName = isEn ? (node?.nameEn || node?.name) : node?.name;
+                const prefix = t.hintSelectedPrefix || (isEn ? 'Selected Location: ' : 'الموقع المختار: ');
+                hint.innerHTML = `${prefix}<strong class="text-emerald-700">${displayName}</strong> &check;`;
+            } else {
+                hint.textContent = t.hintNoLocation;
+            }
         }
 
         // تبويبات الفئات
@@ -1374,31 +1425,200 @@ class EcoSortApp {
         if (pillMed) pillMed.textContent = t.categoryMedical;
         if (pillServ) pillServ.textContent = t.categoryService;
 
-        // تحديث بطاقات الكليات
+        // إعادة توليد بطاقات الكليات
         this.renderLocationCards();
 
         // الخطوة 2
+        const step2LocBannerLabel = document.getElementById('step2-loc-banner-label');
+        const btnChangeLocStep2 = document.getElementById('btn-change-location-step2');
         const step2Title = document.getElementById('step-2-title');
-        const step2Subtitle = document.querySelector('#wizard-step-2 .step-subtitle');
+        const step2Subtitle = document.getElementById('step-2-subtitle');
+        const cvBadgeText = document.getElementById('cv-badge-text');
+        const btnTriggerCameraText = document.getElementById('btn-trigger-camera-text');
+        const btnTriggerUploadText = document.getElementById('btn-trigger-upload-text');
+        const cvDropzoneText = document.getElementById('cv-dropzone-text');
+        const cvDropzoneHint = document.getElementById('cv-dropzone-hint');
+        const btnCameraCaptureText = document.getElementById('btn-camera-capture-text');
+        const btnCameraSwitchText = document.getElementById('btn-camera-switch-text');
+        const btnCameraCloseText = document.getElementById('btn-camera-close-text');
+        const previewStatusText = document.getElementById('cv-preview-status-text');
+        const btnRescanCameraText = document.getElementById('btn-rescan-camera-text');
+        const btnReuploadText = document.getElementById('btn-reupload-text');
+        const awaitingTitle = document.getElementById('awaiting-scan-title');
+        const awaitingDesc = document.getElementById('awaiting-scan-desc');
+        const inspectionResultTitle = document.getElementById('inspection-result-title');
+        const inspectionResultSubtitle = document.getElementById('inspection-result-subtitle');
+        const manualSelector = document.getElementById('manual-waste-selector');
+        const btnBannerRetryText = document.getElementById('btn-banner-retry-text');
+        const cvQualityWarningsTitle = document.getElementById('cv-quality-warnings-title');
+        const photoAdviceTitle = document.getElementById('photo-advice-title');
+        const photoAdviceTip1 = document.getElementById('photo-advice-tip-1');
+        const photoAdviceTip2 = document.getElementById('photo-advice-tip-2');
+        const photoAdviceTip3 = document.getElementById('photo-advice-tip-3');
+        const cvDetectedMatLabel = document.getElementById('cv-detected-mat-label');
+        const cvTargetBinLabel = document.getElementById('cv-target-bin-label');
+        const cvConfidenceLabel = document.getElementById('cv-confidence-label');
+        const cvLatencyLabel = document.getElementById('cv-latency-label');
+        const cvMarginLabel = document.getElementById('cv-margin-label');
+        const cvTopKTitle = document.getElementById('cv-top-k-title');
+        const cvTextureLabel = document.getElementById('cv-texture-label');
+        const irHandlingLabel = document.getElementById('ir-handling-label');
+        const irCo2KpiLabel = document.getElementById('ir-co2-kpi-label');
+        const irEnergyKpiLabel = document.getElementById('ir-energy-kpi-label');
+        const irWaterKpiLabel = document.getElementById('ir-water-kpi-label');
+        const btnBackStep1Text = document.getElementById('btn-back-to-step-1-text');
+        const btnGoStep3Text = document.getElementById('btn-go-to-step-3-text');
+
+        if (step2LocBannerLabel) step2LocBannerLabel.textContent = t.step2BannerLoc;
+        if (btnChangeLocStep2) btnChangeLocStep2.textContent = t.btnChangeLoc;
         if (step2Title) step2Title.textContent = t.step2Title;
         if (step2Subtitle) step2Subtitle.textContent = t.step2Subtitle;
+        if (cvBadgeText) cvBadgeText.textContent = t.cvBadge;
+        if (btnTriggerCameraText) btnTriggerCameraText.textContent = t.btnTriggerCamera;
+        if (btnTriggerUploadText) btnTriggerUploadText.textContent = t.btnTriggerUpload;
+        if (cvDropzoneText) cvDropzoneText.textContent = t.dropzoneText;
+        if (cvDropzoneHint) cvDropzoneHint.textContent = t.dropzoneHint;
+        if (btnCameraCaptureText) btnCameraCaptureText.textContent = t.btnCaptureNow;
+        if (btnCameraSwitchText) btnCameraSwitchText.textContent = t.btnSwitchCamera;
+        if (btnCameraCloseText) btnCameraCloseText.textContent = t.btnCloseCamera;
+        if (previewStatusText && !this.lastDetection) previewStatusText.textContent = t.previewStatus;
+        if (btnRescanCameraText) btnRescanCameraText.textContent = t.btnRescanCamera;
+        if (btnReuploadText) btnReuploadText.textContent = t.btnReupload;
+        if (awaitingTitle) awaitingTitle.textContent = t.awaitingTitle;
+        if (awaitingDesc) awaitingDesc.textContent = t.awaitingDesc;
+        if (inspectionResultTitle) inspectionResultTitle.textContent = t.resultTitle;
+        if (inspectionResultSubtitle) inspectionResultSubtitle.textContent = t.resultSubtitle;
+        if (btnBannerRetryText) btnBannerRetryText.textContent = t.btnRetryScan;
+        if (cvQualityWarningsTitle) cvQualityWarningsTitle.textContent = t.qualityWarningsTitle;
+        if (photoAdviceTitle) photoAdviceTitle.textContent = t.photoAdviceTitle;
+        if (photoAdviceTip1) photoAdviceTip1.textContent = t.photoAdvice1;
+        if (photoAdviceTip2) photoAdviceTip2.textContent = t.photoAdvice2;
+        if (photoAdviceTip3) photoAdviceTip3.textContent = t.photoAdvice3;
+        if (cvDetectedMatLabel) cvDetectedMatLabel.textContent = t.detectedMatLabel;
+        if (cvTargetBinLabel) cvTargetBinLabel.textContent = t.targetBinLabel;
+        if (cvConfidenceLabel) cvConfidenceLabel.textContent = t.confidenceLabel;
+        if (cvLatencyLabel) cvLatencyLabel.textContent = t.latencyLabel;
+        if (cvMarginLabel) cvMarginLabel.textContent = t.marginLabel;
+        if (cvTopKTitle) cvTopKTitle.textContent = t.topCandidatesTitle;
+        if (cvTextureLabel) cvTextureLabel.textContent = t.textureLabel;
+        if (irHandlingLabel) irHandlingLabel.textContent = t.handlingLabel;
+        if (irCo2KpiLabel) irCo2KpiLabel.textContent = t.kpiCo2Label;
+        if (irEnergyKpiLabel) irEnergyKpiLabel.textContent = t.kpiEnergyLabel;
+        if (irWaterKpiLabel) irWaterKpiLabel.textContent = t.kpiWaterLabel;
+        if (btnBackStep1Text) btnBackStep1Text.textContent = t.btnBackStep1;
+        if (btnGoStep3Text) btnGoStep3Text.textContent = t.btnGoStep3;
+
+        // تحديث خيارات القائمة المنسدلة اليدوية
+        if (manualSelector && t.manualOptions) {
+            manualSelector.setAttribute('aria-label', t.manualSelectAria);
+            Array.from(manualSelector.options).forEach(opt => {
+                if (t.manualOptions[opt.value]) {
+                    opt.textContent = t.manualOptions[opt.value];
+                }
+            });
+        }
 
         // الخطوة 3
-        const step3MapTitle = document.querySelector('.map-card-full .card-title');
-        const step3MapSubtitle = document.querySelector('.map-card-full .card-subtitle');
+        const step3StartNodeLabel = document.getElementById('step3-start-node-label');
+        const routeArrowSymbol = document.getElementById('route-arrow-symbol');
+        const step3WasteNameLabel = document.getElementById('step3-waste-name-label');
+        const btnRescanStep3Text = document.getElementById('btn-rescan-step3-text');
+        const step3MapTitle = document.getElementById('step3-map-title');
+        const step3MapSubtitle = document.getElementById('step3-map-subtitle');
         const btnSimulateRouteText = document.getElementById('btn-simulate-route-text');
+        const btnZoomIn = document.getElementById('btn-zoom-in');
+        const btnZoomOut = document.getElementById('btn-zoom-out');
+        const btnResetMap = document.getElementById('btn-reset-map-view');
+        const legendStudentText = document.getElementById('legend-student-text');
+        const legendAvailableText = document.getElementById('legend-available-text');
+        const legendFullText = document.getElementById('legend-full-text');
+        const legendPathText = document.getElementById('legend-path-text');
+        const step3AcademicTip = document.getElementById('step3-academic-tip');
+        const step3ScrollPanTip = document.getElementById('step3-scroll-pan-tip');
+        const mobileRouteBadge = document.getElementById('mobile-route-badge');
+        const btnMobileSimulateText = document.getElementById('btn-mobile-simulate-text');
+        const recDestBadge = document.getElementById('rec-dest-badge');
+        const metricDistLabel = document.getElementById('metric-dist-label');
+        const metricTimeLabel = document.getElementById('metric-time-label');
+        const metricNodesLabel = document.getElementById('metric-nodes-label');
+        const metricExecLabel = document.getElementById('metric-exec-label');
+        const walkingStepsTitle = document.getElementById('walking-steps-title');
+        const evalPanelTitle = document.getElementById('eval-panel-title');
+        const evalPanelSubtitle = document.getElementById('eval-panel-subtitle');
+        const thCriteria = document.getElementById('th-criteria');
+        const thDijkstra = document.getElementById('th-dijkstra');
+        const thAStar = document.getElementById('th-astar');
+        const thConclusion = document.getElementById('th-conclusion');
+        const mergeSortTitle = document.getElementById('merge-sort-title');
+        const mergeSortSubtitle = document.getElementById('merge-sort-subtitle');
+        const mergeSortBadge = document.getElementById('merge-sort-badge');
+        const btnBackStep2Text = document.getElementById('btn-back-step2-text');
+        const btnRestartStep1Text = document.getElementById('btn-restart-step-1-text');
+
+        if (step3StartNodeLabel) step3StartNodeLabel.textContent = t.startNodeLabel;
+        if (routeArrowSymbol) routeArrowSymbol.innerHTML = isRtl ? '&larr;' : '&rarr;';
+        if (step3WasteNameLabel) step3WasteNameLabel.textContent = t.wasteNameLabel;
+        if (btnRescanStep3Text) btnRescanStep3Text.textContent = t.btnRescanStep3;
         if (step3MapTitle) step3MapTitle.textContent = t.mapTitle;
         if (step3MapSubtitle) step3MapSubtitle.textContent = t.mapSubtitle;
         if (btnSimulateRouteText) btnSimulateRouteText.textContent = t.btnSimulate;
+        if (btnZoomIn) btnZoomIn.title = t.btnZoomInTitle;
+        if (btnZoomOut) btnZoomOut.title = t.btnZoomOutTitle;
+        if (btnResetMap) btnResetMap.title = t.btnResetViewTitle;
+        if (legendStudentText) legendStudentText.textContent = t.legendYou;
+        if (legendAvailableText) legendAvailableText.textContent = t.legendAvail;
+        if (legendFullText) legendFullText.textContent = t.legendFull;
+        if (legendPathText) legendPathText.textContent = t.legendPath;
+        if (step3AcademicTip) step3AcademicTip.innerHTML = t.mapAcademicTip;
+        if (step3ScrollPanTip) step3ScrollPanTip.textContent = t.canvasScrollPan;
+        if (mobileRouteBadge) mobileRouteBadge.textContent = t.mobileRouteBadge;
+        if (btnMobileSimulateText) btnMobileSimulateText.textContent = t.mobileSimulate;
+        if (recDestBadge) recDestBadge.textContent = t.recDestBadge;
+        if (metricDistLabel) metricDistLabel.textContent = t.metricDistance;
+        if (metricTimeLabel) metricTimeLabel.textContent = t.metricWalkingTime;
+        if (metricNodesLabel) metricNodesLabel.textContent = t.metricVisitedNodes;
+        if (metricExecLabel) metricExecLabel.textContent = t.metricExecTime;
+        if (walkingStepsTitle) walkingStepsTitle.textContent = t.walkingStepsTitle;
+        if (evalPanelTitle) evalPanelTitle.textContent = t.evalPanelTitle;
+        if (evalPanelSubtitle) evalPanelSubtitle.textContent = t.evalPanelSubtitle;
+        if (thCriteria) thCriteria.textContent = t.colCriteria;
+        if (thDijkstra) thDijkstra.textContent = t.colDijkstra;
+        if (thAStar) thAStar.textContent = t.colAStar;
+        if (thConclusion) thConclusion.textContent = t.colConclusion;
+        if (mergeSortTitle) mergeSortTitle.textContent = t.mergeSortHeading;
+        if (mergeSortSubtitle) mergeSortSubtitle.textContent = t.mergeSortSubheading;
+        if (mergeSortBadge) mergeSortBadge.textContent = t.mergeSortBadge;
+        if (btnBackStep2Text) btnBackStep2Text.textContent = t.btnBackStep2;
+        if (btnRestartStep1Text) btnRestartStep1Text.textContent = t.btnRestart;
 
-        if (this.currentStep === 2) {
-            this.updateStep2LocationBadge();
-        } else if (this.currentStep === 3) {
-            this.updateStep3RouteContext();
-            this.recalculateRoute();
+        // Modal نصوص النافذة
+        const modalSubtitle = document.getElementById('modal-node-subtitle');
+        const btnCloseModal = document.getElementById('btn-close-node-modal');
+        const modalFooterHint = document.getElementById('modal-footer-hint');
+        if (modalSubtitle) modalSubtitle.textContent = t.modalSubtitle;
+        if (btnCloseModal) btnCloseModal.setAttribute('aria-label', t.modalCloseAria);
+        if (modalFooterHint) modalFooterHint.textContent = t.modalFooterHint;
+        if (this.selectedNodeForModal) {
+            this.openNodeModal(this.selectedNodeForModal);
         }
 
-        // إعادة ترجمة بطاقة الفحص إن كانت معروضة بالفعل
+        // الفوتر
+        const appFooterText = document.getElementById('app-footer-text');
+        if (appFooterText) appFooterText.innerHTML = t.footerHtml;
+
+        // تحديث الكانفاس والتقييم وسياق الخطوات
+        if (this.graphCanvas) {
+            this.graphCanvas.refresh();
+        }
+
+        if (this.evaluationUI) {
+            this.evaluationUI.updateLanguage();
+        }
+
+        this.updateStep2LocationBadge();
+        this.updateStep3RouteContext();
+
+        // إعادة عرض الفحص الأخير باللغة الجديدة
         if (this.lastDetection) {
             this.handleWasteDetected(this.lastDetection);
         }

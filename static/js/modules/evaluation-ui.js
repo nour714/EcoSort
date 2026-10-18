@@ -28,6 +28,17 @@ class EvaluationUI {
     }
 
     /**
+     * تحديث فوري لكافة نصوص ولوحات التقييم عند تبديل لغة الموقع
+     */
+    updateLanguage() {
+        if (this.lastEvaluation) {
+            this.renderMetrics(this.lastEvaluation);
+            this.renderSortedBinsTable(this.lastEvaluation.sortedBins);
+            this.renderComparisonTable(this.lastEvaluation.dijkstra, this.lastEvaluation.astar);
+        }
+    }
+
+    /**
      * تشغيل المقارنة الشاملة وحساب النتائج وترتيب الحاويات بـ Merge Sort
      * 
      * @param {CampusGraph} graph 

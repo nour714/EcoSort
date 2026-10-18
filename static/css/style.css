@@ -66,10 +66,39 @@ svg {
 
 html {
     direction: rtl;
-    text-align: right;
+    text-align: start;
     font-size: 16px;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+}
+
+html[dir="ltr"] {
+    direction: ltr;
+    text-align: start;
+}
+
+html[dir="ltr"] body {
+    text-align: start;
+}
+
+html[dir="ltr"] .search-input-wrapper svg {
+    left: 14px;
+    right: auto;
+}
+
+html[dir="ltr"] .search-location-input {
+    padding: 0.6rem 1rem 0.6rem 2.6rem;
+}
+
+html[dir="ltr"] .academic-table {
+    text-align: left;
+}
+
+html[dir="ltr"] #btn-go-to-step-2 svg,
+html[dir="ltr"] #btn-go-to-step-3 svg,
+html[dir="ltr"] #btn-back-to-step-1 svg,
+html[dir="ltr"] #btn-back-to-step-2 svg {
+    transform: scaleX(-1);
 }
 
 body {

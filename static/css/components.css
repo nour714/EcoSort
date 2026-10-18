@@ -1445,8 +1445,8 @@
 .lang-toggle-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.95rem;
+    gap: 0.55rem;
+    padding: 0.45rem 1rem;
     border-radius: var(--radius-full);
     border: 1.5px solid var(--border-light);
     background: #ffffff;
@@ -1454,16 +1454,41 @@
     font-size: 0.825rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    line-height: 1;
+}
+
+.lang-globe-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--primary-600);
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.lang-text {
+    font-size: 0.825rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
 
 .lang-toggle-btn:hover {
     background: var(--primary-50);
-    border-color: var(--primary-600);
-    color: var(--primary-700);
+    border-color: var(--primary-500);
+    color: var(--primary-800);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.16);
+}
+
+.lang-toggle-btn:hover .lang-globe-icon {
+    transform: rotate(20deg) scale(1.08);
+    color: var(--primary-700);
+}
+
+.lang-toggle-btn:active {
+    transform: translateY(0) scale(0.97);
 }
 
 /* ==================== تعديلات اتجاه الإنجليزية LTR ==================== */
