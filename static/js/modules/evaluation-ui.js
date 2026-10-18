@@ -108,14 +108,18 @@ class EvaluationUI {
         const walkingElem = document.getElementById('metric-walking-time');
         const pathElem = document.getElementById('metric-path-summary');
 
+        const isEn = document.documentElement.lang === 'en';
+
         if (timeElem) timeElem.textContent = `${active.executionTimeMs} ms`;
-        if (nodesElem) nodesElem.textContent = `${active.visitedNodesCount} عُقدة`;
+        if (nodesElem) nodesElem.textContent = isEn ? `${active.visitedNodesCount} nodes` : `${active.visitedNodesCount} عُقدة`;
         if (distanceElem) {
-            distanceElem.textContent = active.totalDistance === Infinity ? 'غير متصل' : `${active.totalDistance} متر`;
+            const unit = isEn ? 'meters' : 'متر';
+            const disconnected = isEn ? 'Unreachable' : 'غير متصل';
+            distanceElem.textContent = active.totalDistance === Infinity ? disconnected : `${active.totalDistance} ${unit}`;
         }
         if (walkingElem) {
             const mins = active.totalDistance === Infinity ? '-' : (active.totalDistance / 80).toFixed(1);
-            walkingElem.textContent = `${mins} دقيقة تقريباً`;
+            walkingElem.textContent = isEn ? `~${mins} mins walk` : `${mins} دقيقة تقريباً`;
         }
 
         // تحديث اسم ووصف الحاوية الهدف في بطاقة النتيجة
@@ -124,7 +128,7 @@ class EvaluationUI {
         if (targetTitleElem && active.targetNodeId && window.CAMPUS_GRAPH_DATA) {
             const targetNode = window.CAMPUS_GRAPH_DATA.nodes.find(n => n.id === active.targetNodeId);
             if (targetNode) {
-                targetTitleElem.textContent = targetNode.name;
+                targetTitleElem.textContent = isEn ? (targetNode.nameEn || targetNode.name) : targetNode.name;
                 if (targetDescElem) {
                     const bin = targetNode.bins.find(b => {
                         if (evalData.wasteType === 'plastic' || evalData.wasteType === 'pet' || evalData.wasteType === 'hdpe') {
@@ -132,9 +136,10 @@ class EvaluationUI {
                         }
                         return b.type === evalData.wasteType && b.available;
                     });
+                    const binLabel = isEn ? (bin ? (bin.labelEn || bin.label) : 'Available sorting bin') : (bin ? bin.label : 'حاوية متاحة');
                     targetDescElem.textContent = bin 
-                        ? `${bin.label} (متاحة بنسبة سعة ${bin.capacity}%)` 
-                        : 'حاوية متاحة ومطابقة للفرز';
+                        ? (isEn ? `${binLabel} (Available - Current capacity: ${bin.capacity}%)` : `${bin.label} (متاحة بنسبة سعة ${bin.capacity}%)`)
+                        : (isEn ? 'Available matching sorting bin' : 'حاوية متاحة ومطابقة للفرز');
                 }
             }
         }
@@ -143,16 +148,19 @@ class EvaluationUI {
         if (pathElem && window.CAMPUS_GRAPH_DATA) {
             if (active.path && active.path.length > 0) {
                 if (active.path.length === 1) {
-                    pathElem.textContent = 'أنت متواجد بالفعل عند أقرب حاوية متاحة في موقعك الحالي!';
+                    pathElem.textContent = isEn 
+                        ? 'You are already at the closest available bin in your current location!' 
+                        : 'أنت متواجد بالفعل عند أقرب حاوية متاحة في موقعك الحالي!';
                 } else {
                     const names = active.path.map(id => {
                         const n = window.CAMPUS_GRAPH_DATA.nodes.find(node => node.id === id);
-                        return n ? n.name : id;
+                        return n ? (isEn ? (n.nameEn || n.name) : n.name) : id;
                     });
-                    pathElem.innerHTML = names.join(' <span class="text-emerald-500 font-bold">&larr;</span> ');
+                    const arrow = isEn ? '&rarr;' : '&larr;';
+                    pathElem.innerHTML = names.join(` <span class="text-emerald-500 font-bold">${arrow}</span> `);
                 }
             } else {
-                pathElem.textContent = 'لا يوجد مسار متاح حالياً';
+                pathElem.textContent = isEn ? 'No reachable path available' : 'لا يوجد مسار متاح حالياً';
             }
         }
     }
@@ -164,38 +172,49 @@ class EvaluationUI {
         const tableContainer = document.getElementById('academic-comparison-table-body');
         if (!tableContainer) return;
 
-        const distanceDiff = dijkstra.totalDistance === astar.totalDistance 
-            ? '<span class="badge badge-success">متطابقة ومثالية (Optimal 100%)</span>' 
-            : '<span class="badge badge-warning">اختلاف في التكلفة</span>';
+        const isEn = document.documentElement.lang === 'en';
 
-        const nodesComparison = astar.visitedNodesCount <= dijkstra.visitedNodesCount
-            ? `<span class="text-emerald-600 font-bold">وفّر A* فحص ${dijkstra.visitedNodesCount - astar.visitedNodesCount} عُقدة بفضل التوجيه الإرشادي</span>`
-            : 'أداء متقارب في الشبكات الصغيرة';
+        const distanceDiff = dijkstra.totalDistance === astar.totalDistance 
+            ? (isEn ? '<span class="badge badge-success">Optimal & Identical (100%)</span>' : '<span class="badge badge-success">متطابقة ومثالية (Optimal 100%)</span>')
+            : (isEn ? '<span class="badge badge-warning">Cost discrepancy</span>' : '<span class="badge badge-warning">اختلاف في التكلفة</span>');
+
+        const savedNodes = dijkstra.visitedNodesCount - astar.visitedNodesCount;
+        let nodesComparison = '';
+        if (savedNodes > 0) {
+            nodesComparison = isEn 
+                ? `<span class="text-emerald-600 font-bold">A* saved ${savedNodes} node visits via directional heuristic</span>`
+                : `<span class="text-emerald-600 font-bold">وفّر A* فحص ${savedNodes} عُقدة بفضل التوجيه الإرشادي</span>`;
+        } else {
+            nodesComparison = isEn ? 'Identical node visits on dense network' : 'أداء متقارب في الشبكات الصغيرة';
+        }
+
+        const meter = isEn ? 'm' : 'م';
+        const nodeUnit = isEn ? 'nodes' : 'عُقد';
 
         tableContainer.innerHTML = `
             <tr>
-                <td class="font-bold">المسافة المحسوبة</td>
-                <td class="text-blue-600 font-semibold">${dijkstra.totalDistance} م</td>
-                <td class="text-purple-600 font-semibold">${astar.totalDistance} م</td>
+                <td class="font-bold">${isEn ? 'Calculated Distance' : 'المسافة المحسوبة'}</td>
+                <td class="text-blue-600 font-semibold">${dijkstra.totalDistance} ${meter}</td>
+                <td class="text-purple-600 font-semibold">${astar.totalDistance} ${meter}</td>
                 <td>${distanceDiff}</td>
             </tr>
             <tr>
-                <td class="font-bold">عدد العُقد المستكشفة (Visited)</td>
-                <td><span class="badge badge-blue">${dijkstra.visitedNodesCount} عُقد</span></td>
-                <td><span class="badge badge-purple">${astar.visitedNodesCount} عُقد</span></td>
+                <td class="font-bold">${isEn ? 'Explored Nodes Count (Visited)' : 'عدد العُقد المستكشفة (Visited)'}</td>
+                <td><span class="badge badge-blue">${dijkstra.visitedNodesCount} ${nodeUnit}</span></td>
+                <td><span class="badge badge-purple">${astar.visitedNodesCount} ${nodeUnit}</span></td>
                 <td>${nodesComparison}</td>
             </tr>
             <tr>
-                <td class="font-bold">زمن التنفيذ (Latency)</td>
+                <td class="font-bold">${isEn ? 'Execution Latency' : 'زمن التنفيذ (Latency)'}</td>
                 <td>${dijkstra.executionTimeMs} ms</td>
                 <td>${astar.executionTimeMs} ms</td>
-                <td class="text-xs text-gray-500">دقة ميكروثانية عبر performance.now()</td>
+                <td class="text-xs text-gray-500">${isEn ? 'Microsecond precision via performance.now()' : 'دقة ميكروثانية عبر performance.now()'}</td>
             </tr>
             <tr>
-                <td class="font-bold">التعقيد النظري (Complexity)</td>
+                <td class="font-bold">${isEn ? 'Theoretical Complexity' : 'التعقيد النظري (Complexity)'}</td>
                 <td><code>O((V + E) log V)</code></td>
                 <td><code>O(b^d) / Heuristic</code></td>
-                <td class="text-xs text-gray-500">حساب استرشادي Euclidean</td>
+                <td class="text-xs text-gray-500">${isEn ? 'Admissible Euclidean distance heuristic' : 'حساب استرشادي Euclidean'}</td>
             </tr>
         `;
     }
@@ -207,10 +226,15 @@ class EvaluationUI {
         const container = document.getElementById('sorted-bins-list-container');
         if (!container) return;
 
+        const isEn = document.documentElement.lang === 'en';
+
         if (!sortedBins || sortedBins.length === 0) {
+            const emptyMsg = isEn 
+                ? '⚠️ No available bins for this waste type currently on campus.' 
+                : '⚠️ لا توجد حاويات متاحة حالياً لهذا النوع في حرم الجامعة.';
             container.innerHTML = `
                 <div class="empty-state p-4 text-center text-gray-500">
-                    <p>⚠️ لا توجد حاويات متاحة حالياً لهذا النوع في حرم الجامعة.</p>
+                    <p>${emptyMsg}</p>
                 </div>
             `;
             return;
@@ -220,26 +244,33 @@ class EvaluationUI {
         sortedBins.forEach((bin, index) => {
             const isClosest = index === 0;
             const rankBadge = isClosest 
-                ? '<span class="badge badge-emerald">الأقرب إليك 🥇</span>' 
-                : `<span class="badge badge-gray">الترتيب #${index + 1}</span>`;
+                ? (isEn ? '<span class="badge badge-emerald">Closest to You 🥇</span>' : '<span class="badge badge-emerald">الأقرب إليك 🥇</span>')
+                : (isEn ? `<span class="badge badge-gray">Rank #${index + 1}</span>` : `<span class="badge badge-gray">الترتيب #${index + 1}</span>`);
+
+            const nodeObj = window.CAMPUS_GRAPH_DATA ? window.CAMPUS_GRAPH_DATA.nodes.find(n => n.id === bin.nodeId) : null;
+            const displayName = isEn && nodeObj ? (nodeObj.nameEn || bin.nodeName) : bin.nodeName;
+            const displaySub = isEn && nodeObj ? (nodeObj.subtitleEn || bin.subtitle) : bin.subtitle;
+            const unit = isEn ? 'meters' : 'متر';
+            const walkText = isEn ? `(~${bin.walkingMinutes} min walk)` : `(~${bin.walkingMinutes} د مشي)`;
+            const btnText = isEn ? 'Choose Route &rarr;' : 'اختر المسار &larr;';
 
             html += `
                 <div class="sorted-bin-item ${isClosest ? 'closest-bin' : ''}">
                     <div class="bin-item-info">
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-gray-800">${bin.nodeName}</span>
+                            <span class="font-bold text-gray-800">${displayName}</span>
                             ${rankBadge}
                         </div>
-                        <div class="text-xs text-gray-500 mt-0.5">${bin.subtitle} | ${bin.binLabel}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">${displaySub} | ${bin.binLabel}</div>
                     </div>
                     <div class="bin-item-meta">
                         <div class="distance-metric">
                             <span class="distance-value">${bin.distance}</span>
-                            <span class="distance-unit">متر</span>
+                            <span class="distance-unit">${unit}</span>
                         </div>
-                        <div class="text-xs text-gray-400">(~${bin.walkingMinutes} د مشي)</div>
+                        <div class="text-xs text-gray-400">${walkText}</div>
                         <button class="btn btn-outline-sm mt-1" onclick="window.app.navigateToTarget('${bin.nodeId}')">
-                            اختر المسار &larr;
+                            ${btnText}
                         </button>
                     </div>
                 </div>

@@ -35,6 +35,9 @@ class EcoSortApp {
         this.activeCameraStream = null;
         this.cameraFacingMode = 'environment';
 
+        // حالة اللغة
+        this.currentLang = localStorage.getItem('ecosort_lang') || 'ar';
+
         // تهيئة قواعد البيانات والمخطط
         this.graph = new CampusGraph(window.CAMPUS_GRAPH_DATA);
         this.irEngine = new InformationRetrievalEngine(window.IR_EXPANDED_CATALOG);
@@ -43,7 +46,7 @@ class EcoSortApp {
     }
 
     init() {
-        // 1. ربط وحدة الرؤية الحاسوبية
+        // 1. ربط وحدة الرؤية الحاسوبية (المعتمدة كلياً على الباك اند)
         this.visionModule = new VisionModule((detection) => {
             this.handleWasteDetected(detection);
         });
@@ -60,7 +63,7 @@ class EcoSortApp {
             }
         });
 
-        // 3. ربط كانفاس الخريطة التفاعلي
+        // 3. ربط كانفاس الخريطة التفاعلي الأصلي
         const canvasElem = document.getElementById('campus-graph-canvas');
         if (canvasElem) {
             this.graphCanvas = new CampusGraphCanvas(
@@ -78,6 +81,10 @@ class EcoSortApp {
         this.bindStep2Controls();
         this.bindStep3Controls();
         this.bindModalControls();
+        this.bindLanguageSwitcher();
+
+        // 6. تطبيق اللغة الحالية
+        this.applyLanguage(this.currentLang);
     }
 
     /**
@@ -140,13 +147,12 @@ class EcoSortApp {
             this.updateStep2LocationBadge();
         } else if (stepNumber === 3) {
             this.updateStep3RouteContext();
-            // إعادة ضبط حجم الكانفاس وحساب أقصر مسار بعد ظهور العنصر في الـ DOM
             setTimeout(() => {
                 if (this.graphCanvas) {
                     this.graphCanvas.setupDPI();
                     this.graphCanvas.fitGraph();
-                    this.recalculateRoute();
                 }
+                this.recalculateRoute();
             }, 60);
         }
     }
@@ -267,7 +273,9 @@ class EcoSortApp {
 
         const hint = document.getElementById('selected-location-hint');
         if (hint && node) {
-            hint.innerHTML = `الموقع المحدد: <strong class="text-emerald-700">${node.name}</strong> &check;`;
+            const displayName = this.currentLang === 'en' ? (node.nameEn || node.name) : node.name;
+            const prefix = this.currentLang === 'en' ? 'Selected Location:' : 'الموقع المحدد:';
+            hint.innerHTML = `${prefix} <strong class="text-emerald-700">${displayName}</strong> &check;`;
         }
     }
 
@@ -308,30 +316,33 @@ class EcoSortApp {
      * ربط أدوات الشاشة 1 (البحث، الفئات، ومحاكاة GPS)
      */
     bindStep1Controls() {
-        // محاكاة GPS
+        // محاكاة GPS الحقيقي والتمركز الذكي
         const btnGps = document.getElementById('btn-gps-simulate');
         if (btnGps) {
             btnGps.addEventListener('click', () => {
-                const originalHtml = btnGps.innerHTML;
+                const isEn = this.currentLang === 'en';
                 btnGps.innerHTML = `
                     <span class="gps-pulse-ring"></span>
-                    <span>جارِ الاتصال بالأقمار وتحديد موقعك بالحرم...</span>
+                    <span>${isEn ? 'Locating on campus via GPS...' : 'جارِ الاتصال بالأقمار وتحديد موقعك بالحرم...'}</span>
                 `;
                 btnGps.disabled = true;
 
                 setTimeout(() => {
-                    // تحديد كلية الذكاء الاصطناعي كموقع ذكي افتراضي
-                    this.selectLocation('ai');
+                    const sampleColleges = ['ai', 'eng', 'pharmacy', 'science', 'fci'];
+                    const pickedId = sampleColleges[Math.floor(Math.random() * sampleColleges.length)];
+                    this.selectLocation(pickedId);
+                    const node = this.graph.getNode(pickedId);
+                    const nodeName = isEn ? (node?.nameEn || node?.name) : node?.name;
                     btnGps.innerHTML = `
-                        <span class="text-emerald-700 font-bold">&check; تم تحديد موقعك: كلية الذكاء الاصطناعي</span>
+                        <span class="text-emerald-700 font-bold">&check; ${isEn ? 'Located at:' : 'تم تحديد موقعك:'} ${nodeName}</span>
                     `;
                     btnGps.disabled = false;
 
-                    const selectedCard = document.querySelector(`.location-card[data-node-id="ai"]`);
+                    const selectedCard = document.querySelector(`.location-card[data-node-id="${pickedId}"]`);
                     if (selectedCard) {
                         selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
-                }, 750);
+                }, 400);
             });
         }
 
@@ -840,22 +851,22 @@ class EcoSortApp {
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polygon points="5 3 19 12 5 21 5 3"/>
                         </svg>
-                        <span>${isWalking ? 'إعادة محاكاة السير' : 'محاكاة السير'}</span>
+                        <span>${isWalking ? (this.currentLang === 'en' ? 'Re-simulate Walk' : 'إعادة محاكاة السير') : (this.currentLang === 'en' ? 'Simulate Walk' : 'محاكاة السير')}</span>
                     `;
                 }
             });
         };
 
         if (path.length >= 2) {
-            setButtonState(true, 'جارِ محاكاة المشي... 🏃‍♂️');
+            setButtonState(true, this.currentLang === 'en' ? 'Walking along path... 🏃‍♂️' : 'جارِ محاكاة المشي... 🏃‍♂️');
             this.graphCanvas.simulateRouteTraversal(() => {
                 setButtonState(false);
                 this.handleRouteArrival();
             });
         } else if (path.length === 1) {
-            setButtonState(true, 'جارِ إيداع المخلفات... 🎯');
+            setButtonState(true, this.currentLang === 'en' ? 'Depositing waste... 🎯' : 'جارِ إيداع المخلفات... 🎯');
             const targetNode = this.graph.getNode(path[0]);
-            const nodeName = targetNode ? targetNode.name : 'موقعك الحالي';
+            const nodeName = targetNode ? (this.currentLang === 'en' ? (targetNode.nameEn || targetNode.name) : targetNode.name) : 'موقعك الحالي';
 
             this.graphCanvas.simulateRouteTraversal(() => {
                 setButtonState(false);
@@ -864,9 +875,12 @@ class EcoSortApp {
                     navigator.vibrate([80, 50, 80]);
                 }
                 const savedCo2 = this.currentWasteItem ? this.currentWasteItem.carbonSavingsGrams : 85;
+                const msg = this.currentLang === 'en'
+                    ? `Bin is right in front of you at ${nodeName} (Distance: 0m). Saved ${savedCo2}g CO₂!`
+                    : `الحاوية متوفرة أمامك مباشرة في ${nodeName} (المسافة: 0م). وفرت ${savedCo2} جم CO₂!`;
                 this.showToast(
-                    '🎯 تم الإيداع بنجاح في موقعك الحالي!',
-                    `الحاوية متوفرة أمامك مباشرة في ${nodeName} (المسافة: 0م). وفرت ${savedCo2} جم CO₂!`
+                    this.currentLang === 'en' ? '🎯 Deposited in Current Location!' : '🎯 تم الإيداع بنجاح في موقعك الحالي!',
+                    msg
                 );
             });
         } else {
@@ -901,37 +915,43 @@ class EcoSortApp {
         }
 
         // 3. تحديث بطاقة الوجهة الموصى بها وبطاقة الموبايل العائمة
+        this.updateTargetInfo(activeResult.targetNodeId, activeResult.totalDistance);
+    }
+
+    /**
+     * تحديث بيانات الحاوية المستهدفة والبطاقة العائمة
+     */
+    updateTargetInfo(targetNodeId, totalDistance) {
+        if (!targetNodeId) return;
+        const targetNode = this.graph.getNode(targetNodeId);
         const targetTitleElem = document.getElementById('final-target-bin-name');
         const targetDescElem = document.getElementById('final-target-bin-desc');
         const mobileTargetName = document.getElementById('mobile-target-bin-name');
         const mobileTargetDist = document.getElementById('mobile-target-distance');
         const mobileWalkingTime = document.getElementById('mobile-walking-time');
 
-        if (activeResult.targetNodeId) {
-            const targetNode = this.graph.getNode(activeResult.targetNodeId);
-            if (targetNode) {
-                if (targetTitleElem) targetTitleElem.textContent = targetNode.name;
-                if (mobileTargetName) mobileTargetName.textContent = targetNode.name;
+        if (targetNode) {
+            if (targetTitleElem) targetTitleElem.textContent = targetNode.name;
+            if (mobileTargetName) mobileTargetName.textContent = targetNode.name;
 
-                if (targetDescElem) {
-                    const bin = targetNode.bins.find(b => {
-                        if (this.currentWasteType === 'plastic' || this.currentWasteType === 'pet' || this.currentWasteType === 'hdpe') {
-                            return (b.type === 'plastic' || b.type === 'pet' || b.type === 'hdpe') && b.available;
-                        }
-                        return b.type === this.currentWasteType && b.available;
-                    });
-                    targetDescElem.textContent = bin 
-                        ? `${bin.label} (متاحة - نسبة الامتلاء الحالية: ${bin.capacity}%)` 
-                        : 'حاوية متاحة';
-                }
+            if (targetDescElem) {
+                const bin = targetNode.bins.find(b => {
+                    if (this.currentWasteType === 'plastic' || this.currentWasteType === 'pet' || this.currentWasteType === 'hdpe') {
+                        return (b.type === 'plastic' || b.type === 'pet' || b.type === 'hdpe') && b.available;
+                    }
+                    return b.type === this.currentWasteType && b.available;
+                });
+                targetDescElem.textContent = bin 
+                    ? `${bin.label} (متاحة - نسبة الامتلاء الحالية: ${bin.capacity}%)` 
+                    : 'حاوية متاحة';
             }
         }
 
         if (mobileTargetDist) {
-            mobileTargetDist.textContent = activeResult.totalDistance === Infinity ? 'غير متصل' : `${activeResult.totalDistance} م`;
+            mobileTargetDist.textContent = totalDistance === Infinity ? 'غير متصل' : `${totalDistance} م`;
         }
         if (mobileWalkingTime) {
-            const mins = activeResult.totalDistance === Infinity ? '-' : (activeResult.totalDistance / 80).toFixed(1);
+            const mins = totalDistance === Infinity ? '-' : (totalDistance / 80).toFixed(1);
             mobileWalkingTime.textContent = `(${mins} د مشي)`;
         }
     }
@@ -959,62 +979,13 @@ class EcoSortApp {
         }
 
         const targetNode = this.graph.getNode(targetNodeId);
-        const targetTitleElem = document.getElementById('final-target-bin-name');
-        const targetDescElem = document.getElementById('final-target-bin-desc');
-        const mobileTargetName = document.getElementById('mobile-target-bin-name');
-        const mobileTargetDist = document.getElementById('mobile-target-distance');
-        const mobileWalkingTime = document.getElementById('mobile-walking-time');
+        this.updateTargetInfo(targetNodeId, result.totalDistance);
 
-        if (targetTitleElem && targetNode) targetTitleElem.textContent = targetNode.name;
-        if (mobileTargetName && targetNode) mobileTargetName.textContent = targetNode.name;
-
-        if (targetDescElem && targetNode) {
-            const bin = targetNode.bins.find(b => {
-                if (this.currentWasteType === 'plastic' || this.currentWasteType === 'pet' || this.currentWasteType === 'hdpe') {
-                    return (b.type === 'plastic' || b.type === 'pet' || b.type === 'hdpe') && b.available;
-                }
-                return b.type === this.currentWasteType && b.available;
-            });
-            targetDescElem.textContent = bin 
-                ? `${bin.label} (متاحة - نسبة الامتلاء الحالية: ${bin.capacity}%)` 
-                : 'حاوية متاحة ومطابقة للفرز';
-        }
-
-        if (mobileTargetDist) {
-            mobileTargetDist.textContent = result.totalDistance === Infinity ? 'غير متصل' : `${result.totalDistance} م`;
-        }
-        if (mobileWalkingTime) {
-            const mins = result.totalDistance === Infinity ? '-' : (result.totalDistance / 80).toFixed(1);
-            mobileWalkingTime.textContent = `(${mins} د مشي)`;
-        }
-
-        // تحديث مقاييس الأداء للمسار المحدد يدوياً
-        const timeElem = document.getElementById('metric-execution-time');
-        const nodesElem = document.getElementById('metric-visited-nodes');
-        const distanceElem = document.getElementById('metric-total-distance');
-        const walkingElem = document.getElementById('metric-walking-time');
-        const pathElem = document.getElementById('metric-path-summary');
-
-        if (timeElem) timeElem.textContent = `${result.executionTimeMs} ms`;
-        if (nodesElem) nodesElem.textContent = `${result.visitedNodesCount} عُقدة`;
-        if (distanceElem) distanceElem.textContent = `${result.totalDistance} متر`;
-        if (walkingElem) {
-            const mins = (result.totalDistance / 80).toFixed(1);
-            walkingElem.textContent = `${mins} دقيقة تقريباً`;
-        }
-        if (pathElem && window.CAMPUS_GRAPH_DATA) {
-            if (result.path && result.path.length > 0) {
-                if (result.path.length === 1) {
-                    pathElem.textContent = 'أنت متواجد بالفعل عند أقرب حاوية متاحة في موقعك الحالي!';
-                } else {
-                    const names = result.path.map(id => {
-                        const n = window.CAMPUS_GRAPH_DATA.nodes.find(node => node.id === id);
-                        return n ? n.name : id;
-                    });
-                    pathElem.innerHTML = names.join(' <span class="text-emerald-500 font-bold">&larr;</span> ');
-                }
-            }
-        }
+        // تحديث مقاييس الأداء للمسار المحدد عبر واجهة التقييم
+        this.evaluationUI.renderMetrics({
+            activeResult: result,
+            wasteType: this.currentWasteType
+        });
 
         this.showToast('🗺️ تم توجيه المسار', `تم اختيار الحاوية في ${targetNode ? targetNode.name : targetNodeId} (${result.totalDistance} متر).`);
     }
@@ -1163,6 +1134,113 @@ class EcoSortApp {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) this.closeNodeModal();
             });
+        }
+    }
+
+    /**
+     * ربط زر تبديل اللغة (Arabic RTL <-> English LTR)
+     */
+    bindLanguageSwitcher() {
+        const btnLang = document.getElementById('lang-toggle-btn');
+        if (btnLang) {
+            btnLang.addEventListener('click', () => {
+                this.toggleLanguage();
+            });
+        }
+    }
+
+    toggleLanguage() {
+        const nextLang = this.currentLang === 'ar' ? 'en' : 'ar';
+        this.applyLanguage(nextLang);
+    }
+
+    applyLanguage(lang) {
+        this.currentLang = lang;
+        localStorage.setItem('ecosort_lang', lang);
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[lang]) || window.ECOSORT_TRANSLATIONS?.ar;
+        if (!t) return;
+
+        const isRtl = lang === 'ar';
+        document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+        document.documentElement.lang = lang;
+        document.title = t.pageTitle;
+
+        // نص زر اللغة
+        const langBtnText = document.getElementById('lang-btn-text');
+        if (langBtnText) langBtnText.textContent = t.langBtnText;
+
+        // الهيدر والشعار
+        const brandSubtitle = document.getElementById('brand-subtitle');
+        if (brandSubtitle) brandSubtitle.textContent = t.brandSubtitle;
+
+        // شريط المراحل Stepper
+        const s1Title = document.querySelector('#stepper-step-1 .step-title');
+        const s1Desc = document.querySelector('#stepper-step-1 .step-desc');
+        const s2Title = document.querySelector('#stepper-step-2 .step-title');
+        const s2Desc = document.querySelector('#stepper-step-2 .step-desc');
+        const s3Title = document.querySelector('#stepper-step-3 .step-title');
+        const s3Desc = document.querySelector('#stepper-step-3 .step-desc');
+        if (s1Title) s1Title.textContent = t.step1NavTitle;
+        if (s1Desc) s1Desc.textContent = t.step1NavDesc;
+        if (s2Title) s2Title.textContent = t.step2NavTitle;
+        if (s2Desc) s2Desc.textContent = t.step2NavDesc;
+        if (s3Title) s3Title.textContent = t.step3NavTitle;
+        if (s3Desc) s3Desc.textContent = t.step3NavDesc;
+
+        // الخطوة 1
+        const step1Title = document.getElementById('step-1-title');
+        const step1Desc = document.getElementById('step-1-desc');
+        const btnGpsText = document.getElementById('btn-gps-text');
+        const searchInput = document.getElementById('location-search-input');
+        const mapTitle = document.getElementById('step1-map-title');
+        const mapDesc = document.getElementById('step1-map-desc');
+        const btnRecenterText = document.getElementById('btn-recenter-text');
+        const btnNextStep2 = document.getElementById('btn-go-to-step-2');
+
+        if (step1Title) step1Title.textContent = t.step1HeroTitle;
+        if (step1Desc) step1Desc.textContent = t.step1HeroDesc;
+        if (btnGpsText) btnGpsText.textContent = t.btnGps;
+        if (searchInput) searchInput.placeholder = t.searchPlaceholder;
+        if (mapTitle) mapTitle.textContent = t.step1MapTitle;
+        if (mapDesc) mapDesc.textContent = t.step1MapDesc;
+        if (btnRecenterText) btnRecenterText.textContent = t.btnRecenter;
+        if (btnNextStep2) {
+            const span = btnNextStep2.querySelector('span');
+            if (span) span.textContent = t.btnNextStep2;
+        }
+
+        // تبويبات الفئات
+        const pillAll = document.querySelector('.category-pill[data-category="all"]');
+        const pillTech = document.querySelector('.category-pill[data-category="tech"]');
+        const pillMed = document.querySelector('.category-pill[data-category="medical"]');
+        const pillServ = document.querySelector('.category-pill[data-category="service"]');
+        if (pillAll) pillAll.textContent = t.categoryAll;
+        if (pillTech) pillTech.textContent = t.categoryTech;
+        if (pillMed) pillMed.textContent = t.categoryMedical;
+        if (pillServ) pillServ.textContent = t.categoryService;
+
+        // تحديث بطاقات الكليات
+        this.renderLocationCards();
+
+        // الخطوة 2
+        const step2Title = document.getElementById('step-2-title');
+        const step2Subtitle = document.querySelector('#wizard-step-2 .step-subtitle');
+        if (step2Title) step2Title.textContent = t.step2Title;
+        if (step2Subtitle) step2Subtitle.textContent = t.step2Subtitle;
+
+        // الخطوة 3
+        const step3MapTitle = document.querySelector('.map-card-full .card-title');
+        const step3MapSubtitle = document.querySelector('.map-card-full .card-subtitle');
+        const btnSimulateRouteText = document.getElementById('btn-simulate-route-text');
+        if (step3MapTitle) step3MapTitle.textContent = t.mapTitle;
+        if (step3MapSubtitle) step3MapSubtitle.textContent = t.mapSubtitle;
+        if (btnSimulateRouteText) btnSimulateRouteText.textContent = t.btnSimulate;
+
+        if (this.currentStep === 2) {
+            this.updateStep2LocationBadge();
+        } else if (this.currentStep === 3) {
+            this.updateStep3RouteContext();
+            this.recalculateRoute();
         }
     }
 }

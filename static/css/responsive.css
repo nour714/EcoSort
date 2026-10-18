@@ -62,7 +62,7 @@ button, input, select, textarea { font: inherit; }
 
 /* ---------- حجم لمس مريح على الشاشات اللمسية ---------- */
 @media (pointer: coarse) {
-    .btn, .category-pill, .algo-switch-btn, .waste-type-card, .btn-outline-sm {
+    .btn, .category-pill, .algo-switch-btn, .btn-outline-sm {
         min-height: var(--tap-min);
     }
     .btn-icon { width: var(--tap-min); height: var(--tap-min); }

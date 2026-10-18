@@ -40,7 +40,6 @@
 }
 
 .card-header-icon.cv-icon { background: #eff6ff; color: #2563eb; }
-.card-header-icon.ir-icon { background: #ecfdf5; color: #059669; }
 .card-header-icon.graph-icon { background: #f5f3ff; color: #7c3aed; }
 .card-header-icon.eval-icon { background: #fffbeb; color: #d97706; }
 
@@ -717,106 +716,6 @@
     box-shadow: var(--shadow-sm);
     object-fit: contain;
     background: #0f172a;
-}
-
-/* بطاقات الاختيار السريع للمخلفات */
-.waste-types-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.65rem;
-}
-
-@media (max-width: 480px) {
-    .waste-types-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.waste-type-card {
-    background: var(--slate-50);
-    border: 2px solid var(--border-light);
-    border-radius: var(--radius-md);
-    padding: 0.75rem 0.65rem;
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.waste-type-card:hover {
-    border-color: var(--primary-400);
-    background: #ffffff;
-    transform: translateY(-2px);
-}
-
-.waste-type-card.active {
-    border-color: var(--primary-600);
-    background: #f0fdf4;
-    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
-}
-
-.waste-card-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-sm);
-    background: #ffffff;
-    border: 1px solid var(--border-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--slate-600);
-    flex-shrink: 0;
-}
-
-.waste-card-icon svg {
-    width: 20px;
-    height: 20px;
-}
-
-.waste-type-card.active .waste-card-icon {
-    background: var(--primary-600);
-    color: #ffffff;
-    border-color: var(--primary-600);
-}
-
-.waste-card-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.waste-card-title {
-    font-size: 0.8rem;
-    font-weight: 800;
-    color: var(--slate-900);
-    line-height: 1.2;
-}
-
-.waste-card-code {
-    font-size: 0.675rem;
-    color: var(--slate-500);
-    margin-top: 0.15rem;
-}
-
-.waste-card-check {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1.5px solid var(--slate-300);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: transparent;
-    font-size: 0.75rem;
-    font-weight: 900;
-    flex-shrink: 0;
-}
-
-.waste-type-card.active .waste-card-check {
-    background: var(--primary-600);
-    border-color: var(--primary-600);
-    color: #ffffff;
 }
 
 /* كارت نتيجة الفحص ودليل المعالجة (Inspection Result) */
@@ -1535,3 +1434,45 @@
     font-weight: 800;
     color: var(--slate-900, #0f172a);
 }
+
+/* ==================== زر تبديل اللغة (Language Switcher) ==================== */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.lang-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--border-light);
+    background: #ffffff;
+    color: var(--slate-800);
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lang-toggle-btn:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-600);
+    color: var(--primary-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ==================== تعديلات اتجاه الإنجليزية LTR ==================== */
+html[dir="ltr"] .app-header h1 span {
+    margin-inline-start: 0.5rem;
+}
+
+html[dir="ltr"] .step-check {
+    right: auto;
+    left: -2px;
+}
+
