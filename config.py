@@ -22,6 +22,12 @@ class Config:
     CONF_LOW = float(os.environ.get('CONF_LOW', 45.0))     # < 45% for rejected decision
     MARGIN_MIN = float(os.environ.get('MARGIN_MIN', 20.0))  # Top1 - Top2 margin >= 20%
 
+    # Image Quality Thresholds (Pre-inference heuristics)
+    BLUR_VAR_MIN = float(os.environ.get('BLUR_VAR_MIN', 35.0))
+    DARK_MEAN_MAX = float(os.environ.get('DARK_MEAN_MAX', 30.0))
+    BRIGHT_MEAN_MIN = float(os.environ.get('BRIGHT_MEAN_MIN', 230.0))
+    FLAT_STD_MIN = float(os.environ.get('FLAT_STD_MIN', 15.0))
+
     # Request limits
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 10 * 1024 * 1024))  # 10 MB
 

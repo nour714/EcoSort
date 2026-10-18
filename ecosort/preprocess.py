@@ -50,14 +50,28 @@ def load_image(image_bytes: bytes) -> Image.Image:
     except (UnidentifiedImageError, OSError) as e:
         raise InvalidImageError("الملف المرفوع ليس ملف صورة صالح أو أنه تالف.") from e
 
-def check_image_quality(img: Image.Image) -> list:
+try:
+    from config import Config
+except ImportError:
+    class Config:
+        BLUR_VAR_MIN = 35.0
+        DARK_MEAN_MAX = 30.0
+        BRIGHT_MEAN_MIN = 230.0
+        FLAT_STD_MIN = 15.0
+
+def check_image_quality(img: Image.Image, blur_min: float = None, dark_max: float = None, bright_min: float = None, flat_min: float = None) -> list:
     """
     Inspect visual quality and return list of actionable warning codes:
     - 'image_blurry': Laplacian variance below threshold.
-    - 'image_too_dark': Mean luminance < 30.
-    - 'image_too_bright': Mean luminance > 235.
-    - 'image_empty_or_flat': Standard deviation < 15 (solid color/flat).
+    - 'image_too_dark': Mean luminance < dark_max.
+    - 'image_too_bright': Mean luminance > bright_min.
+    - 'image_empty_or_flat': Standard deviation < flat_min (solid color/flat).
     """
+    blur_min = blur_min if blur_min is not None else getattr(Config, 'BLUR_VAR_MIN', 35.0)
+    dark_max = dark_max if dark_max is not None else getattr(Config, 'DARK_MEAN_MAX', 30.0)
+    bright_min = bright_min if bright_min is not None else getattr(Config, 'BRIGHT_MEAN_MIN', 230.0)
+    flat_min = flat_min if flat_min is not None else getattr(Config, 'FLAT_STD_MIN', 15.0)
+
     warnings = []
     
     # Grayscale thumbnail for fast statistical checks
@@ -66,23 +80,21 @@ def check_image_quality(img: Image.Image) -> list:
 
     # 1. Luminance checks
     mean_val = float(np.mean(arr))
-    if mean_val < 30.0:
+    if mean_val < dark_max:
         warnings.append("image_too_dark")
-    elif mean_val > 235.0:
+    elif mean_val > bright_min:
         warnings.append("image_too_bright")
 
     # 2. Flat / Blank image check
     std_val = float(np.std(arr))
-    if std_val < 15.0:
+    if std_val < flat_min:
         warnings.append("image_empty_or_flat")
 
     # 3. Simple Laplacian blur check (convolution)
-    laplacian_kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]], dtype=np.float32)
-    # Simple discrete convolution over inner region
     sub = arr[1:-1, 1:-1]
     lap = (arr[:-2, 1:-1] + arr[2:, 1:-1] + arr[1:-1, :-2] + arr[1:-1, 2:] - 4 * sub)
     var_lap = float(np.var(lap))
-    if var_lap < 35.0 and "image_empty_or_flat" not in warnings:
+    if var_lap < blur_min and "image_empty_or_flat" not in warnings:
         warnings.append("image_blurry")
 
     return warnings
