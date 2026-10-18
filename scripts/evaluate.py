@@ -2,6 +2,9 @@
 """
 EcoSort Model Evaluation & Benchmarking Script
 Calculates Accuracy, Precision, Recall, F1, Confusion Matrix, ECE, and Coverage Curve.
+Note: 300 evaluation samples from the TrashNet distribution (training/test split
+of the provided model.keras is unverified; results represent in-distribution
+performance and may reflect optimistic upper bounds).
 """
 import os
 import sys

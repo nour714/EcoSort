@@ -10,5 +10,7 @@ Thumbs.db
 venv/
 env/
 .venv/
-/data/
+/data/*
+!/data/campus_photos/
+!/data/campus_photos/**
 docs/metrics/tmp/
