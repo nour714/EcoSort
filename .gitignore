@@ -10,5 +10,5 @@ Thumbs.db
 venv/
 env/
 .venv/
-data/
+/data/
 docs/metrics/tmp/
