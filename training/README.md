@@ -1,40 +1,39 @@
-# 🧠 EcoSort — خط أنابيب تدريب موديل الذكاء الاصطناعي (Transfer Learning)
+# EcoSort — Transfer Learning Training Pipeline
 
-يوفر هذا المجلد خط أنابيب كامل وقابل لإعادة الإنتاج لتدريب نماذج تصنيف المخلفات باستخدام **التعلم الانتقالي (Transfer Learning)** ونماذج الرؤية الحاسوبية الحديثة (**MobileNetV2** و **EfficientNetB0**).
-
----
-
-## 🎯 الميزات التقنية لموديل التدريب
-
-1. **طبقة تطبيع مدمجة (Self-Contained Preprocessing)**:
-   - يتضمن الموديل طبقة `Rescaling` مدمجة داخلياً تحول الإدخال من نطاق `[0, 255]` إلى `[-1, 1]` لـ MobileNetV2.
-   - هذا يضمن تشغيل الموديل في أي بيئة إنتاجية (Backend أو Edge أو Browser) دون الاعتماد على كود تطبيع خارجي.
-
-2. **تعزيز البيانات أثناء التدريب (Data Augmentation)**:
-   - `RandomFlip`: تقليب أفقي ورأسي لمحاكاة زوايا الالتقاط المختلفة.
-   - `RandomRotation`: تدوير عشوائي بنسبة ±15%.
-   - `RandomZoom`: تكبير وتصغير عشوائي بنسبة ±15%.
-   - `RandomContrast`: تغيير التباين الضوئي لمحاكاة ظروف الإضاءة الواقعية بالحرم الجامعي.
-
-3. **تدريب على مرحلتين (Two-Stage Training)**:
-   - **المرحلة 1 (Feature Extraction)**: تجميد أوزان الشبكة الأساسية (Frozen Backbone) وتدريب رأس التصنيف فقط (Dense Layers + Dropout) بمعدل تعلم `1e-3`.
-   - **المرحلة 2 (Fine-Tuning)**: إلغاء تجميد آخر 30 طبقة من الشبكة الأساسية وتدريبها بمعدل تعلم منخفض جداً `1e-5` لضبط الخصائص الدقيقة للمخلفات.
-
-4. **معالجة عدم توازن الفئات (Class Weighting)**:
-   - حساب أوتوماتيكي لأوزان الفئات عبر `compute_class_weight` لمعادلة الفئات ذات العينات الأقل مثل (Trash) مقارنة بالفئات الأكبر.
-
-5. **تقسيم صارم للبيانات (Data Splits)**:
-   - **70%** للتدريب (Training).
-   - **15%** للتحقق وضبط الـ Hyperparameters (Validation).
-   - **15%** للاختبار النهائي المستقل (Holdout Test Split).
+This directory provides a reproducible training pipeline for waste classification models using **Transfer Learning** with state-of-the-art vision backbones (**MobileNetV2** and **EfficientNetB0**).
 
 ---
 
-## 📥 تجهيز البيانات (TrashNet Dataset)
+## Technical Features
 
-قم بتنزيل مجموعة بيانات TrashNet من الرابط المعتمد:
+1. **Self-Contained Preprocessing Layer**:
+   - The model embeds an internal `Rescaling` layer that maps raw input from `[0, 255]` to the appropriate normalization range (e.g., `[-1, 1]` for MobileNetV2).
+   - This ensures the model can be deployed across inference environments (Backend, Edge, or Browser) without relying on external normalization scripts.
+
+2. **Data Augmentation**:
+   - `RandomFlip`: Horizontal and vertical flips to handle arbitrary orientation.
+   - `RandomRotation`: Random rotation within $\pm 15\%$.
+   - `RandomZoom`: Random zoom within $\pm 15\%$.
+   - `RandomContrast`: Dynamic contrast adjustment simulating campus lighting conditions.
+
+3. **Two-Stage Training**:
+   - **Stage 1 (Feature Extraction)**: The backbone is frozen; only the classification head (Dense layers + Dropout) is trained using Adam with learning rate `1e-3`.
+   - **Stage 2 (Fine-Tuning)**: The top 30 layers of the backbone are unfrozen and trained with a reduced learning rate of `1e-5` to adapt fine-grained features.
+
+4. **Class Imbalance Handling**:
+   - Automated calculation of balanced weights via `compute_class_weight` to compensate for smaller classes (such as trash) relative to larger classes.
+
+5. **Strict Data Split**:
+   - **70%** Training.
+   - **15%** Validation (hyperparameter tuning and early stopping).
+   - **15%** Holdout Test (unseen evaluation partition).
+
+---
+
+## Dataset Preparation (TrashNet)
+
+Download the TrashNet dataset into `data/dataset-resized/`:
 ```bash
-# قم بفك الضغط داخل مجلد data/ بحيث يكون الهيكل كالتالي:
 data/
 └── dataset-resized/
     ├── cardboard/
@@ -47,9 +46,9 @@ data/
 
 ---
 
-## 🚀 تشغيل التدريب
+## Running Training
 
-### 1. تدريب موديل MobileNetV2 (الموصى به للإنتاج وخفة الوزن)
+### 1. Train MobileNetV2 (Recommended for lightweight deployment)
 ```bash
 python training/train_transfer.py \
     --data-dir data/dataset-resized \
@@ -60,7 +59,7 @@ python training/train_transfer.py \
     --output-dir training/output
 ```
 
-### 2. تدريب موديل EfficientNetB0 (دقة أعلى)
+### 2. Train EfficientNetB0 (Higher capacity)
 ```bash
 python training/train_transfer.py \
     --data-dir data/dataset-resized \
@@ -73,18 +72,15 @@ python training/train_transfer.py \
 
 ---
 
-## 📦 المخرجات والدمج بالـ Backend
+## Output Artifacts & Deployment
 
-عند اكتمال التدريب، سيتم إنشاء الملفات التالية في مجلد `--output-dir`:
-1. `model.keras`: ملف الموديل النهائي المدرب والمختبر.
-2. `labels.json`: قائمة الفئات الست مرتبة.
-3. `test_evaluation.json`: تقرير الأداء الشامل (Accuracy, F1-Score, Confusion Matrix) على بيانات الاختبار المستقلة.
+Upon completion, the pipeline outputs:
+1. `model.keras`: Complete Keras v3 model archive containing weights, architecture, and embedded preprocessing.
+2. `labels.json`: Class index mapping.
+3. `test_evaluation.json`: Comprehensive holdout test evaluation (Accuracy, F1-Score, Confusion Matrix).
 
-### لنقل الموديل الجديد إلى سيرفر Flask:
+### Deploying the Trained Model:
 ```bash
 cp training/output/model.keras ./model.keras
-```
-ثم أعد تشغيل السيرفر:
-```bash
 python app.py
 ```

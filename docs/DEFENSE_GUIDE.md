@@ -1,211 +1,210 @@
-# 🎓 دليل المناقشة الأكاديمية لمشروع EcoSort
-## جامعة كفر الشيخ — كلية الذكاء الاصطناعي (Faculty of Artificial Intelligence)
+# Academic Defense & Viva Guide for EcoSort
+## Kafrelsheikh University — Faculty of Artificial Intelligence
 
-هذا الدليل أُعد خصيصاً لمساعدة فريق العمل في اجتياز مناقشة مشروع التخرج / مشاريع المقررات الدراسية بأعلى درجات التميز الأكاديمي، وتفنيد كافة الأسئلة المتوقعة من لجنة التحكيم استناداً إلى أرقام وتجارب عملية مثبتة.
-
----
-
-## 📑 فهرس المحتويات
-1. [ملخص فكرة المشروع والأثر البيئي](#1-ملخص-فكرة-المشروع-والأثر-البيئي)
-2. [معمارية الذكاء الاصطناعي وموديل التصنيف](#2-معمارية-الذكاء-الاصطناعي-وموديل-التصنيف)
-3. [التجارب المعملية المقارنة وقرارات دقة النموذج (A/B Testing)](#3-التجارب-المعملية-المقارنة-وقرارات-دقة-النموذج-ab-testing)
-4. [نظام حوكمة الثقة (Confidence Gating & Guardrails)](#4-نظام-حوكمة-الثقة-confidence-gating--guardrails)
-5. [خوارزميات استرجاع المسارات والمقارنة الأكاديمية (Dijkstra vs A*)](#5-خوارزميات-استرجاع-المسارات-والمقارنة-الأكاديمية-dijkstra-vs-a)
-6. [خوارزمية الترتيب بالدمج (Merge Sort)](#6-خوارزمية-الترتيب-بالدمج-merge-sort)
-7. [استرجاع المعلومات وحساب الأثر الكربوني (IR & Carbon KPI)](#7-استرجاع-المعلومات-وحساب-الأثر-الكربوني-ir--carbon-kpi)
-8. [أبرز 15 سؤالاً متوقعاً من لجنة التحكيم وإجاباتها النموذجية](#8-أبرز-15-سؤالا-متوقعا-من-لجنة-التحكيم-وإجاباتها-النموذجية)
+This guide is designed to assist the project team in successfully defending the EcoSort project during academic graduation and coursework vivas, providing rigorous technical justifications and empirical evidence for all architectural and design decisions.
 
 ---
 
-## 1. ملخص فكرة المشروع والأثر البيئي
-
-* **المشكلة الواقعية**: ضعف ثقافة فرز القمامة من المنبع داخل الحرم الجامعي، مما يؤدي إلى خلط المخلفات البلاستيكية والورقية والمعدنية في حاوية واحدة وتعذر إعادة تدويرها اقتصادياً، بالإضافة إلى مشي الطلاب لمسافات عشوائية أو إلقاء القمامة خارج الحاويات عند امتلائها.
-* **الحل الذكي (EcoSort)**:
-  1. فحص فوري لقطعة المخلفات عبر الكاميرا والذكاء الاصطناعي وتحديد خامتها وإرشادات معالجتها.
-  2. تحديد موقع الطالب على خريطة حرم جامعة كفر الشيخ.
-  3. توجيه الطالب عبر أقصر مسار سير لحاوية متاحة مخصصة لنفس الخامة، مع التخطي التلقائي للحاويات الممتلئة.
+## Table of Contents
+1. [Project Executive Summary & Environmental Impact](#1-project-executive-summary--environmental-impact)
+2. [AI Architecture & Classification Pipeline](#2-ai-architecture--classification-pipeline)
+3. [Empirical Benchmarking & Normalization Decisions (A/B Testing)](#3-empirical-benchmarking--normalization-decisions-ab-testing)
+4. [Confidence Gating & Reliability Guardrails](#4-confidence-gating--reliability-guardrails)
+5. [Pathfinding & Routing Algorithms (Dijkstra vs A*)](#5-pathfinding--routing-algorithms-dijkstra-vs-a)
+6. [Divide & Conquer Ranking (Merge Sort)](#6-divide--conquer-ranking-merge-sort)
+7. [Information Retrieval & Carbon Accounting (IR Engine)](#7-information-retrieval--carbon-accounting-ir-engine)
+8. [Top 15 Defense Questions & Model Answers](#8-top-15-defense-questions--model-answers)
 
 ---
 
-## 2. معمارية الذكاء الاصطناعي وموديل التصنيف
+## 1. Project Executive Summary & Environmental Impact
 
-### الموديل الحالي في المشروع (`model.keras`):
-* **النوع**: شبكة عصبية التفافية مخصصة (Custom Sequential CNN).
-* **الهيكل**:
+* **Real-World Problem**: Campus waste sorting at the source is hindered by lack of immediate material identification and distance to appropriate recycling receptacles. Mixing plastics, paper, and metal in general refuse renders recycling economically unviable. Additionally, full bins often cause littering or wasted student walking time.
+* **Smart Solution (EcoSort)**:
+  1. Instant computer vision classification from mobile camera captures, identifying the material, recycling code, and handling instructions.
+  2. Real-time localization on the Kafrelsheikh University campus graph.
+  3. Dynamic shortest-path routing to the nearest available, un-filled recycling bin tailored to that specific material.
+
+---
+
+## 2. AI Architecture & Classification Pipeline
+
+### Deployed Model (`model.keras`):
+* **Architecture**: Custom Sequential Convolutional Neural Network (CNN).
+* **Layer Topology**:
   $$\text{Input}(224 \times 224 \times 3) \rightarrow \text{Conv2D}(32) \rightarrow \text{MaxPool} \rightarrow \text{Conv2D}(64) \rightarrow \text{MaxPool} \rightarrow \text{Conv2D}(32) \rightarrow \text{MaxPool} \rightarrow \text{Flatten} \rightarrow \text{Dense}(64) \rightarrow \text{Dropout}(0.2) \rightarrow \text{Dense}(32) \rightarrow \text{Dropout}(0.2) \rightarrow \text{Dense}(6, \text{softmax})$$
-* **الفئات الست (TrashNet Classes)**:
-  1. `Cardboard` (الكرتون)
-  2. `Glass` (الزجاج)
-  3. `Metal` (المعادن والكانز)
-  4. `Paper` (الأوراق والكتب)
-  5. `Plastic` (البلاستيك)
-  6. `Trash` (المخلفات العامة والمختلطة)
+* **Target Classes (TrashNet Alphabetical Order)**:
+  1. `Cardboard`
+  2. `Glass`
+  3. `Metal`
+  4. `Paper`
+  5. `Plastic`
+  6. `Trash` (general non-recyclables)
 
-### خط التطوير المتاح في المشروع (Transfer Learning):
-* وفرنا خط أنابيب متكامل في مجلد `training/` لتدريب موديلات **MobileNetV2** و **EfficientNetB0** مع طبقات Preprocessing و Data Augmentation مدمجة داخلياً.
+### Transfer Learning Upgrade Pipeline:
+* Located in `training/train_transfer.py`, offering automated two-stage training for **MobileNetV2** and **EfficientNetB0** with embedded normalization layers and data augmentation (`RandomFlip`, `RandomRotation`, `RandomZoom`, `RandomContrast`).
 
 ---
 
-## 3. التجارب المعملية المقارنة وقرارات دقة النموذج (A/B Testing)
+## 3. Empirical Benchmarking & Normalization Decisions (A/B Testing)
 
-تم تقييم أداء الموديل الحسابي بدقة على **300 عينة اختبار مستقلة** من مجموعة بيانات TrashNet (50 عينة لكل فئة) باستخدام سكريبت `scripts/run_experiments.py`:
+Model performance was rigorously evaluated across 300 evaluation samples from the TrashNet distribution (50 samples per class) using `scripts/run_experiments.py`.
 
-| التجربة | طريقة التطبيع (Normalization) | استراتيجية التحجيم (Resize) | Test-Time Aug (TTA) | الدقة الكلية (Accuracy) | Macro F1-Score | Expected Calibration Error (ECE) |
+> [!NOTE]
+> The training/test split of the provided legacy `model.keras` is unverified. These 300 samples represent in-distribution performance and may reflect optimistic upper bounds. A dedicated campus photo dataset (`data/campus_photos/`) has been structured for real-world out-of-distribution evaluation.
+
+| Experiment | Normalization Mode | Resize Mode | Test-Time Aug (TTA) | Overall Accuracy | Macro F1-Score | Expected Calibration Error (ECE) |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **الأساس المعتمد (Baseline)** | **[0..1] (/255.0)** | **Direct Bilinear** | **لا** | **81.67%** | **81.67%** | **0.0991** |
-| تجربة تطبيع خام | [0..255] (Raw) | Direct Bilinear | لا | 33.67% | 27.31% | 0.6625 |
-| تجربة تطبيع إشاري | [-1..1] (Signed) | Direct Bilinear | لا | 17.33% | 6.98% | 0.8196 |
-| تجربة اقتصاص مركزي | [0..1] | Center Crop | لا | 76.00% | 75.99% | 0.0683 |
-| تجربة حشو الحواف | [0..1] | Letterbox Pad | لا | 62.00% | 61.27% | 0.1107 |
-| تجربة تعزيز وقت الاختبار | [0..1] | Direct Bilinear | نعم (Flip) | 80.33% | 80.40% | 0.1013 |
+| **Deployed Baseline** | **`[0..1]` (`/255.0`)** | **Direct Bilinear** | **Disabled** | **81.67%** | **81.67%** | **0.0991** |
+| Raw Pixel Norm | `[0..255]` (Raw) | Direct Bilinear | Disabled | 33.67% | 27.31% | 0.6625 |
+| Signed Norm | `[-1..1]` (Signed) | Direct Bilinear | Disabled | 17.33% | 6.98% | 0.8196 |
+| Center Crop Resize | `[0..1]` | Center Crop | Disabled | 76.00% | 75.99% | 0.0683 |
+| Letterbox Pad Resize | `[0..1]` | Letterbox Pad | Disabled | 62.00% | 61.27% | 0.1107 |
+| Test-Time Augmentation | `[0..1]` | Direct Bilinear | Enabled (Flip) | 80.33% | 80.40% | 0.1013 |
 
-### الاستنتاجات العلمية للتجارب:
-1. **تطبيع [0..1] إلزامي**: الموديل تم تدريبه حصرياً على قسمة مصفوفة البكسلات على 255.0. أي نمط آخر يدمر التنبؤ فورياً.
-2. **Direct Bilinear يتفوق على Crop و Pad**: في مجموعة بيانات TrashNet، تم تصوير الأجسام في المنتصف بأبعاد مختلفة؛ التكبير مع المط الخفيف حافظ على ملامح الحواف المميزة للعلب والزجاجات أفضل من الاقتصاص الذي قد يقص عنق الزجاجة، وأفضل من الحشو الأسود/الأبيض الذي يغير خصائص الخلفية.
-3. **تعطيل TTA في الإنتاج**: استخدام التقليب الأفقي أدى لانخفاض طفيف بنسبة 1.34% نظراً لوجود ملامح اتجاهية في بعض الأجسام، مع مضاعفة زمن الاستدلال من 26ms إلى 52ms؛ لذا اعتمدنا تشغيل الموديل مباشرة بدون TTA افتراضياً.
+### Engineering Findings:
+1. **Normalization Sensitivity**: The model was trained strictly with pixel intensities divided by 255.0. Deviating to signed `[-1, 1]` or raw `[0, 255]` causes severe feature collapse ($17.3\%$ and $33.7\%$).
+2. **Direct Bilinear Superiority**: In TrashNet, objects occupy central regions with varied aspect ratios. Bilinear scaling preserves boundary contours better than center cropping (which cuts bottle necks) and letterbox padding (which introduces artificial borders).
+3. **TTA Production Tradeoff**: Horizontal flip augmentation reduced accuracy by $1.34\%$ due to directional asymmetry in certain packaging text, while doubling latency from 26ms to 52ms. Baseline TTA is therefore disabled by default in production.
 
 ---
 
-## 4. نظام حوكمة الثقة (Confidence Gating & Guardrails)
+## 4. Confidence Gating & Reliability Guardrails
 
-لا نعتمد أبداً على مجرد إرجاع `argmax` للنتيجة، بل طبقنا نظام حوكمة ثنائي الطبقات:
+Raw Softmax predictions can exhibit overconfidence on out-of-distribution or noisy images. EcoSort implements a two-stage reliability pipeline:
 
-### الطبقة الأولى: فحص جودة الصورة المدخلة (Input Quality Guardrails)
-* **فحص الغبشة والاهتزاز (Blur Detection)**:
-  $$\sigma^2_{\text{Laplacian}} = \text{Var}(\nabla^2 I)$$
-  إذا كانت القيمة أقل من `60.0`، تُعتبر الصورة مشوشة حركياً (`IMAGE_BLURRY`).
-* **فحص الإضاءة (Luminance Extremes)**:
-  $$L_{\text{mean}} < 25.0 \implies \text{IMAGE\_TOO\_DARK}$$
-  $$L_{\text{mean}} > 235.0 \implies \text{IMAGE\_TOO\_BRIGHT}$$
-* **فحص الصور الفارغة أو الموحدة (Low Variance)**:
-  $$\sigma_{\text{pixels}} < 12.0 \implies \text{IMAGE\_EMPTY\_OR\_FLAT}$$
+### Stage 1: Pre-Inference Quality Guardrails
+* **Motion Blur Detection**:
+  $$\sigma^2_{\text{Laplacian}} = \text{Var}(\nabla^2 I) < 35.0 \implies \text{image\_blurry}$$
+* **Luminance Extremes**:
+  $$\mu < 30.0 \implies \text{image\_too\_dark} \quad | \quad \mu > 230.0 \implies \text{image\_too\_bright}$$
+* **Flat / Blank Image Detection**:
+  $$\sigma < 15.0 \implies \text{image\_empty\_or\_flat}$$
 
-### الطبقة الثانية: معادلة قرار الثقة (Gating Decision Logic)
-نعرف هامش التمييز (Class Margin) كالتالي:
+### Stage 2: Confidence & Margin Gating Policy
+Class discrimination margin is defined as:
 $$M = P_{(1)} - P_{(2)}$$
-حيث $P_{(1)}$ هو أعلى احتمال و $P_{(2)}$ هو ثاني أعلى احتمال.
+where $P_{(1)}$ is top-1 probability and $P_{(2)}$ is runner-up probability.
 
-* **مؤكد (Confident)**: إذا كان $P_{(1)} \ge 75.0\%$ وَ $M \ge 20.0\%$. (دقة هذه الشريحة تتجاوز 91%).
-* **غير متأكد (Uncertain)**: إذا كان $45.0\% \le P_{(1)} < 75.0\%$ أو $M < 20.0\%$.
-* **مرفوض (Rejected)**: إذا كان $P_{(1)} < 45.0\%$ أو وُجد تحذير صورة فارغة.
+| Decision Tier | Top-1 Confidence ($P_{(1)}$) | Margin ($M$) | In-Distribution Accuracy | Coverage | Action |
+|---|---|---|---|---|---|
+| **Confident** | $\ge 75.0\%$ | $\ge 20.0\%$ | **93.96%** | 49.67% (149/300) | Instant automated pathfinding |
+| **Uncertain** | $45.0\% \le P_{(1)} < 75.0\%$ | $< 20.0\%$ | 71.56% | 36.33% (109/300) | Warning notice, show top candidates |
+| **Rejected** | $< 45.0\%$ | Any | 64.29% | 14.00% (42/300) | Rejection notice, prompt retake / manual selection |
 
 ---
 
-## 5. خوارزميات استرجاع المسارات والمقارنة الأكاديمية (Dijkstra vs A*)
+## 5. Pathfinding & Routing Algorithms (Dijkstra vs A*)
 
-يمثل حرم جامعة كفر الشيخ كـ **رسم بياني مرجح وموجه (Weighted Graph)** يتكون من **12 منشأة رئيسية** (كلية الذكاء الاصطناعي، الهندسة، الحاسبات، العلوم، الصيدلة، الطب، المطعم، المكتبة المركزية، المجمع الرياضي، الإدارة، البوابة الرئيسية، وكلية الزراعة).
+The Kafrelsheikh University campus is modeled as a weighted directed graph consisting of 12 landmark nodes and bidirectional pedestrian corridors.
 
-### مقارنة الخوارزميتين:
-
-| المعيار | خوارزمية ديكسترا (Dijkstra) | خوارزمية إيه ستار (A* Search) |
+| Dimension | Dijkstra's Algorithm | A* Search Algorithm |
 |:---|:---|:---|
-| **نوع البحث** | بحث أعمى منتظم (Uniform Cost Search) | بحث إرشادي ذكي (Heuristic Search) |
-| **دالة التكلفة** | $f(n) = g(n)$ (المسافة المقطوعة فقط) | $f(n) = g(n) + h(n)$ |
-| **الدالة الإرشادية $h(n)$** | لا يوجد ($h(n) = 0$) | المسافة الإقليدية المستقيمة (Euclidean Distance) |
-| **شروط القبول (Admissibility)** | مضمونة تلقائياً | $h(n) \le h^*(n)$ (المسافة المستقيمة لا تتجاوز المسافة الواقعية أبداً) |
-| **عدد العقد المستكشفة** | يستكشف جميع العقد في جميع الاتجاهات الدائرية | يوجه البحث نحو الهدف مباشرة، مما يقلل العقد المستكشفة بنسبة 40-60% |
-| **التعقيد الزمني** | $O((V + E) \log V)$ باستخدام Priority Queue | $O(b^d)$ في أسوأ الأحوال، وعملياً يقترب من $O(d)$ مع هيورستيك قوي |
-| **الحل الناتج** | مسار أمثل ومضمون (Optimal) | مسار أمثل ومضمون (Optimal) لأن $h$ مقبولة ومتسقة |
+| **Search Paradigm** | Uniform Cost Search (blind) | Informed Heuristic Search |
+| **Evaluation Function** | $f(n) = g(n)$ (accumulated distance) | $f(n) = g(n) + h(n)$ |
+| **Heuristic Function $h(n)$** | None ($h(n) = 0$) | Euclidean straight-line distance to target bin |
+| **Admissibility & Consistency** | Guaranteed ($h(n) = 0 \le h^*(n)$) | $h(n) \le h^*(n)$ (Euclidean metric never overestimates path) |
+| **Search Space** | Explores uniformly in all radial directions | Directed toward target, reducing visited nodes by 40–60% |
+| **Time Complexity** | $O((V + E) \log V)$ with min-priority queue | $O(b^d)$ worst case; approaches $O(d)$ with strong heuristic |
+| **Optimality** | Guaranteed optimal shortest path | Guaranteed optimal shortest path |
 
-### التخطي الذكي للحاويات الممتلئة (Dynamic Rerouting):
-* كل كلية/مبنى يحتوي على سجل لحالة الحاويات: متاحة (🟢) أو ممتلئة (🔴).
-* عند امتلاء الحاوية الأقرب، تقوم الخوارزمية فورياً باستبعادها والبحث عن أقرب عقدة تالية توفر حاوية لنفس الخامة وتكون متاحة.
-
----
-
-## 6. خوارزمية الترتيب بالدمج (Merge Sort)
-
-* **الغرض الأكاديمي**: ترتيب جميع الحاويات المتاحة في الحرم الجامعي تصاعدياً حسب مسافة السير الفعلية من موقع الطالب.
-* **الاستراتيجية**: فرق تسد (Divide & Conquer):
-  1. **التقسيم (Divide)**: تقسيم مصفوفة الحاويات إلى نصفين متساويين بازمان $O(\log n)$.
-  2. **الحل (Conquer)**: ترتيب كل نصف بشكل متكرر.
-  3. **الدمج (Combine/Merge)**: دمج النصفين المرتبين في مصفوفة واحدة بزمن $O(n)$.
-* **التعقيد الزمني**:
-  $$\text{Best: } O(n \log n) \quad | \quad \text{Average: } O(n \log n) \quad | \quad \text{Worst: } O(n \log n)$$
-* **الاستقرار (Stability)**: الخوارزمية مستقرة (Stable)، تحافظ على الترتيب النسبي للعناصر ذات المسافات المتساوية.
+### Dynamic Bin Status & Rerouting:
+Each faculty node maintains real-time bin availability states (available 🟢 or full 🔴). If the closest bin is full, the graph search automatically prunes the full bin and reroutes to the next nearest available bin.
 
 ---
 
-## 7. استرجاع المعلومات وحساب الأثر الكربوني (IR & Carbon KPI)
+## 6. Divide & Conquer Ranking (Merge Sort)
 
-عند تصنيف المادة، يقوم محرك استرجاع المعلومات (IR Module) بربط الفئة الناتجة مع قاعدة المعرفة البيئية المعتمدة:
-1. **رمز التدوير (Resin Identification Code)**:
-   * بلاستيك: `1 - PETE` أو `2 - HDPE`.
-   * كرتون: `20 - PAP`.
-   * معادن: `41 - ALU`.
-   * زجاج: `70 - GL`.
-2. **معادلات الكربون الموفر (Carbon Savings Formulation)**:
-   * زجاجة بلاستيك PET: توفير **85 جم CO₂**، **3.5 ساعة** إضاءة لمصباح LED، و **2.8 لتر** مياه نقية.
-   * عبوة ألومنيوم (Can): توفير **170 جم CO₂**، و **95%** من الطاقة المستهلكة في صهر خام البوكسيت البكر.
-   * صندوق كرتون: توفير **110 جم CO₂** وحماية الأشجار والمياه النقية.
+* **Purpose**: Sorts all candidate bins campus-wide in ascending order of actual walking distance from the student's location.
+* **Paradigm**: Divide and Conquer:
+  1. **Divide**: Recursively bisect the bin array into two halves in $O(\log n)$ levels.
+  2. **Conquer**: Recursively sort sub-arrays.
+  3. **Combine / Merge**: Merge two sorted lists into one in $O(n)$ time.
+* **Complexity**: Guaranteed $O(n \log n)$ across worst, average, and best cases.
+* **Stability**: Stable sorting preserves original landmark order for equidistant bins.
 
 ---
 
-## 8. أبرز 15 سؤالاً متوقعاً من لجنة التحكيم وإجاباتها النموذجية
+## 7. Information Retrieval & Carbon Accounting (IR Engine)
 
-### س1: ما هو الفرق بين نموذجكم والموديلات الجاهزة مثل YOLO أو MobileNet؟
-**الإجابة**:
-"الموديل الحالي في المشروع هو Sequential CNN تم بناؤه وتدريبه خصيصاً على فئات TrashNet لإثبات فهم عميق لطبقات الـ Conv و Pooling و Flatten و Dense. كما أننا أضفنا في الكود خط تدريب كامل (Transfer Learning) باستخدام MobileNetV2 و EfficientNetB0 في مجلد `training/` لمن يرغب في نشر النموذج على هواتف الموبايل بأقل حجم ذاكرة."
+Upon material classification, the Information Retrieval engine retrieves domain recycling metadata:
+1. **Resin Identification Code (RIC)**:
+   * Plastic: `1 - PETE` (Beverage bottles) or `2 - HDPE` (Containers).
+   * Cardboard: `20 - PAP`.
+   * Metal: `41 - ALU` (Aluminum cans).
+   * Glass: `70 - GL`.
+2. **CO₂ Carbon Avoidance Formulations**:
+   * PET Plastic bottle: **85g CO₂** saved, **3.5 hours** of 10W LED bulb illumination, and **2.8L** freshwater conserved.
+   * Aluminum can: **170g CO₂** saved, avoiding 95% of energy required to smelt bauxite ore.
+   * Cardboard box: **110g CO₂** saved.
 
-### س2: كيف تعاملتم مع مشكلة تدوير صور كاميرا الهاتف (EXIF Orientation)؟
-**الإجابة**:
-"كاميرات الهواتف الذكية تخزن اتجاه الالتقاط كـ Metadata في وسوم EXIF دون تدوير مصفوفة البكسلات الفعلية، مما كان يجعل الموديل يرى الزجاجة مقلوبة بزاوية 90 درجة ويفشل في التصنيف. قمنا بحل هذه المشكلة على مستويين:
-1. في الـ Frontend عبر `createImageBitmap({ imageOrientation: 'from-image' })` قبل الرفع.
-2. في الـ Backend عبر استدعاء `ImageOps.exif_transpose` لضمان صحة الاتجاه دائماً."
+---
 
-### س3: لماذا لم تعتمدوا على MobileNetV3 داخل المتصفح مباشرة عبر tfjs؟
-**الإجابة**:
-"تشغيل الموديل داخل المتصفح (Client-side) يعاني من عيوب كبيرة: بطء تحميل الأوزان (Weight download) على شبكات المحمول، عدم اتساق محركات WebGL بين الأجهزة المختلفة، وسهولة سرقة أوزان الموديل الملكية. معمارية Client-Server التي اعتمدناها عبر Flask Backend توفر أماناً للأوزان، معالجة موحدة، وسرعة استدلال فائقة (26ms)."
+## 8. Top 15 Defense Questions & Model Answers
 
-### س4: ما هو الـ Confidence Gating ولماذا هو ضروري في أنظمة الذكاء الاصطناعي الواقعية؟
-**الإجابة**:
-"النماذج العصبية التي تنتهي بطبقة Softmax تعاني مما يسمى بالإفراط في الثقة (Overconfidence) حتى عند إدخال صور عشوائية أو فارغة. نظام الـ Confidence Gating يضع حداً فاصلاً (Thresholds): لا يقبل النتيجة كـ Confident إلا إذا تجاوزت 75% وكان الهامش بينها وبين المركز الثاني 20% على الأقل، وإلا يُنبه المستخدم أو يرفض الفحص ويقترح إعادة التصوير."
+### Q1: What is the difference between your model and off-the-shelf detectors like YOLO or MobileNet?
+**Answer**:
+"The deployed baseline is a custom Sequential CNN trained from scratch on TrashNet to demonstrate mastery of foundational deep learning layers (convolutions, pooling, dropout, dense classification). In addition, we authored an automated transfer-learning pipeline in `training/` for MobileNetV2 and EfficientNetB0 for teams wishing to deploy ultra-lightweight mobile-optimized architectures."
 
-### س5: لماذا تم اختيار خوارزمية A* بجانب Dijkstra في المسارات؟
-**الإجابة**:
-"خوارزمية Dijkstra تبحث في جميع الاتجاهات بشكل دائري متساوٍ (Uniform Cost Search) مما يستهلك موارد أكثر عند زيادة حجم الحرم الجامعي. خوارزمية A* تستخدم دالة إرشادية (Heuristic) تعتمد على المسافة الإقليدية المستقيمة $h(n)$ نحو الحاوية المستهدفة، مما يقلل عدد العقد المستكشفة بنسبة تصل إلى 50% مع ضمان الوصول لنفس المسار الأقصر لأن المسافة الإقليدية دالة مقبولة رياضياً (Admissible)."
+### Q2: How do you address camera orientation and EXIF metadata issues?
+**Answer**:
+"Smartphones store device orientation inside EXIF tags without rotating the actual pixel grid, which causes conventional models to observe sideways or upside-down objects. We resolve this bidirectionally:
+1. On the client, via `createImageBitmap({ imageOrientation: 'from-image' })`.
+2. On the server, via `ImageOps.exif_transpose`, guaranteeing canonical upright orientation before feature extraction."
 
-### س6: ما الذي يحدث عندما تكون أقرب حاوية ممتلئة؟
-**الإجابة**:
-"النظام يدعم التحويل الديناميكي لحظياً (Dynamic Rerouting). خريطة الحرم الجامعي ترصد حالة كل حاوية (متاحة أو ممتلئة). الخوارزمية تتخطى أي عقدة تكون حاويتها ممتلئة وتعيد حساب المسار لأقرب حاوية متاحة تالية، ويمكن للمناقش تجربة النقر على أي مبنى لتعديل حالة حاويته ورؤية المسار يعاد رسمه في أجزاء من الثانية."
+### Q3: Why not run the model client-side in the browser using TensorFlow.js?
+**Answer**:
+"Client-side browser execution suffers from substantial weight download latency over cellular connections, WebGL shader inconsistencies across mobile devices, and intellectual property exposure of model weights. The Flask backend architecture provides model security, centralized monitoring, and deterministic 26ms CPU inference."
 
-### س7: كيف أثبتم أن معالجة الصور المسبقة لا تغير الدقة؟
-**الإجابة**:
-"أجرينا تجارب A/B تجريبية مسجلة وموثقة في `docs/metrics/ab_experiments.json`. أثبتت التجربة أن استخدام قسمة `/255.0` يحقق 81.67% دقة، في حين أن أي اختلاف في التطبيع هبط بالدقة إلى 33% و 17%، مما يؤكد أن كل قرار هندسي في الكود مبني على قياسات تجريبية موثقة."
+### Q4: What is Confidence Gating and why is it essential in production AI?
+**Answer**:
+"Neural networks ending in Softmax activations are susceptible to overconfidence, frequently outputting high probability values even for noise or unclassifiable inputs. Confidence gating enforces dual thresholds: an absolute top-1 cutoff ($\ge 75\%$) and a separation margin between the top two candidates ($\ge 20\%$). Predictions failing these criteria are marked as uncertain or rejected rather than routed erroneously."
 
-### س8: لماذا تم تفضيل Merge Sort على Quick Sort في ترتيب الحاويات؟
-**الإجابة**:
-"خوارزمية Quick Sort تعاني من أسوأ حالة بزمن $O(n^2)$ إذا كان اختيار المحور (Pivot) سيئاً، بينما خوارزمية Merge Sort تضمن زمناً ثابتاً $O(n \log n)$ في جميع الحالات (أفضل، متوسطة، وأسوأ حالة)، بالإضافة إلى كونها مستقرة (Stable Sorting) مما يحافظ على الترتيب الأصلي للحاويات ذات المسافات المتساوية."
+### Q5: Why implement both A* and Dijkstra for pathfinding?
+**Answer**:
+"Dijkstra is an uninformed search exploring outward radially in all directions, which is computationally wasteful on large road networks. A* leverages an admissible Euclidean distance heuristic to bias search progression directly toward the destination bin, cutting visited nodes by 40–60% while maintaining mathematical optimality."
 
-### س9: كيف قمتم بحماية السيرفر من هجمات حجب الخدمة والملفات الخبيثة (Security & DoS)؟
-**الإجابة**:
-"طبقنا أفضل ممارسات الأمان:
-1. وضعنا حداً أقصى لحجم الطلب `MAX_CONTENT_LENGTH = 10MB` مع كود خطأ `413`.
-2. فحص نوع ومحتوى الصورة بـ Pillow وإلغاء فك ضغط قنابل الصور (`MAX_IMAGE_PIXELS`).
-3. منع حقن أسماء الملفات باستخدام معالجة الذاكرة الثنائية المباشرة (In-memory BytesIO) دون حفظ ملفات مؤقتة على القرص الصلب."
+### Q6: What happens when the nearest bin is reported full?
+**Answer**:
+"The system performs real-time dynamic rerouting. When an administrator or student reports a bin full, its state switches to full (🔴). The pathfinding engine immediately excludes that bin from candidate destinations and finds the shortest path to the next nearest available bin."
 
-### س10: ما هي لغات وتقنيات الـ Frontend ولماذا لم تستخدموا React أو Tailwind؟
-**الإجابة**:
-"الـ Frontend مكتوب بـ Vanilla JavaScript (ES6+ Classes) و CSS3 حديث معتمد على CSS Variables و Flexbox/Grid وتصميم متجاوب بالكامل (Mobile-First) ودعم كامل للغتين العربية (RTL) والإنجليزية (LTR). عدم استخدام Frameworks ثقيلة منح التطبيق سرعة تحميل خارقة (Zero Build Step)، خفة وزن، وسهولة تامة في الفحص والمناقشة."
+### Q7: How did you verify that image preprocessing does not degrade accuracy?
+**Answer**:
+"We conducted systematic A/B benchmarking recorded in `docs/metrics/ab_experiments.json`. Testing confirmed that dividing by 255.0 yields 81.67% accuracy, whereas signed or unnormalized scaling degrades performance to 17% and 33%, demonstrating that every pipeline parameter is backed by empirical data."
 
-### س11: كيف تم حساب توفير انبعاثات الكربون؟
-**الإجابة**:
-"اعتمدنا على معاملات الانبعاثات البيئية القياسية الصادرة عن وكالات حماية البيئة العالمية (EPA / DEFRA): كل كجم من بلاستيك PET يعاد تدويره يوفر حوالي 1.5 إلى 2 كجم من مكافئ ثاني أكسيد الكربون، فقمنا بحساب متوسط الزجاجة الواحدة (25-35 جم) لتعادل توفير 85 جم CO₂، وهكذا لباقي الخامات."
+### Q8: Why prefer Merge Sort over Quick Sort for bin ranking?
+**Answer**:
+"Quick Sort possesses an $O(n^2)$ worst-case time complexity when encountering unbalanced pivots. Merge Sort provides a deterministic $O(n \log n)$ upper bound regardless of initial input order, and its stability ensures equidistant collection points maintain their intuitive geographic index order."
 
-### س12: ما هو دور الخيط الموحد (Thread Safety) في سيرفر Flask؟
-**الإجابة**:
-"مكتبة TensorFlow ومحركات Keras ليست Thread-safe تماماً في وضع الاستدلال عند استقبال طلبات متزامنة متعددة على سيرفر Flask. قمنا بإنشاء كلاس `ModelEngine` بنمط التصميم Singleton مع `threading.Lock()` لضمان حماية أوزان الموديل من أي سباق بيانات (Race Condition)."
+### Q9: How is the backend secured against denial-of-service and malicious payloads?
+**Answer**:
+"We implement defensive security measures:
+1. Request size limit enforced at `MAX_CONTENT_LENGTH = 10MB` with HTTP 413.
+2. Pillow image bomb defense via decompression limits.
+3. In-memory stream processing (`io.BytesIO`) preventing temporary file injection or path traversal vulnerabilities."
 
-### س13: ما هو مقياس ECE المذكور في تقرير التقييم؟
-**الإجابة**:
-"مقياس ECE يرمز إلى **Expected Calibration Error** (خطأ المعايرة المتوقع). وهو يقيس الفارق بين نسبة الثقة التي يعطيها الموديل ونسبة الدقة الحقيقية. الموديل ذو المعايرة الممتازة إذا قال ثقتي 80% فيجب أن يكون محقاً في 80% من المرات. حقق نموذجنا قيمة ECE منخفضة وممتازة بلغت `0.0991`."
+### Q10: Why use Vanilla JavaScript rather than React or Vue for the frontend?
+**Answer**:
+"The frontend is authored with modern ES6+ modular classes and native CSS custom properties. Eliminating bulky JavaScript frameworks yields zero-bundle-overhead, sub-second initial page load on campus Wi-Fi, and complete transparency for academic code auditing."
 
-### س14: كيف تم التعامل مع الصور ذات الخلفية الشفافة (PNG with Alpha Channel)؟
-**الإجابة**:
-"تحويل صورة PNG شفافة مباشرة عبر `convert('RGB')` يحول البكسلات الشفافة إلى لون أسود تام، مما يخدع الموديل ويفسد التصنيف. قمنا ببناء دالة دمج ألفا (Alpha Compositing) تقوم بدمج القناة الشفافة على خلفية بيضاء نقية قبل التمرير للموديل."
+### Q11: How are the carbon savings figures determined?
+**Answer**:
+"Our figures derive from standard life cycle assessment (LCA) benchmarks from environmental protection authorities (EPA / DEFRA). For example, recycling 1 kg of PET plastic conserves approximately 1.5–2.0 kg of CO₂ equivalent. Factoring the weight of a typical 25–35g plastic bottle yields an average savings of 85g CO₂."
 
-### س15: ما هي الخطوات المستقبلية لتطوير المشروع إلى منتج صناعي متكامل؟
-**الإجابة**:
-"1. دمج حساسات إنترنت الأشياء (IoT Ultrasonic Sensors) داخل الحاويات لإرسال نسبة الامتلاء الحقيقية مباشرة لقاعدة بيانات السيرفر.
-2. نشر الموديل على كاميرات مراقبة ذكية (Edge AI) على بوابات المجمع للتعرف التلقائي على سلوكيات الفرز.
-3. تطبيق نظام النقاط والمكافآت للطلاب (Gamification & Eco-Points) على بطاقاتهم الجامعية لتشجيعهم على الفرز المستمر."
+### Q12: Why is thread safety critical in the Flask backend?
+**Answer**:
+"Keras models running under concurrent WSGI workers or multi-threaded Flask instances can experience race conditions during session inference. We wrap model execution within a singleton `ModelEngine` secured by a `threading.Lock()` to ensure isolated, thread-safe inference."
+
+### Q13: What does Expected Calibration Error (ECE) signify?
+**Answer**:
+"ECE quantifies the discrepancy between model confidence scores and true empirical accuracy. A well-calibrated classifier indicating 80% confidence should be accurate approximately 80% of the time. EcoSort achieved an ECE of `0.0991`, demonstrating high reliability between confidence and accuracy."
+
+### Q14: How does the system handle transparent PNG images?
+**Answer**:
+"Converting transparent PNG images directly via standard RGB conversion maps transparent alpha pixels to pure black, distorting object silhouettes. We implement alpha compositing against a pure white background prior to scaling, preserving natural lighting and edge contrasts."
+
+### Q15: What are the primary avenues for future expansion?
+**Answer**:
+"1. Integrating IoT ultrasonic sensors inside campus bins to transmit real-time fill levels wirelessly.
+2. Deploying edge-vision cameras at faculty entrances for automated multi-item segregation.
+3. Implementing student eco-rewards and gamification integrated with university ID cards."
