@@ -392,7 +392,17 @@ class EcoSortApp {
         if (manualSelect) {
             manualSelect.addEventListener('change', (e) => {
                 const wasteId = e.target.value;
+                manualSelect.classList.remove('highlight-pulse');
                 this.visionModule.selectPreset(wasteId);
+            });
+        }
+
+        // زر إعادة المحاولة داخل شريط التنبيه
+        const btnBannerRetry = document.getElementById('btn-banner-retry');
+        if (btnBannerRetry) {
+            btnBannerRetry.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.startCameraStream();
             });
         }
 
@@ -656,6 +666,7 @@ class EcoSortApp {
     handleWasteDetected(detection) {
         this.currentWasteItem = detection.item;
         this.currentWasteType = detection.item.binType;
+        this.lastDetection = detection;
 
         // 0. إظهار كارت النتيجة وإخفاء رسالة الانتظار وتفعيل زر الانتقال للخطوة 3
         const resultCard = document.getElementById('card-inspection-result');
@@ -678,22 +689,52 @@ class EcoSortApp {
         const confidenceBarElem = document.getElementById('cv-confidence-bar-fill');
         const textureElem = document.getElementById('cv-texture-description');
         const latencyElem = document.getElementById('cv-inference-latency');
+        const marginDisplay = document.getElementById('cv-margin-display');
+        const marginValue = document.getElementById('cv-margin-value');
         const binBadge = document.getElementById('ir-target-bin-badge');
         const manualSelect = document.getElementById('manual-waste-selector');
 
-        if (nameElem) nameElem.textContent = detection.item.name;
+        const isEn = this.currentLang === 'en';
+        const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
+
+        if (nameElem) nameElem.textContent = isEn ? (detection.item.nameEn || detection.item.name) : detection.item.name;
         if (codeElem) codeElem.textContent = detection.item.resinCode || detection.item.category;
-        if (confidenceValElem) confidenceValElem.textContent = `${detection.confidence}%`;
-        if (confidenceBarElem) confidenceBarElem.style.width = `${detection.confidence}%`;
+
+        // نسبة الثقة وزمن الاستدلال
+        if (detection.isPreset) {
+            if (confidenceValElem) confidenceValElem.textContent = isEn ? 'Verified Demo' : 'عينة تجريبية';
+            if (confidenceBarElem) {
+                confidenceBarElem.style.width = '100%';
+                confidenceBarElem.style.background = 'linear-gradient(90deg, #64748b, #94a3b8)';
+            }
+            if (latencyElem) latencyElem.textContent = isEn ? 'N/A (Preset)' : 'غير منطبق (عينة)';
+            if (marginDisplay) marginDisplay.classList.add('hidden');
+        } else {
+            if (confidenceValElem) confidenceValElem.textContent = `${detection.confidence}%`;
+            if (confidenceBarElem) {
+                const confClamped = Math.min(100, Math.max(0, detection.confidence));
+                confidenceBarElem.style.width = `${confClamped}%`;
+                confidenceBarElem.style.background = detection.confidence >= 75
+                    ? 'linear-gradient(90deg, #10b981, #059669)'
+                    : (detection.confidence >= 45 ? 'linear-gradient(90deg, #f59e0b, #d97706)' : 'linear-gradient(90deg, #ef4444, #dc2626)');
+            }
+            if (latencyElem) latencyElem.textContent = `${detection.inferenceTimeMs} ms`;
+            if (marginDisplay && detection.margin != null) {
+                marginDisplay.classList.remove('hidden');
+                if (marginValue) marginValue.textContent = `${detection.margin}%`;
+            } else if (marginDisplay) {
+                marginDisplay.classList.add('hidden');
+            }
+        }
+
         if (textureElem) textureElem.textContent = detection.texture;
-        if (latencyElem) latencyElem.textContent = `${detection.inferenceTimeMs} ms`;
 
         if (manualSelect && detection.item && detection.item.id) {
             manualSelect.value = detection.item.id;
         }
 
         if (binBadge) {
-            binBadge.textContent = detection.item.binColorName;
+            binBadge.textContent = isEn ? (detection.item.binColorNameEn || detection.item.binColorName) : detection.item.binColorName;
             binBadge.style.backgroundColor = detection.item.binColorHex || '#10b981';
             binBadge.style.color = '#ffffff';
         }
@@ -705,10 +746,124 @@ class EcoSortApp {
 
         const previewStatusText = document.getElementById('cv-preview-status-text');
         if (previewStatusText) {
-            previewStatusText.textContent = `تم الاستدلال بنجاح عبر ${detection.modelName || 'الذكاء الاصطناعي'} ✓`;
+            previewStatusText.textContent = detection.isPreset
+                ? (isEn ? 'Reference sample loaded ✓' : 'تم تحميل العينة المرجعية ✓')
+                : (isEn ? `Classified via ${detection.modelName || 'AI'} ✓` : `تم الاستدلال بنجاح عبر ${detection.modelName || 'الذكاء الاصطناعي'} ✓`);
         }
 
-        // 2. تحديث خطوات الإعداد الصحيح ومؤشرات توفير الكربون (IR)
+        // 2. شريط قرار الثقة (Decision Banner) و Pulse
+        const decisionBanner = document.getElementById('cv-decision-banner');
+        const decisionIcon = document.getElementById('cv-decision-banner-icon');
+        const decisionTitle = document.getElementById('cv-decision-banner-title');
+        const decisionDesc = document.getElementById('cv-decision-banner-desc');
+        const bannerActions = document.getElementById('cv-decision-banner-actions');
+        const photoAdviceBox = document.getElementById('cv-photo-advice-box');
+
+        if (decisionBanner) {
+            decisionBanner.classList.remove('hidden', 'decision-banner-confident', 'decision-banner-uncertain', 'decision-banner-rejected');
+            if (manualSelect) manualSelect.classList.remove('highlight-pulse');
+
+            if (detection.isPreset) {
+                decisionBanner.classList.add('decision-banner-confident');
+                if (decisionIcon) decisionIcon.textContent = '📋';
+                if (decisionTitle) decisionTitle.textContent = isEn ? 'Verified Reference Preset' : 'عينة مرجعية تجريبية';
+                if (decisionDesc) decisionDesc.textContent = isEn
+                    ? 'Selected directly from verified campus catalog for testing without running AI.'
+                    : 'تم اختيار هذه الخامة مباشرة كعينة اختبار موثقة لقاعدة بيانات الحرم الجامعي.';
+                if (bannerActions) bannerActions.classList.add('hidden');
+                if (photoAdviceBox) photoAdviceBox.classList.add('hidden');
+            } else if (detection.decision === 'confident') {
+                decisionBanner.classList.add('decision-banner-confident');
+                if (decisionIcon) decisionIcon.textContent = '✅';
+                if (decisionTitle) decisionTitle.textContent = t.decisionConfidentTitle || 'تصنيف مؤكد من الذكاء الاصطناعي';
+                if (decisionDesc) decisionDesc.textContent = t.decisionConfidentDesc || 'تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.';
+                if (bannerActions) bannerActions.classList.add('hidden');
+                if (photoAdviceBox) photoAdviceBox.classList.add('hidden');
+            } else if (detection.decision === 'uncertain') {
+                decisionBanner.classList.add('decision-banner-uncertain');
+                if (decisionIcon) decisionIcon.textContent = '⚠️';
+                if (decisionTitle) decisionTitle.textContent = t.decisionUncertainTitle || 'تنبيه: النموذج غير متأكد تماماً';
+                if (decisionDesc) decisionDesc.textContent = t.decisionUncertainDesc || 'نسبة الثقة أو هامش التمييز منخفض. يُرجى التحقق من القائمة اليدوية أدناه أو إعادة التقاط الصورة بإضاءة أفضل.';
+                if (bannerActions) bannerActions.classList.remove('hidden');
+                if (photoAdviceBox) photoAdviceBox.classList.remove('hidden');
+                if (manualSelect) manualSelect.classList.add('highlight-pulse');
+            } else { // rejected
+                decisionBanner.classList.add('decision-banner-rejected');
+                if (decisionIcon) decisionIcon.textContent = '❌';
+                if (decisionTitle) decisionTitle.textContent = t.decisionRejectedTitle || 'تنبيه: تعذّر التعرف على الجسم بدقة مقبولة';
+                if (decisionDesc) decisionDesc.textContent = t.decisionRejectedDesc || 'الصورة غير واضحة أو أن المادة غير مصنفة بدقة. يُرجى اختيار الخامة يدوياً من القائمة أعلاه أو مراجعة نصائح التصوير أدناه.';
+                if (bannerActions) bannerActions.classList.remove('hidden');
+                if (photoAdviceBox) photoAdviceBox.classList.remove('hidden');
+                if (manualSelect) manualSelect.classList.add('highlight-pulse');
+            }
+        }
+
+        // 3. تحذيرات جودة الصورة (Quality Warnings)
+        const warningsBox = document.getElementById('cv-quality-warnings-box');
+        const warningsList = document.getElementById('cv-quality-warnings-list');
+        if (warningsBox && warningsList) {
+            warningsList.innerHTML = '';
+            const warnings = detection.qualityWarnings || [];
+            if (warnings.length > 0) {
+                const warnMap = {
+                    'IMAGE_BLURRY': t.warnBlur || 'الصورة بها غبشة أو اهتزاز حركي (Blur)',
+                    'IMAGE_TOO_DARK': t.warnDark || 'الإضاءة منخفضة جداً (Dark)',
+                    'IMAGE_TOO_BRIGHT': t.warnBright || 'الإضاءة شديدة أو بها سطوع زائد (Overexposed)',
+                    'IMAGE_LOW_VARIANCE': t.warnFlat || 'الصورة فارغة أو شبه موحدة اللون (Low Variance)'
+                };
+                warnings.forEach(w => {
+                    const li = document.createElement('li');
+                    li.textContent = warnMap[w] || w;
+                    warningsList.appendChild(li);
+                });
+                warningsBox.classList.remove('hidden');
+            } else {
+                warningsBox.classList.add('hidden');
+            }
+        }
+
+        // 4. أعلى 3 احتمالات بديلة (Top-3)
+        const topKContainer = document.getElementById('cv-top-k-container');
+        const topKList = document.getElementById('cv-top-k-list');
+        if (topKContainer && topKList) {
+            topKList.innerHTML = '';
+            const topK = detection.topK || [];
+            if (!detection.isPreset && topK.length > 0) {
+                topK.forEach((cand, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'top-k-item';
+
+                    const meta = document.createElement('div');
+                    meta.className = 'top-k-meta';
+
+                    const label = document.createElement('span');
+                    label.textContent = isEn ? cand.materialNameEn : cand.materialNameAr;
+
+                    const score = document.createElement('strong');
+                    score.textContent = cand.confidenceFormatted || `${cand.confidence}%`;
+
+                    meta.appendChild(label);
+                    meta.appendChild(score);
+
+                    const barWrap = document.createElement('div');
+                    barWrap.className = 'top-k-bar';
+
+                    const fill = document.createElement('div');
+                    fill.className = `top-k-fill ${idx === 0 ? 'first-place' : ''}`;
+                    fill.style.width = `${Math.min(100, Math.max(0, cand.confidence))}%`;
+
+                    barWrap.appendChild(fill);
+                    row.appendChild(meta);
+                    row.appendChild(barWrap);
+                    topKList.appendChild(row);
+                });
+                topKContainer.classList.remove('hidden');
+            } else {
+                topKContainer.classList.add('hidden');
+            }
+        }
+
+        // 5. تحديث خطوات الإعداد الصحيح ومؤشرات توفير الكربون (IR)
         const stepsContainer = document.getElementById('ir-handling-steps');
         const co2Elem = document.getElementById('ir-co2-savings-value');
         const energyElem = document.getElementById('ir-energy-savings-value');
@@ -718,14 +873,14 @@ class EcoSortApp {
             stepsContainer.innerHTML = detection.item.properHandling.map((step, idx) => `
                 <li class="handling-step-item">
                     <span class="step-num">${idx + 1}</span>
-                    <span class="step-text">${step}</span>
+                    <span class="step-text">${EcoSortApp.escapeHtml(step)}</span>
                 </li>
             `).join('');
         }
 
-        if (co2Elem) co2Elem.textContent = `${detection.item.carbonSavingsGrams} جم CO₂`;
-        if (energyElem) energyElem.textContent = detection.item.energySavings || '3.5 ساعة إضاءة';
-        if (waterElem) waterElem.textContent = `${detection.item.waterSavingsLiters || 2.5} لتر مياه نقية`;
+        if (co2Elem) co2Elem.textContent = `${detection.item.carbonSavingsGrams || 85} ${isEn ? 'g CO₂' : 'جم CO₂'}`;
+        if (energyElem) energyElem.textContent = detection.item.energySavings || (isEn ? '3.5h LED Lighting' : '3.5 ساعة إضاءة');
+        if (waterElem) waterElem.textContent = `${detection.item.waterSavingsLiters || 2.5} ${isEn ? 'L clean water' : 'لتر مياه نقية'}`;
     }
 
     /**
@@ -1241,6 +1396,11 @@ class EcoSortApp {
         } else if (this.currentStep === 3) {
             this.updateStep3RouteContext();
             this.recalculateRoute();
+        }
+
+        // إعادة ترجمة بطاقة الفحص إن كانت معروضة بالفعل
+        if (this.lastDetection) {
+            this.handleWasteDetected(this.lastDetection);
         }
     }
 }

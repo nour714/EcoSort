@@ -282,7 +282,7 @@
             </div>
 
             <!-- صندوق نتيجة الفحص ودليل المعالجة (CV & IR Result Card) - يظهر تلقائياً بعد إتمام الفحص -->
-            <article class="card result-inspection-card hidden" id="card-inspection-result">
+            <article class="card result-inspection-card hidden" id="card-inspection-result" aria-live="polite">
                 <div class="card-header">
                     <div class="card-header-title">
                         <div class="card-header-icon cv-icon">
@@ -309,6 +309,39 @@
                     </div>
                 </div>
 
+                <!-- شريط قرار الثقة (Confident / Uncertain / Rejected) -->
+                <div id="cv-decision-banner" class="decision-banner hidden" role="alert">
+                    <div class="decision-banner-icon" id="cv-decision-banner-icon">🎯</div>
+                    <div class="decision-banner-body">
+                        <strong id="cv-decision-banner-title">تصنيف مؤكد من الذكاء الاصطناعي</strong>
+                        <p id="cv-decision-banner-desc">تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.</p>
+                        <div id="cv-decision-banner-actions" class="decision-banner-actions hidden">
+                            <button type="button" class="btn btn-outline-sm" id="btn-banner-retry">
+                                📷 إعادة التقاط الصورة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- شريط تحذيرات جودة الصورة -->
+                <div id="cv-quality-warnings-box" class="quality-warnings-box hidden">
+                    <div class="flex items-center gap-1 text-xs font-bold text-amber-900 mb-1">
+                        <span>⚠️</span>
+                        <span id="cv-quality-warnings-title">ملاحظات جودة الصورة:</span>
+                    </div>
+                    <ul id="cv-quality-warnings-list" class="quality-warnings-list"></ul>
+                </div>
+
+                <!-- صندوق نصائح التصوير عند عدم التأكد أو الرفض -->
+                <div id="cv-photo-advice-box" class="photo-advice-box hidden">
+                    <div class="photo-advice-title" id="cv-photo-advice-title">💡 نصائح لالتقاط صورة دقيقة:</div>
+                    <ul class="photo-advice-list" id="cv-photo-advice-list">
+                        <li>ضع قطعة واحدة فقط في منتصف كادر الكاميرا.</li>
+                        <li>تأكد من إضاءة مناسبة وخلفية واضحة ومتباينة.</li>
+                        <li>تجنب تقريب الكاميرا بدرجة تسبب تشويش الفوكس (Blur).</li>
+                    </ul>
+                </div>
+
                 <div class="card-body">
                     <div class="detection-top-row">
                         <div class="detected-material-meta">
@@ -325,13 +358,22 @@
                     <div class="confidence-texture-grid">
                         <div class="confidence-box">
                             <div class="flex justify-between text-xs font-bold text-gray-700 mb-1">
-                                <span>دقة التعرف (Confidence %):</span>
+                                <span id="cv-confidence-label">دقة التعرف (Confidence %):</span>
                                 <span class="text-emerald-700 font-black" id="cv-confidence-value">96.8%</span>
                             </div>
                             <div class="cv-confidence-bar">
                                 <div class="cv-confidence-bar-fill confidence-fill-initial" id="cv-confidence-bar-fill"></div>
                             </div>
-                            <div class="text-2xs text-gray-400 mt-1">زمن الاستدلال البصري: <strong id="cv-inference-latency">14.2 ms</strong></div>
+                            <div class="text-2xs text-gray-400 mt-1 flex justify-between">
+                                <span>زمن الاستدلال: <strong id="cv-inference-latency">14.2 ms</strong></span>
+                                <span id="cv-margin-display" class="hidden">الهامش: <strong id="cv-margin-value">25.0%</strong></span>
+                            </div>
+
+                            <!-- أعلى الاحتمالات البديلة (Top-3 Candidates) -->
+                            <div class="top-k-container mt-3 hidden" id="cv-top-k-container">
+                                <div class="text-xs font-bold text-gray-700 mb-1" id="cv-top-k-heading">أعلى الاحتمالات (Top-3):</div>
+                                <div class="top-k-list" id="cv-top-k-list"></div>
+                            </div>
                         </div>
 
                         <div class="texture-box">
