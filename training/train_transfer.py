@@ -20,7 +20,6 @@ Usage:
 """
 
 import os
-import sys
 import json
 import argparse
 import logging
@@ -250,6 +249,8 @@ def train_model(args):
         class_weight=class_weights if class_weights else None,
         callbacks=callbacks_s1
     )
+    if "val_accuracy" in history_s1.history:
+        logger.info(f"Stage 1 finished. Best val_accuracy: {max(history_s1.history['val_accuracy']):.4f}")
 
     # 4. Stage 2: Fine-Tuning
     logger.info("=== STAGE 2: Fine-Tuning (Unfreezing Top Base Layers) ===")
@@ -282,6 +283,8 @@ def train_model(args):
         class_weight=class_weights if class_weights else None,
         callbacks=callbacks_s2
     )
+    if "val_accuracy" in history_s2.history:
+        logger.info(f"Stage 2 finished. Best val_accuracy: {max(history_s2.history['val_accuracy']):.4f}")
 
     # 5. Evaluate on Holdout Test Set
     logger.info("=== Evaluating Model on Unseen Test Split ===")

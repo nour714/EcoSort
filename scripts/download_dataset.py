@@ -6,7 +6,6 @@ of the provided model.keras is unverified; results represent in-distribution
 performance and may reflect optimistic upper bounds).
 """
 import os
-import sys
 import zipfile
 import urllib.request
 import random

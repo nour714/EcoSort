@@ -73,7 +73,7 @@ def check_image_quality(img: Image.Image, blur_min: float = None, dark_max: floa
     flat_min = flat_min if flat_min is not None else getattr(Config, 'FLAT_STD_MIN', 15.0)
 
     warnings = []
-    
+
     # Grayscale thumbnail for fast statistical checks
     thumb = img.resize((128, 128), Image.Resampling.BILINEAR).convert('L')
     arr = np.array(thumb, dtype=np.float32)

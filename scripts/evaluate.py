@@ -26,7 +26,7 @@ def load_and_preprocess(img_path: str, target_size=(224, 224), norm_mode='zero_o
     """Preprocess single image with configurable normalization and resize modes."""
     img = Image.open(img_path)
     img = ImageOps.exif_transpose(img)
-    
+
     # Handle transparency
     if img.mode in ('RGBA', 'LA', 'P'):
         img = img.convert('RGBA')
@@ -169,7 +169,7 @@ def main():
     parser.add_argument('--output-dir', default='docs/metrics', help='Directory to save metrics & charts')
     args = parser.parse_args()
 
-    print(f"=== EcoSort Evaluation ===")
+    print("=== EcoSort Evaluation ===")
     print(f"Model: {args.model}")
     print(f"Data Dir: {args.data}")
     print(f"Normalization: {args.norm}")

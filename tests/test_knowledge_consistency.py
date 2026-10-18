@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import re
 from ecosort.knowledge import WASTE_KNOWLEDGE_BASE
 
 def test_knowledge_base_completeness():
@@ -19,7 +18,7 @@ def test_knowledge_base_completeness():
 def test_js_waste_database_consistency():
     js_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'js', 'data', 'waste-database.js')
     assert os.path.exists(js_path), "static/js/data/waste-database.js must exist"
-    
+
     with open(js_path, 'r', encoding='utf-8') as f:
         js_content = f.read()
 

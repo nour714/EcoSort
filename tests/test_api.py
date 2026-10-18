@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import io
 import base64
-from PIL import Image
 
 def test_health_endpoint(client):
     res = client.get('/health')

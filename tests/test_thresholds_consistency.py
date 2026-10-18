@@ -4,7 +4,6 @@ Test consistency of quality thresholds and gating policies.
 Ensures code defaults, environment overrides, and documentation stay in strict sync.
 """
 import os
-import importlib
 from PIL import Image
 from config import Config
 from ecosort.preprocess import check_image_quality
@@ -37,7 +36,7 @@ def test_thresholds_documented_in_reference():
 def test_check_image_quality_custom_thresholds():
     # Slightly dim image with mean around 40
     dim_img = Image.new('RGB', (100, 100), color=(40, 40, 40))
-    
+
     # Default dark_max is 30.0, so mean 40 does NOT trigger dark warning
     w_default = check_image_quality(dim_img)
     assert 'image_too_dark' not in w_default
