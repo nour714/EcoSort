@@ -73,7 +73,7 @@ class CampusGraphCanvas {
     }
 
     fitGraph() {
-        // حساب أبعاد المخطط وضبط المقياس ليتناسب مع أي شاشة هاتف أو حاسوب
+        // ضبط المقياس ليتناسب مع أي شاشة هاتف أو لوحي أو حاسوب
         const cx = 435; // مركز كليات الحرم x
         const cy = 345; // مركز كليات الحرم y
         const targetWidth = 680;
@@ -81,8 +81,14 @@ class CampusGraphCanvas {
 
         const scaleX = this.displayWidth / targetWidth;
         const scaleY = this.displayHeight / targetHeight;
-        this.scale = Math.min(scaleX, scaleY, 1.15) * 0.88;
+        let scale = Math.min(scaleX, scaleY, 1.15) * 0.88;
 
+        // على الهواتف نحافظ على حجم مقروء للنصوص واللمس، والمستخدم يسحب ويكبّر بأصابعه
+        if (this.displayWidth < 600) {
+            scale = Math.min(1, Math.max(0.5, this.displayWidth / 620));
+        }
+
+        this.scale = scale;
         this.panX = this.displayWidth / 2 - cx * this.scale;
         this.panY = this.displayHeight / 2 - cy * this.scale;
     }
@@ -118,10 +124,110 @@ class CampusGraphCanvas {
         window.addEventListener('mouseup', () => this.handleMouseUp());
         this.canvas.addEventListener('click', (e) => this.handleClick(e));
         this.canvas.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
+        this.bindTouchEvents();
+
+        // تغيّر حجم عنصر الخريطة نفسه (دوران الشاشة، إظهار الخطوة، ...)
+        if (typeof ResizeObserver !== 'undefined') {
+            let lastW = 0;
+            new ResizeObserver(() => {
+                const w = this.canvas.getBoundingClientRect().width;
+                if (w && Math.abs(w - lastW) > 1) {
+                    lastW = w;
+                    this.setupDPI();
+                    this.fitGraph();
+                    this.render();
+                }
+            }).observe(this.canvas);
+        }
+
         this.canvas.addEventListener('mouseleave', () => {
             this.hoveredNodeId = null;
             this.render();
         });
+    }
+
+    /**
+     * دعم اللمس: سحب بإصبع واحد لتحريك الخريطة، وتكبير/تصغير بإصبعين، ولمسة سريعة لفتح الكلية.
+     */
+    bindTouchEvents() {
+        const TAP_MAX_MOVE = 10; // بكسل
+        let mode = null;          // 'pan' | 'pinch'
+        let startX = 0, startY = 0, moved = 0;
+        let pinchStartDist = 0, pinchStartScale = 1;
+
+        const touchPoint = (t) => {
+            const rect = this.canvas.getBoundingClientRect();
+            return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+        };
+        const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                mode = 'pan';
+                moved = 0;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                this.touchPanX = this.panX;
+                this.touchPanY = this.panY;
+            } else if (e.touches.length === 2) {
+                mode = 'pinch';
+                pinchStartDist = dist(e.touches[0], e.touches[1]);
+                pinchStartScale = this.scale;
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (mode === 'pan' && e.touches.length === 1) {
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
+                moved = Math.max(moved, Math.hypot(dx, dy));
+                this.panX = this.touchPanX + dx;
+                this.panY = this.touchPanY + dy;
+                this.render();
+            } else if (mode === 'pinch' && e.touches.length === 2) {
+                moved = TAP_MAX_MOVE + 1; // مش نقرة
+                const newScale = Math.min(2.5, Math.max(0.45,
+                    pinchStartScale * (dist(e.touches[0], e.touches[1]) / pinchStartDist)));
+                const a = touchPoint(e.touches[0]);
+                const b = touchPoint(e.touches[1]);
+                const mx = (a.x + b.x) / 2;
+                const my = (a.y + b.y) / 2;
+                const worldX = (mx - this.panX) / this.scale;
+                const worldY = (my - this.panY) / this.scale;
+                this.scale = newScale;
+                this.panX = mx - worldX * newScale;
+                this.panY = my - worldY * newScale;
+                this.render();
+            }
+        }, { passive: false });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            if (mode === 'pan' && moved <= TAP_MAX_MOVE && e.changedTouches.length) {
+                // لمسة سريعة = اختيار كلية (نصف قطر أكبر لتسهيل اللمس بالإصبع)
+                const t = e.changedTouches[0];
+                const rect = this.canvas.getBoundingClientRect();
+                const worldX = (t.clientX - rect.left - this.panX) / this.scale;
+                const worldY = (t.clientY - rect.top - this.panY) / this.scale;
+                const node = this.findNodeAt(worldX, worldY, 40);
+                if (node && typeof this.onNodeClicked === 'function') {
+                    this.onNodeClicked(node);
+                }
+                e.preventDefault(); // منع click الوهمي المكرر
+            }
+            if (e.touches.length === 0) mode = null;
+            else if (e.touches.length === 1) {
+                // رجوع من pinch إلى pan بدون قفزة
+                mode = 'pan';
+                moved = TAP_MAX_MOVE + 1;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                this.touchPanX = this.panX;
+                this.touchPanY = this.panY;
+            }
+        });
+
+        this.canvas.addEventListener('touchcancel', () => { mode = null; });
     }
 
     getCanvasCoordinates(e) {

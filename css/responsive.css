@@ -1,0 +1,322 @@
+/* ==========================================================================
+   EcoSort - التجاوب مع جميع الأجهزة + تحسينات الجودة
+   يُحمَّل آخر ملف CSS عشان يقدر يعدّل على باقي الملفات.
+
+   نقاط التوقف (Mobile-first من الأصغر للأكبر عبر max-width):
+     ≥1200px  شاشات كبيرة      |  ≤1024px لابتوب صغير / تابلت أفقي
+     ≤768px   تابلت عمودي      |  ≤640px  موبايل
+     ≤400px   موبايل صغير      |  landscape قصير (موبايل أفقي)
+   ========================================================================== */
+
+:root {
+    --header-brand-h: 58px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tap-min: 44px;
+}
+
+/* ---------- أساسيات تنطبق على كل الأجهزة ---------- */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden; /* شبكة أمان: الإصلاحات الأساسية تحت تمنع الـ overflow من أصله */
+    -webkit-font-smoothing: antialiased;
+}
+
+img, svg, canvas, video { max-width: 100%; }
+button, input, select, textarea { font: inherit; }
+
+/* عنوان الخطوة كان بياخد تنسيق عنوان الـ stepper بالغلط (تعارض في اسم الكلاس) */
+.step-header-text .step-title {
+    font-size: clamp(1.15rem, 1rem + 1.2vw, 1.5rem);
+    font-weight: 800;
+    color: var(--slate-900);
+    line-height: 1.35;
+}
+
+.card-title { font-size: clamp(0.95rem, 0.9rem + 0.35vw, 1.05rem); }
+
+/* نصوص طويلة ما تكسرش التخطيط */
+.card-title, .card-subtitle, .location-card, .sorted-bin-item,
+.destination-name, .walking-steps-path { overflow-wrap: anywhere; }
+
+/* ---------- إمكانية الوصول ---------- */
+:focus-visible {
+    outline: 3px solid rgba(5, 150, 105, 0.55);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ---------- حجم لمس مريح على الشاشات اللمسية ---------- */
+@media (pointer: coarse) {
+    .btn, .category-pill, .algo-switch-btn, .waste-type-card, .btn-outline-sm {
+        min-height: var(--tap-min);
+    }
+    .btn-icon { width: var(--tap-min); height: var(--tap-min); }
+    input[type="text"], input[type="search"], input:not([type]) { font-size: 16px; } /* منع تكبير iOS التلقائي */
+    .canvas-wrapper canvas { touch-action: none; }
+}
+
+/* ==========================================================================
+   شاشات كبيرة ≥1200px: توحيد العرض مع الهيدر
+   ========================================================================== */
+@media (min-width: 1200px) {
+    .wizard-main-container { max-width: 1180px; }
+}
+
+/* ==========================================================================
+   تابلت / لابتوب صغير ≤1024px
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .wizard-main-container { padding-inline: 1rem; }
+    .header-container { padding-inline: 1rem; }
+}
+
+/* ==========================================================================
+   تابلت عمودي ≤768px
+   ========================================================================== */
+@media (max-width: 768px) {
+    .canvas-wrapper { height: clamp(340px, 60vh, 520px); }
+
+    /* زر المحاكاة موجود في البطاقة العائمة تحت، فنشيل المكرر */
+    #btn-simulate-route { display: none; }
+
+    .map-header-actions { width: 100%; }
+    .algo-switcher-group { flex: 1; }
+    .algo-switch-btn { flex: 1; text-align: center; }
+
+    .route-kpis-strip {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .route-summary-header { gap: 1rem; }
+
+    /* دليل الألوان: شريط أفقي أسفل الخريطة بدل ما يغطي الرسم */
+    .canvas-legend-overlay {
+        right: 8px;
+        left: 8px;
+        bottom: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.35rem 0.75rem;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.675rem;
+    }
+
+    /* مساحة تحت المحتوى عشان البطاقة العائمة ما تغطيش آخر عنصر */
+    .wizard-main-container { padding-bottom: calc(2.5rem + var(--safe-bottom)); }
+
+    .floating-mobile-route-card {
+        bottom: calc(10px + var(--safe-bottom));
+    }
+}
+
+/* ==========================================================================
+   موبايل ≤640px
+   ========================================================================== */
+@media (max-width: 640px) {
+    /* ----- الهيدر: الشعار يختفي مع السكرول والـ stepper يفضل ثابت ----- */
+    .app-header {
+        top: calc(-1 * var(--header-brand-h));
+        padding-top: var(--safe-top);
+    }
+    .header-container {
+        height: var(--header-brand-h);
+        padding: 0 0.85rem;
+        flex-wrap: nowrap;
+    }
+    .brand-logo-icon { width: 38px; height: 38px; padding: 2px; }
+    .brand-logo-icon svg, .brand-logo-img { width: 100%; height: 100%; }
+    .brand-title-wrap h1 { font-size: 1.05rem; line-height: 1.25; }
+    .brand-subtitle { display: none; }
+
+    /* ----- الـ stepper: نعرض اسم الخطوة النشطة فقط (ده كان سبب الـ overflow) ----- */
+    .stepper-nav { padding: 0.5rem 0.85rem; }
+    .stepper-container { gap: 0; }
+    .step-indicator:not(.active) .step-label { display: none; }
+    .step-indicator { gap: 0.45rem; min-width: 0; }
+    .step-label { min-width: 0; }
+    .step-title { white-space: nowrap; }
+    .stepper-line { margin-inline: 0.5rem; min-width: 12px; }
+
+    /* ----- الحاويات والكروت ----- */
+    .wizard-main-container { padding: 1rem 0.85rem calc(2rem + var(--safe-bottom)); }
+    .card { border-radius: var(--radius-lg); }
+    .card-header { padding: 0.85rem 1rem; }
+    .card-body { padding: 1rem; }
+    .card-body-compact { padding: 0.5rem; }
+    .card-header-icon { display: none; }
+    .scan-method-card, .result-route-summary-card { padding: 1rem; }
+    .scan-methods-container { gap: 1rem; }
+
+    .section-label-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    .current-location-banner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.6rem;
+    }
+    .current-location-banner .btn { width: 100%; }
+
+    .step-hero-card { padding: 1.25rem 1rem; }
+    .step-hero-title { font-size: 1.25rem; }
+    .step-hero-desc { font-size: 0.85rem; }
+    .hero-icon-bubble { width: 52px; height: 52px; }
+
+    /* ----- الخطوة 1: شريط التصنيفات يتمرر أفقياً بدل ما يلف على أسطر ----- */
+    .category-filters-wrap {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        margin-inline: -0.25rem;
+        padding: 0.15rem 0.25rem 0.4rem;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .category-filters-wrap::-webkit-scrollbar { display: none; }
+    .category-pill { flex-shrink: 0; white-space: nowrap; }
+    .location-cards-grid { grid-template-columns: 1fr; gap: 0.65rem; }
+    .location-card { padding: 0.85rem; }
+
+    /* ----- الخطوة 2 ----- */
+    .detection-top-row { align-items: flex-start; }
+    .destination-name { font-size: 1.15rem; }
+    .toast-notification {
+        top: calc(12px + var(--safe-top));
+        width: calc(100vw - 1.5rem);
+        max-width: 420px;
+        border-radius: var(--radius-lg);
+        padding: 0.65rem 1rem;
+    }
+
+    /* ----- الخطوة 3: الخريطة ----- */
+    .canvas-controls-overlay { top: 8px; left: 8px; gap: 0.3rem; }
+    .canvas-controls-overlay .btn-icon { width: 40px; height: 40px; }
+    .map-header-actions { gap: 0.5rem; }
+
+    .walking-steps-path { font-size: 0.85rem; line-height: 1.8; }
+
+    /* ----- جدول المقارنة يتحول لبطاقات بدل تمرير أفقي ----- */
+    .table-responsive { overflow: visible; }
+    .academic-table, .academic-table tbody { display: block; width: 100%; }
+    .academic-table thead { display: none; }
+    .academic-table tr {
+        display: block;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        margin-bottom: 0.65rem;
+        overflow: hidden;
+        background: #ffffff;
+    }
+    .academic-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0.85rem;
+        border-bottom: 1px dashed var(--slate-100);
+        text-align: left;
+        direction: rtl;
+    }
+    .academic-table td:last-child { border-bottom: none; }
+    .academic-table td:first-child {
+        background: var(--slate-50);
+        font-weight: 800;
+        color: var(--slate-800);
+        border-bottom: 1px solid var(--border-light);
+    }
+    .academic-table td:not(:first-child)::before {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--slate-500);
+        flex-shrink: 0;
+    }
+    .academic-table td:nth-child(2)::before { content: 'Dijkstra'; }
+    .academic-table td:nth-child(3)::before { content: 'A* Search'; }
+    .academic-table td:nth-child(4)::before { content: 'الاستنتاج'; }
+
+    /* ----- قائمة الحاويات المرتبة ----- */
+    .sorted-bins-list { max-height: none; }
+    .sorted-bin-item { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+    .sorted-bin-item .bin-item-meta {
+        justify-content: space-between;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    /* ----- النافذة المنبثقة تتحول لـ bottom sheet ----- */
+    .modal-backdrop { align-items: flex-end; padding: 0; }
+    .modal-card {
+        max-width: none;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        max-height: 88vh;
+        max-height: 88dvh;
+        display: flex;
+        flex-direction: column;
+        animation: sheetUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-body { max-height: none; flex: 1; -webkit-overflow-scrolling: touch; }
+    .modal-footer { padding-bottom: calc(0.75rem + var(--safe-bottom)); }
+
+    /* ----- الأزرار السفلية ----- */
+    .wizard-bottom-actions { margin-top: 1.5rem; }
+    .btn-lg { padding: 0.8rem 1.25rem; }
+
+    .app-footer { padding-bottom: calc(1rem + var(--safe-bottom)); }
+}
+
+@keyframes sheetUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ==========================================================================
+   موبايل صغير ≤400px (iPhone SE، أجهزة أندرويد الصغيرة)
+   ========================================================================== */
+@media (max-width: 400px) {
+    .brand-title-wrap h1 { font-size: 0.95rem; }
+    .brand-title-wrap h1 span { display: none; } /* "| جامعة كفر الشيخ" */
+    .step-bubble { width: 30px; height: 30px; }
+    .step-title { font-size: 0.7rem; }
+    .kpi-mini-val { font-size: 1rem; }
+    .kpi-mini-card { padding: 0.45rem 0.5rem; }
+    .btn { padding-inline: 0.9rem; }
+    .scan-method-card, .result-route-summary-card { padding: 0.85rem; }
+    .cv-dropzone { padding: 1.1rem 0.75rem; }
+}
+
+/* ==========================================================================
+   موبايل أفقي (ارتفاع قصير): نوفّر مساحة رأسية
+   ========================================================================== */
+@media (max-height: 500px) and (orientation: landscape) {
+    .app-header { position: static; }
+    .canvas-wrapper { height: max(260px, 78vh); }
+    .modal-card { max-height: 94vh; }
+    .modal-body { max-height: 52vh; }
+}
+
+/* ==========================================================================
+   الطباعة: إخفاء عناصر التفاعل
+   ========================================================================== */
+@media print {
+    .app-header, .wizard-bottom-actions, .floating-mobile-route-card,
+    .canvas-controls-overlay, .toast-notification, .modal-backdrop { display: none !important; }
+    body { background: #ffffff; }
+}

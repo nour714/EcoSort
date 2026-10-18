@@ -1,0 +1,12 @@
+{
+  "name": "ecosort",
+  "version": "1.0.0",
+  "description": "EcoSort - نظام الفرز والتوجيه الذكي للمخلفات بجامعة كفر الشيخ",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "node tests/test-verification.js && node tests/test-dom-ids.js && node tests/test-assets.js && node tests/test-upload-camera.js",
+    "check": "for f in js/*.js js/*/*.js; do node --check \"$f\" || exit 1; done"
+  },
+  "license": "UNLICENSED"
+}

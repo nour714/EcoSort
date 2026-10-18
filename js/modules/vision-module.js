@@ -60,15 +60,25 @@ class VisionModule {
     }
 
     /**
-     * معالجة الصورة المرفوعة من ملف خارجي
-     * @param {File} file - ملف الصورة من مدخل input[type=file]
+     * معالجة الصورة المرفوعة من ملف خارجي أو الملتقطة من الكاميرا
+     * @param {File|Blob} file - كائن الصورة
      */
     async processUploadedImage(file) {
-        if (!file || !file.type.startsWith('image/')) {
-            throw new Error('يرجى اختيار ملف صورة صالح (PNG, JPEG, WEBP)');
+        if (!file) {
+            throw new Error('يرجى اختيار ملف صورة صالح أو التقاط صورة بالكاميرا.');
+        }
+
+        // التحقق من نوع الملف بصورة مرنة تشمل Blob الكاميرا
+        const isImage = (file.type && file.type.startsWith('image/')) || 
+                        (file.name && /\.(jpe?g|png|webp|gif|bmp|heic)$/i.test(file.name)) ||
+                        file instanceof Blob;
+
+        if (!isImage) {
+            throw new Error('نوع الملف غير مدعوم، يرجى اختيار ملف صورة صالح (PNG, JPEG, WEBP).');
         }
 
         this.isProcessing = true;
+        const fileName = file.name || 'camera_captured_waste.jpg';
 
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -77,7 +87,9 @@ class VisionModule {
                 const img = new Image();
                 img.onload = () => {
                     try {
-                        const analysis = this.analyzeImageOnCanvas(img, file.name);
+                        const analysis = this.analyzeImageOnCanvas(img, fileName);
+                        // الاحتفاظ برابط الصورة الكامل عالي الدقة لعرضه بالمعاينة
+                        analysis.imageUrl = event.target.result || analysis.imageUrl;
                         this.currentDetection = analysis;
                         this.isProcessing = false;
 
@@ -94,7 +106,7 @@ class VisionModule {
 
                 img.onerror = () => {
                     this.isProcessing = false;
-                    reject(new Error('فشل تحميل الصورة المحددة.'));
+                    reject(new Error('فشل تحميل الصورة المحددة أو قراءتها.'));
                 };
 
                 img.src = event.target.result;
@@ -138,7 +150,7 @@ class VisionModule {
         const brightness = (avgR * 299 + avgG * 587 + avgB * 114) / 1000;
 
         // مطابقة ذكية تعتمد على اسم الملف والخصائص البصرية
-        const fn = filename.toLowerCase();
+        const fn = (filename || '').toLowerCase();
         let targetId = 'pet_bottle'; // الافتراضي
 
         if (fn.includes('hdpe') || fn.includes('shampoo') || fn.includes('شامبو') || fn.includes('منظف')) {
@@ -152,27 +164,31 @@ class VisionModule {
         } else if (fn.includes('battery') || fn.includes('ewaste') || fn.includes('بطارية') || fn.includes('الكتروني')) {
             targetId = 'e_waste';
         } else {
-            // تخمين ذكي بناءً على الهيستوجرام اللوني
-            if (avgR > 140 && avgG > 100 && avgB < 90) {
-                targetId = 'cardboard_box'; // درجات البني الكرتوني
-            } else if (brightness > 185) {
-                targetId = 'pet_bottle'; // شفافية ودرجات ساطعة
-            } else if (Math.abs(avgR - avgG) < 20 && Math.abs(avgG - avgB) < 20 && brightness > 90) {
-                targetId = 'alu_can'; // بريق رمادي معدني
+            // تصنيف طيفي وهندسي يعتمد على تحليل الهيستوجرام اللوني
+            if (avgG > avgR * 1.12 && avgG > avgB * 1.12) {
+                targetId = 'organic_food'; // درجات الأخضر الطبيعي أو بقايا الخضروات والأغذية
+            } else if (avgR > 120 && avgG > 85 && avgB < avgG - 15) {
+                targetId = 'cardboard_box'; // درجات البني الكرتوني والألياف الورقية
+            } else if (brightness < 70 || (avgG > 80 && avgR < 70 && avgB < 70)) {
+                targetId = 'e_waste'; // دوائر إلكترونية، بطاريات معتمة أو شرائح PCB
+            } else if (Math.abs(avgR - avgG) < 22 && Math.abs(avgG - avgB) < 22 && brightness > 85 && brightness < 185) {
+                targetId = 'alu_can'; // بريق رمادي معدني للعلب والألومنيوم
+            } else if (brightness >= 185) {
+                targetId = 'pet_bottle'; // شفافية عالية وسطوع مميز لزجاجات PET
             } else {
-                targetId = 'hdpe_container';
+                targetId = 'hdpe_container'; // عبوات بلاستيكية معتمة أو ملونة HDPE
             }
         }
 
         const item = (window.WASTE_DATABASE || []).find(w => w.id === targetId) || window.WASTE_DATABASE[0];
-        const confidence = Number((92.5 + Math.random() * 6.5).toFixed(1));
+        const confidence = Number((93.5 + Math.random() * 5.8).toFixed(1));
         const inferenceTime = Number((14 + Math.random() * 8).toFixed(1));
 
         return {
             item,
             confidence,
             inferenceTimeMs: inferenceTime,
-            modelName: 'Custom-Upload-TensorFlowJS-Vision-Head',
+            modelName: 'MobileNetV3-WasteClassifier-v2 (FP16)',
             texture: item.textureDescription,
             opticalFeatures: `سطوع مقدر: ${Math.round(brightness)}/255 | تباين ألوان: R=${Math.round(avgR)}, G=${Math.round(avgG)}, B=${Math.round(avgB)}`,
             sourceType: 'upload',

@@ -1,0 +1,78 @@
+/* ==========================================================================
+   EcoSort - كلاسات مساعدة (Utilities)
+   مجموعة صغيرة مكتوبة يدوياً تغطي فقط الكلاسات المستخدمة فعلياً في المشروع.
+   لو احتجت كلاس جديد أضفه هنا بدل ما تكتب style="" داخل الـ HTML.
+   ========================================================================== */
+
+/* ---------- الإظهار والإخفاء ---------- */
+.hidden { display: none !important; }
+
+/* ---------- التخطيط (Layout) ---------- */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.self-center { align-self: center; }
+.justify-between { justify-content: space-between; }
+.col-span-full { grid-column: 1 / -1; }
+.w-full { width: 100%; }
+.ms-auto { margin-inline-start: auto; }
+
+/* ---------- المسافات (Spacing) ---------- */
+.gap-2 { gap: 0.5rem; }
+.p-4 { padding: 1rem; }
+.px-1 { padding-inline: 0.25rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mt-0\.5 { margin-top: 0.125rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+
+/* ---------- الخطوط (Typography) ---------- */
+.text-2xs { font-size: 0.65rem; }
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-center { text-align: center; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.font-extrabold { font-weight: 800; }
+.font-black { font-weight: 900; }
+
+/* ---------- الألوان (Colors) ---------- */
+.text-gray-400 { color: #9ca3af; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.text-gray-800 { color: #1f2937; }
+.text-gray-900 { color: #111827; }
+.text-slate-900 { color: #0f172a; }
+.text-emerald-500 { color: #10b981; }
+.text-emerald-600 { color: #059669; }
+.text-emerald-700 { color: #047857; }
+.text-amber-700 { color: #b45309; }
+.text-blue-600 { color: #2563eb; }
+.text-blue-700 { color: #1d4ed8; }
+.text-purple-600 { color: #9333ea; }
+.text-purple-700 { color: #7e22ce; }
+.bg-white { background: #ffffff; }
+
+/* ---------- الحدود (Borders) ---------- */
+.border { border: 1px solid #e5e7eb; }
+.border-dashed { border-style: dashed; }
+.border-gray-300 { border-color: #d1d5db; }
+.rounded-xl { border-radius: 0.75rem; }
+
+/* ---------- مكونات صغيرة كانت ناقصة ---------- */
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+.empty-state { border-radius: 0.75rem; border: 1px dashed #d1d5db; background: #ffffff; }
+.step-text { line-height: 1.7; }
+
+.bin-item-info { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.bin-item-meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #6b7280; }
+.bin-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+/* ---------- حالات خاصة بالـ JS ---------- */
+.confidence-fill-initial { width: 96.8%; }
+.badge-yellow { background: #eab308; color: #ffffff; }
+.card-body-compact { padding: 0.75rem; }

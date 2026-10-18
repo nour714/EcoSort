@@ -3,8 +3,6 @@
    جامعة كفر الشيخ - نظام الفرز والتوجيه الذكي (Step-by-Step Wizard Flow)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
-
 :root {
     /* الألوان البيئية والأكاديمية - جامعة كفر الشيخ */
     --primary-50: #f0fdf4;
@@ -118,13 +116,22 @@ body {
     width: 44px;
     height: 44px;
     border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
-    color: #ffffff;
+    background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+    border: 1px solid rgba(5, 150, 105, 0.18);
     flex-shrink: 0;
+    overflow: hidden;
+    padding: 2px;
+}
+
+.brand-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 .brand-title-wrap h1 {
@@ -142,41 +149,6 @@ body {
     font-size: 0.775rem;
     color: var(--slate-500);
     font-weight: 500;
-}
-
-.header-badges-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.academic-mini-pill {
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 0.2rem 0.55rem;
-    border-radius: var(--radius-full);
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid transparent;
-}
-
-.academic-mini-pill.cv {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-color: #bfdbfe;
-}
-
-.academic-mini-pill.ir {
-    background: #ecfdf5;
-    color: #047857;
-    border-color: #a7f3d0;
-}
-
-.academic-mini-pill.algo {
-    background: #f5f3ff;
-    color: #6d28d9;
-    border-color: #ddd6fe;
 }
 
 /* ==================== شريط التقدم العلوي (Progress Stepper) ==================== */
@@ -298,9 +270,6 @@ body {
     .step-desc {
         display: none;
     }
-    .header-badges-wrap {
-        display: none;
-    }
     .step-indicator {
         gap: 0.4rem;
     }
@@ -362,9 +331,32 @@ body {
 .app-footer {
     background: #ffffff;
     border-top: 1px solid var(--border-light);
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.25rem;
     text-align: center;
     font-size: 0.775rem;
     color: var(--slate-500);
     margin-top: auto;
+}
+
+.footer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    max-width: 800px;
+    margin-inline: auto;
+}
+
+.footer-logo-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    opacity: 0.88;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.footer-logo-img:hover {
+    opacity: 1;
+    transform: scale(1.06);
 }

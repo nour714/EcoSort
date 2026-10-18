@@ -11,11 +11,18 @@
  */
 
 class EcoSortApp {
+    /** تعقيم النص قبل إدخاله في innerHTML (منع حقن HTML من مدخلات المستخدم) */
+    static escapeHtml(text) {
+        const el = document.createElement('div');
+        el.textContent = String(text ?? '');
+        return el.innerHTML;
+    }
+
     constructor() {
         // إدارة حالة المعالج (Wizard State)
         this.currentStep = 1;                   // الخطوة الحالية (1, 2, 3)
         this.currentLocation = null;            // معرف الموقع المختار
-        this.currentWasteType = 'plastic';      // نوع الخامة
+        this.currentWasteType = null;           // نوع الخامة (يحدد بعد الفحص)
         this.currentWasteItem = null;           // كائن المادة المكتشفة
         this.activeAlgorithm = 'dijkstra';      // الخوارزمية النشطة
         this.selectedNodeForModal = null;
@@ -23,6 +30,10 @@ class EcoSortApp {
         // حالات البحث والتصفية للخطوة الأولى
         this.activeCategoryFilter = 'all';
         this.searchQuery = '';
+
+        // حالة الكاميرا الحية
+        this.activeCameraStream = null;
+        this.cameraFacingMode = 'environment';
 
         // تهيئة قواعد البيانات والمخطط
         this.graph = new CampusGraph(window.CAMPUS_GRAPH_DATA);
@@ -67,9 +78,6 @@ class EcoSortApp {
         this.bindStep2Controls();
         this.bindStep3Controls();
         this.bindModalControls();
-
-        // 5. الضبط المسبق للعينة الافتراضية للخطوة الثانية
-        this.visionModule.selectPreset('pet_bottle');
     }
 
     /**
@@ -80,11 +88,18 @@ class EcoSortApp {
 
         // التحقق من تحديد الموقع قبل الانتقال للخطوة 2 أو 3
         if (stepNumber > 1 && !this.currentLocation) {
-            alert('يرجى اختيار موقعك الحالي داخل الجامعة أولاً للمتابعة.');
+            this.showToast('اختر موقعك أولاً', 'يرجى اختيار موقعك الحالي داخل الجامعة للمتابعة.');
+            return;
+        }
+
+        // التحقق من فحص وتحديد نوع المخلفات قبل الانتقال للخطوة 3
+        if (stepNumber === 3 && !this.currentWasteItem) {
+            this.showToast('افحص المخلفات أولاً', 'يرجى التقاط صورة أو رفع صورة للمخلفات للتعرف عليها وتحديد أقرب حاوية.');
             return;
         }
 
         this.currentStep = stepNumber;
+        this.stopCameraStream();
 
         // 1. تحديث شريط التقدم (Stepper Indicators)
         for (let s = 1; s <= 3; s++) {
@@ -176,7 +191,7 @@ class EcoSortApp {
         if (filteredNodes.length === 0) {
             grid.innerHTML = `
                 <div class="col-span-full p-4 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
-                    <p>لم نجد أي منشأة مطابقة لكلمة البحث "${searchQuery}". جرب كلمة أخرى.</p>
+                    <p>لم نجد أي منشأة مطابقة لكلمة البحث "${EcoSortApp.escapeHtml(searchQuery)}". جرب كلمة أخرى.</p>
                 </div>
             `;
             return;
@@ -342,31 +357,96 @@ class EcoSortApp {
     }
 
     /**
-     * ربط أدوات الشاشة 2 (CV & IR مع تأثير المسح الليزري)
+     * ربط أدوات الشاشة 2 (CV & IR مع تأثير المسح الليزري، دعم الكاميرا المباشرة والرفع)
      */
     bindStep2Controls() {
-        // بطاقات الاختيار السريع للخامات
-        const wasteCards = document.querySelectorAll('.waste-type-card');
-        wasteCards.forEach(card => {
-            card.addEventListener('click', () => {
-                wasteCards.forEach(c => {
-                    c.classList.remove('active');
-                    c.setAttribute('aria-checked', 'false');
-                });
-                card.classList.add('active');
-                card.setAttribute('aria-checked', 'true');
-
-                const wasteId = card.getAttribute('data-waste-id');
-                this.visionModule.selectPreset(wasteId);
-            });
-        });
-
-        // مساحة رفع الصور واستدعاء الكاميرا
+        // المدخلات الخفية للملفات والكاميرا
         const fileInput = document.getElementById('waste-image-input');
+        const cameraInput = document.getElementById('waste-camera-input');
         const uploadArea = document.getElementById('cv-dropzone');
 
-        if (uploadArea && fileInput) {
-            uploadArea.addEventListener('click', () => fileInput.click());
+        // أزرار تشغيل الكاميرا والرفع المباشرة
+        const btnTriggerCamera = document.getElementById('btn-trigger-camera');
+        const btnTriggerUpload = document.getElementById('btn-trigger-upload');
+        const btnRescanCamera = document.getElementById('btn-rescan-camera');
+        const btnReuploadImage = document.getElementById('btn-reupload-image');
+
+        // عناصر التحكم في الكاميرا الحية
+        const btnCameraCapture = document.getElementById('btn-camera-capture');
+        const btnCameraSwitch = document.getElementById('btn-camera-switch');
+        const btnCameraClose = document.getElementById('btn-camera-close');
+
+        // القائمة المنسدلة للتعديل اليدوي السريع
+        const manualSelect = document.getElementById('manual-waste-selector');
+        if (manualSelect) {
+            manualSelect.addEventListener('change', (e) => {
+                const wasteId = e.target.value;
+                this.visionModule.selectPreset(wasteId);
+            });
+        }
+
+        // تشغيل الكاميرا
+        if (btnTriggerCamera) {
+            btnTriggerCamera.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.startCameraStream();
+            });
+        }
+
+        if (btnRescanCamera) {
+            btnRescanCamera.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.startCameraStream();
+            });
+        }
+
+        // تشغيل رفع الصور
+        if (btnTriggerUpload) {
+            btnTriggerUpload.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.stopCameraStream();
+                if (fileInput) fileInput.click();
+            });
+        }
+
+        if (btnReuploadImage) {
+            btnReuploadImage.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.stopCameraStream();
+                if (fileInput) fileInput.click();
+            });
+        }
+
+        // أزرار التحكم داخل نافذة الكاميرا
+        if (btnCameraCapture) {
+            btnCameraCapture.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.captureCameraFrame();
+            });
+        }
+
+        if (btnCameraSwitch) {
+            btnCameraSwitch.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.switchCameraFacingMode();
+            });
+        }
+
+        if (btnCameraClose) {
+            btnCameraClose.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.stopCameraStream();
+            });
+        }
+
+        // تفاعلات منطقة الـ Dropzone
+        if (uploadArea) {
+            uploadArea.addEventListener('click', (e) => {
+                // إذا لم تكن الكاميرا مفتوحة ولم يتم النقر على زر
+                if (!this.activeCameraStream && !e.target.closest('button')) {
+                    if (fileInput) fileInput.click();
+                }
+            });
 
             uploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -381,29 +461,160 @@ class EcoSortApp {
                 e.preventDefault();
                 uploadArea.classList.remove('dragover');
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    this.stopCameraStream();
                     this.processUploadedFile(e.dataTransfer.files[0]);
                 }
             });
+        }
 
+        // مراقبة مدخلات الملفات
+        if (fileInput) {
             fileInput.addEventListener('change', (e) => {
                 if (e.target.files && e.target.files[0]) {
                     this.processUploadedFile(e.target.files[0]);
+                    fileInput.value = '';
                 }
             });
         }
+
+        if (cameraInput) {
+            cameraInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    this.processUploadedFile(e.target.files[0]);
+                    cameraInput.value = '';
+                }
+            });
+        }
+
+        // دعم لصق الصور مباشرة من الحافظة (Ctrl+V / Paste)
+        document.addEventListener('paste', (e) => {
+            if (this.currentStep !== 2) return;
+            if (e.clipboardData && e.clipboardData.items) {
+                for (const item of e.clipboardData.items) {
+                    if (item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        if (file) {
+                            this.stopCameraStream();
+                            this.processUploadedFile(file);
+                            this.showToast('تم لصق الصورة', 'تم استقبال الصورة من الحافظة وجارِ تحليلها.');
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * تشغيل بث الكاميرا الحية مع الرجوع التلقائي لمدخل الكاميرا الأصلي عند عدم الدعم
+     */
+    async startCameraStream() {
+        const camContainer = document.getElementById('cv-camera-stream-container');
+        const videoElem = document.getElementById('cv-camera-video');
+        const placeholder = document.getElementById('cv-upload-placeholder');
+        const previewContainer = document.getElementById('cv-image-preview-container');
+        const cameraInput = document.getElementById('waste-camera-input');
+
+        // إيقاف أي بث سابق
+        this.stopCameraStream();
+
+        // التحقق من دعم المتصفح للـ WebRTC / getUserMedia
+        if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: this.cameraFacingMode },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                this.activeCameraStream = stream;
+
+                if (camContainer && videoElem) {
+                    camContainer.classList.remove('hidden');
+                    if (placeholder) placeholder.classList.add('hidden');
+                    if (previewContainer) previewContainer.classList.add('hidden');
+
+                    videoElem.srcObject = stream;
+                    await videoElem.play().catch(() => {});
+                }
+                return;
+            } catch (err) {
+                console.warn('تعذّر فتح الكاميرا عبر getUserMedia، جارِ الفتح عبر مدخل الكاميرا الأصلي:', err);
+            }
+        }
+
+        // الرجوع التلقائي إلى استدعاء الكاميرا الأصلية بالنظام
+        if (cameraInput) {
+            cameraInput.click();
+        } else {
+            this.showToast('تنبيه الكاميرا', 'يرجى السماح بالوصول للكاميرا أو استخدام زر رفع الصور.');
+        }
+    }
+
+    /**
+     * التقاط إطار من بث الكاميرا ومعالجته فورياً
+     */
+    captureCameraFrame() {
+        const videoElem = document.getElementById('cv-camera-video');
+        if (!videoElem || !this.activeCameraStream) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElem.videoWidth || 640;
+        canvas.height = videoElem.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+
+        this.stopCameraStream();
+
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                this.processUploadedFile(file);
+            }
+        }, 'image/jpeg', 0.92);
+    }
+
+    /**
+     * تبديل وضع الكاميرا بين الأمامية والخلفية
+     */
+    switchCameraFacingMode() {
+        this.cameraFacingMode = this.cameraFacingMode === 'user' ? 'environment' : 'user';
+        this.startCameraStream();
+    }
+
+    /**
+     * إيقاف بث الكاميرا الحية وإعادة إخفاء الحاوية
+     */
+    stopCameraStream() {
+        if (this.activeCameraStream) {
+            this.activeCameraStream.getTracks().forEach(track => track.stop());
+            this.activeCameraStream = null;
+        }
+
+        const camContainer = document.getElementById('cv-camera-stream-container');
+        const videoElem = document.getElementById('cv-camera-video');
+        if (videoElem) videoElem.srcObject = null;
+        if (camContainer) camContainer.classList.add('hidden');
     }
 
     async processUploadedFile(file) {
+        this.stopCameraStream();
         const dropzone = document.getElementById('cv-dropzone');
+        const previewContainer = document.getElementById('cv-image-preview-container');
+        const placeholder = document.getElementById('cv-upload-placeholder');
+        const previewImg = document.getElementById('cv-uploaded-image');
+
         try {
             // تشغيل تأثير مسح الليزر الذكي
             if (dropzone) dropzone.classList.add('scanning');
 
-            const previewContainer = document.getElementById('cv-image-preview-container');
-            const placeholder = document.getElementById('cv-upload-placeholder');
-            const previewImg = document.getElementById('cv-uploaded-image');
-
             if (previewContainer && previewImg) {
+                const tempUrl = URL.createObjectURL(file);
+                previewImg.src = tempUrl;
                 previewContainer.classList.remove('hidden');
                 if (placeholder) placeholder.classList.add('hidden');
             }
@@ -415,11 +626,16 @@ class EcoSortApp {
                 if (previewImg && detection.imageUrl) {
                     previewImg.src = detection.imageUrl;
                 }
+                const resultCard = document.getElementById('card-inspection-result');
+                if (resultCard) {
+                    resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+                this.showToast('تم الفحص بنجاح', `تم التعرف على: ${detection.item.name} بدقة ${detection.confidence}%`);
             }, 600);
 
         } catch (err) {
             if (dropzone) dropzone.classList.remove('scanning');
-            alert(err.message || 'حدث خطأ أثناء معالجة الصورة.');
+            this.showToast('تعذّر فحص الصورة', err.message || 'حدث خطأ أثناء معالجة الصورة.');
         }
     }
 
@@ -430,6 +646,20 @@ class EcoSortApp {
         this.currentWasteItem = detection.item;
         this.currentWasteType = detection.item.binType;
 
+        // 0. إظهار كارت النتيجة وإخفاء رسالة الانتظار وتفعيل زر الانتقال للخطوة 3
+        const resultCard = document.getElementById('card-inspection-result');
+        const awaitingNotice = document.getElementById('awaiting-scan-notice');
+        const btnGoStep3 = document.getElementById('btn-go-to-step-3');
+
+        if (awaitingNotice) awaitingNotice.classList.add('hidden');
+        if (resultCard) {
+            resultCard.classList.remove('hidden');
+            resultCard.classList.add('card-fade-in');
+        }
+        if (btnGoStep3) {
+            btnGoStep3.disabled = false;
+        }
+
         // 1. تحديث بيانات المادة المكتشفة
         const nameElem = document.getElementById('cv-detected-material-name');
         const codeElem = document.getElementById('cv-detected-resin-code');
@@ -438,6 +668,7 @@ class EcoSortApp {
         const textureElem = document.getElementById('cv-texture-description');
         const latencyElem = document.getElementById('cv-inference-latency');
         const binBadge = document.getElementById('ir-target-bin-badge');
+        const manualSelect = document.getElementById('manual-waste-selector');
 
         if (nameElem) nameElem.textContent = detection.item.name;
         if (codeElem) codeElem.textContent = detection.item.resinCode || detection.item.category;
@@ -445,6 +676,10 @@ class EcoSortApp {
         if (confidenceBarElem) confidenceBarElem.style.width = `${detection.confidence}%`;
         if (textureElem) textureElem.textContent = detection.texture;
         if (latencyElem) latencyElem.textContent = `${detection.inferenceTimeMs} ms`;
+
+        if (manualSelect && detection.item && detection.item.id) {
+            manualSelect.value = detection.item.id;
+        }
 
         if (binBadge) {
             binBadge.textContent = detection.item.binColorName;
