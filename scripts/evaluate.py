@@ -162,7 +162,7 @@ def plot_coverage_curve(confidences, accuracies, output_path):
 def main():
     parser = argparse.ArgumentParser(description="Evaluate EcoSort Keras Model")
     parser.add_argument('--model', default='models/model.keras', help='Path to .keras model')
-    parser.add_argument('--data', default='samples', help='Path to test dataset folder')
+    parser.add_argument('--data', default='data/benchmark', help='Path to test dataset folder')
     parser.add_argument('--norm', default='zero_one', choices=['zero_one', 'signed', 'raw'], help='Normalization mode')
     parser.add_argument('--resize-mode', default='direct', choices=['direct', 'crop', 'pad'], help='Resize strategy')
     parser.add_argument('--tta', action='store_true', help='Enable Test-Time Augmentation')

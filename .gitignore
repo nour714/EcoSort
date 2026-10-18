@@ -1,4 +1,5 @@
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 *.log
@@ -10,7 +11,7 @@ Thumbs.db
 venv/
 env/
 .venv/
-/data/*
-!/data/campus_photos/
-!/data/campus_photos/**
+data/raw/
 docs/metrics/tmp/
+.pytest_cache/
+.ruff_cache/

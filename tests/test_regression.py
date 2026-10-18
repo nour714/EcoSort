@@ -8,16 +8,16 @@ def test_regression_on_fixture_samples():
     engine = ModelEngine.get_instance()
     assert engine.model is not None
 
-    samples_dir = os.path.join(os.path.dirname(__file__), '..', 'samples')
-    if not os.path.isdir(samples_dir):
-        pytest.skip("samples/ directory not present")
+    benchmark_dir = os.path.join(os.path.dirname(__file__), '..', 'data', 'benchmark')
+    if not os.path.isdir(benchmark_dir):
+        pytest.skip("data/benchmark/ directory not present")
 
     classes = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']
     correct = 0
     total = 0
 
     for cls in classes:
-        cls_dir = os.path.join(samples_dir, cls)
+        cls_dir = os.path.join(benchmark_dir, cls)
         if not os.path.isdir(cls_dir):
             continue
         # Check first 5 images of each class

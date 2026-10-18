@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Download original TrashNet dataset and extract 50 samples per class into samples/.
+Download original TrashNet dataset into data/raw/ and extract 50 benchmark samples per class into data/benchmark/.
 Note: 300 evaluation samples from the TrashNet distribution (training/test split
 of the provided models/model.keras is unverified; results represent in-distribution
 performance and may reflect optimistic upper bounds).
@@ -11,15 +11,15 @@ import urllib.request
 import random
 import shutil
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
-SAMPLES_DIR = os.path.join(os.path.dirname(__file__), '..', 'samples')
+RAW_DIR = os.path.join(os.path.dirname(__file__), '..', 'data', 'raw')
+BENCHMARK_DIR = os.path.join(os.path.dirname(__file__), '..', 'data', 'benchmark')
 DATASET_URL = 'https://raw.githubusercontent.com/garythung/trashnet/master/data/dataset-resized.zip'
-ZIP_PATH = os.path.join(DATA_DIR, 'dataset-resized.zip')
-EXTRACTED_DIR = os.path.join(DATA_DIR, 'dataset-resized')
+ZIP_PATH = os.path.join(RAW_DIR, 'dataset-resized.zip')
+EXTRACTED_DIR = os.path.join(RAW_DIR, 'dataset-resized')
 
 def main():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    os.makedirs(SAMPLES_DIR, exist_ok=True)
+    os.makedirs(RAW_DIR, exist_ok=True)
+    os.makedirs(BENCHMARK_DIR, exist_ok=True)
 
     if not os.path.exists(ZIP_PATH) and not os.path.exists(EXTRACTED_DIR):
         print(f"Downloading TrashNet from {DATASET_URL}...")
@@ -29,7 +29,7 @@ def main():
     if not os.path.exists(EXTRACTED_DIR):
         print("Extracting dataset...")
         with zipfile.ZipFile(ZIP_PATH, 'r') as z:
-            z.extractall(DATA_DIR)
+            z.extractall(RAW_DIR)
         print("Extraction complete.")
 
     # Find the class folders
@@ -40,10 +40,10 @@ def main():
     random.seed(42)
     classes = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']
 
-    # For each class, put 50 test samples into samples/<class>/
+    # For each class, put 50 test samples into data/benchmark/<class>/
     for cls in classes:
         src_cls_dir = os.path.join(EXTRACTED_DIR, cls)
-        dst_cls_dir = os.path.join(SAMPLES_DIR, cls)
+        dst_cls_dir = os.path.join(BENCHMARK_DIR, cls)
         os.makedirs(dst_cls_dir, exist_ok=True)
 
         if not os.path.exists(src_cls_dir):
