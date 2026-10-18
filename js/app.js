@@ -687,6 +687,16 @@ class EcoSortApp {
             binBadge.style.color = '#ffffff';
         }
 
+        const activeModelTag = document.getElementById('cv-active-model-tag');
+        if (activeModelTag && detection.modelName) {
+            activeModelTag.textContent = detection.modelName;
+        }
+
+        const previewStatusText = document.getElementById('cv-preview-status-text');
+        if (previewStatusText) {
+            previewStatusText.textContent = `تم الاستدلال بنجاح عبر ${detection.modelName || 'الذكاء الاصطناعي'} ✓`;
+        }
+
         // 2. تحديث خطوات الإعداد الصحيح ومؤشرات توفير الكربون (IR)
         const stepsContainer = document.getElementById('ir-handling-steps');
         const co2Elem = document.getElementById('ir-co2-savings-value');
