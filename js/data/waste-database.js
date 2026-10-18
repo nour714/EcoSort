@@ -178,31 +178,96 @@ const WASTE_DATABASE = [
             'بطارية', 'موبايل', 'شاحن', 'كابل', 'سلك', 'لابتوب', 'بوردة', 'فلاشة', 
             'ماوس', 'الكتروني', 'هاتف', 'كهرباء', 'حاسب', 'رامات', 'معالج'
         ],
-        iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>`
+        iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="15" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>`
+    },
+    {
+        id: 'glass_bottle',
+        name: 'زجاجات وعبوات زجاجية (Glass)',
+        category: 'زجاج',
+        resinCode: '70 - GL',
+        resinName: 'زجاج صودا جير أو بوروسيليكات قابل لإعادة الصهر اللانهائي',
+        binType: 'glass',
+        binColorName: 'الخضراء (زجاج معملي ودوائي)',
+        binColorHex: '#059669',
+        defaultConfidence: 96.5,
+        textureDescription: 'شديد الصلابة، أملس، بارد، قابل للكسر، خامل كيميائياً وغير نفاذ للسوائل إطلاقاً.',
+        opticalFeatures: 'نفاذية وشفافية ضوئية، بريق عاكس، أسطح أسطوانية ملساء خالية من المسام.',
+        properHandling: [
+            'شطف القارورة بالماء للتخلص من أي سوائل أو محاليل متبقية.',
+            'نزع أي أغطية معدنية أو بلاستيكية منفصلة.',
+            'التأكد التام من خلو الزجاج من الكسور الحادة أثناء نقله.',
+            'إلقاؤها في حاوية الزجاج المخصصة بكليتي العلوم والصيدلة.'
+        ],
+        carbonSavingsGrams: 300,
+        energySavings: 'توفير 30% من طاقة أفران الصهر وتجنب استهلاك رمال السيليكا البكر.',
+        waterSavingsLiters: 4.5,
+        rawMaterialSavings: 'صهر 1 طن زجاج يوفر 1.2 طن من المواد الخام الطبيعية ويمنع انبعاثات الكربون.',
+        sustainabilityTip: 'الزجاج مادة طبيعية مستدامة 100% ويعاد تدويره بلا نهاية دون أي تدهور في الجودة.',
+        keywords: [
+            'زجاج', 'قارورة', 'معمل', 'كيمياء', 'دورق', 'كوب', 'انبوب', 'اختبار', 'برطمان', 'glass'
+        ],
+        iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8v4H8z"/><path d="M9 6v3a4 4 0 0 1-1 2.8L5 15.5A4 4 0 0 0 4 18.5V20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5a4 4 0 0 0-1-3l-3-3.7A4 4 0 0 1 15 9V6"/></svg>`
+    },
+    {
+        id: 'paper_sheet',
+        name: 'أوراق ومستندات دراسية (Paper)',
+        category: 'ورق ومطبوعات',
+        resinCode: '22 - PAP',
+        resinName: 'ألياف سليلوز بيضاء نقية قابلة لإعادة التدوير',
+        binType: 'paper',
+        binColorName: 'الخضراء (ورق وكرتون)',
+        binColorHex: '#10b981',
+        defaultConfidence: 94.0,
+        textureDescription: 'أوراق مسطحة ناعمة الملمس، مرنة وخفيفة، جافة تماماً وقابلة للثني والكتابة.',
+        opticalFeatures: 'سطح غير عاكس، لون أبيض أو مطبوع، كثافة ورق طباعة 70-80 جم/م².',
+        properHandling: [
+            'نزع أي دبابيس معدنية، مشابك أو أشرطة لاصقة.',
+            'التأكد من عدم تلوث الأوراق بالسوائل أو المأكولات.',
+            'تجميع الأوراق مسطحة لتوفير المساحة في الحاوية.',
+            'وضعها مباشرة في حاوية الأوراق والكرتون المخصصة في الكليات والمكتبة.'
+        ],
+        carbonSavingsGrams: 180,
+        energySavings: 'توفير 65% من الطاقة الكهربائية المطلوبة لإنتاج ورق جديد من لحاء الأشجار.',
+        waterSavingsLiters: 10.0,
+        rawMaterialSavings: 'تدوير طن ورق يحمي 17 شجرة معمرة ويوفر 26,000 لتر من المياه النقية.',
+        sustainabilityTip: 'فرز أوراق المحاضرات والامتحانات يدعم مبادرة الحرم الأخضر لإنتاج دفاتر وكرتون معاد تدويره.',
+        keywords: [
+            'ورق', 'مذكرة', 'اوراق', 'كتاب', 'مستندات', 'طباعة', 'دفتر', 'امتحان', 'تقرير', 'paper'
+        ],
+        iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`
+    },
+    {
+        id: 'mixed_trash',
+        name: 'مخلفات عامة ومختلطة (Mixed Trash)',
+        category: 'مخلفات عامة',
+        resinCode: 'TRASH - 07',
+        resinName: 'مواد مختلطة أو غير قابلة لإعادة التدوير المباشر',
+        binType: 'organic',
+        binColorName: 'الرمادية / العامة',
+        binColorHex: '#64748b',
+        defaultConfidence: 91.0,
+        textureDescription: 'مزيج متعدد الخامات، أغلفة رقائق مركبة، أو مناديل ومخلفات استهلاكية غير مصنفة.',
+        opticalFeatures: 'تباين لوني واسع، غياب التجانس الهندسي أو البوليمري النقي.',
+        properHandling: [
+            'التأكد من عدم وجود مواد قابلة للتدوير المنفصل كالمعادن أو الزجاج النظيف.',
+            'إحكام إغلاق الكيس لمنع تناثر المخلفات في الحرم الجامعي.',
+            'إلقاؤها في حاوية المخلفات العامة أو سلة المهملات غير القابلة للتدوير.'
+        ],
+        carbonSavingsGrams: 20,
+        energySavings: 'فرز القمامة العامة يمنع تلوث شحنات التدوير المنفصلة بنسبة 100%.',
+        waterSavingsLiters: 0.5,
+        rawMaterialSavings: 'تقليل حجم النفايات الموجهة للمدافن الصحية عبر العزل المبكر.',
+        sustainabilityTip: 'تقليل استخدام المنتجات أحادية الاستعمال هو الحل الأمثل للحد من المخلفات المختلطة.',
+        keywords: [
+            'قمامة', 'زبالة', 'مخلفات', 'مختلط', 'عام', 'trash', 'waste', 'مناديل', 'اكياس شيبسي'
+        ],
+        iconSvg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`
     }
 ];
 
 // قاعدة بيانات استرجاع المعلومات الموسعة (IR Expanded Catalog) للبحث الذكي السريع
 const IR_EXPANDED_CATALOG = [
     ...WASTE_DATABASE,
-    {
-        id: 'glass_bottle',
-        name: 'زجاجات وعبوات زجاجية معملية',
-        category: 'زجاج',
-        binType: 'glass',
-        binColorName: 'الخضراء الزجاجية',
-        binColorHex: '#059669',
-        defaultConfidence: 95.0,
-        textureDescription: 'شديد الصلابة، أملس، بارد، قابل للكسر، غير نفاذ للسوائل إطلاقاً.',
-        properHandling: [
-            'شطف القارورة بالماء للتخلص من أي كيماويات أو محاليل ملحية.',
-            'التأكد من خلو الزجاج من الكسور الحادة أثناء النقل.',
-            'إلقاؤها في حاوية الزجاج المخصصة بكلية العلوم أو الصيدلة.'
-        ],
-        carbonSavingsGrams: 300,
-        energySavings: 'توفير 30% من طاقة أفران الصهر مقارنة بصنع الزجاج من الرمل والصودا.',
-        keywords: ['زجاج', 'قارورة', 'معمل', 'كيمياء', 'دورق', 'كوب', 'انبوب', 'اختبار']
-    },
     {
         id: 'plastic_bag',
         name: 'أكياس التسوق وأغلفة النايلون (LDPE)',
