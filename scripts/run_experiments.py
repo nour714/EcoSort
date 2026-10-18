@@ -5,9 +5,12 @@ Run systematic A/B experiments on EcoSort model:
 2. Resize Strategy: direct vs center-crop vs pad
 3. TTA: enabled vs disabled
 """
+import os
 import subprocess
 import re
 import json
+import shutil
+import tempfile
 
 experiments = [
     {"name": "Baseline (norm=0..1, resize=direct, no-tta)", "norm": "zero_one", "resize": "direct", "tta": False},
@@ -21,7 +24,14 @@ experiments = [
 results = []
 
 for exp in experiments:
-    cmd = ["python", "scripts/evaluate.py", "--norm", exp["norm"], "--resize-mode", exp["resize"]]
+    is_baseline = (exp["name"].startswith("Baseline"))
+    if is_baseline:
+        out_dir = "docs/metrics"
+    else:
+        out_dir = os.path.join(tempfile.gettempdir(), "ecosort_exp")
+        os.makedirs(out_dir, exist_ok=True)
+
+    cmd = ["python", "scripts/evaluate.py", "--norm", exp["norm"], "--resize-mode", exp["resize"], "--output-dir", out_dir]
     if exp["tta"]:
         cmd.append("--tta")
 

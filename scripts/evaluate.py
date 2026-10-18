@@ -246,6 +246,33 @@ def main():
     plot_coverage_curve(confidences, accuracies, cov_path)
     print(f"Saved Coverage Curve to: {cov_path}")
 
+    # Gating statistics
+    decisions = []
+    for probs in all_probs:
+        sorted_p = np.sort(probs)[::-1]
+        top1 = sorted_p[0] * 100.0
+        top2 = sorted_p[1] * 100.0 if len(sorted_p) > 1 else 0.0
+        margin = top1 - top2
+        if top1 < 45.0:
+            decisions.append('rejected')
+        elif top1 >= 75.0 and margin >= 20.0:
+            decisions.append('confident')
+        else:
+            decisions.append('uncertain')
+
+    decisions = np.array(decisions)
+    gating_summary = {}
+    for d_name in ['confident', 'uncertain', 'rejected']:
+        mask = (decisions == d_name)
+        count = int(np.sum(mask))
+        cov_pct = round(float(count / total_samples * 100.0), 2)
+        acc_pct = round(float(np.mean(y_true[mask] == y_pred[mask]) * 100.0), 2) if count > 0 else 0.0
+        gating_summary[d_name] = {
+            'count': count,
+            'coverage_pct': cov_pct,
+            'accuracy_pct': acc_pct
+        }
+
     # Metrics JSON
     metrics_summary = {
         'total_samples': total_samples,
@@ -273,7 +300,10 @@ def main():
             'precision': round(report_dict['weighted avg']['precision'] * 100, 2),
             'recall': round(report_dict['weighted avg']['recall'] * 100, 2),
             'f1_score': round(report_dict['weighted avg']['f1-score'] * 100, 2)
-        }
+        },
+        'gating': gating_summary,
+        'confusion_matrix': cm.tolist(),
+        'class_names': classes
     }
 
     json_path = os.path.join(args.output_dir, 'per_class_metrics.json')
