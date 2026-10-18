@@ -28,6 +28,15 @@ class VisionModule {
         this.onWasteDetected = onWasteDetectedCallback;
         this.currentDetection = null;
         this.isProcessing = false;
+        
+        // النموذج المخصص المدرب لتصنيف المخلفات (Custom Garbage CNN)
+        this.customModel = null;
+        this.customLabels = null;
+        this.customModelLoadingPromise = null;
+        this.customModelPath = 'models/garbage-classifier/model.json';
+        this.customLabelsPath = 'models/garbage-classifier/labels.json';
+
+        // نموذج MobileNet الاحتياطي العام
         this.model = null;
         this.modelLoadingPromise = null;
 
@@ -42,6 +51,10 @@ class VisionModule {
                 'lotion', 'shampoo', 'jug', 'detergent', 'milk', 'dispenser',
                 'pill bottle', 'sunscreen', 'soap dispenser', 'pitcher', 'cleanser',
                 'bleach', 'plastic container'
+            ],
+            glass_bottle: [
+                'wine bottle', 'beer bottle', 'beaker', 'flask', 'goblet',
+                'glass', 'whiskey jug', 'perfume bottle', 'jar', 'vial'
             ],
             alu_can: [
                 'beer can', 'soda can', 'tin can', 'can', 'metal', 'aluminum',
@@ -64,12 +77,169 @@ class VisionModule {
             ]
         };
 
-        // بدء تحميل نموذج MobileNet في الخلفية عند بدء التشغيل
+        // بدء تحميل النماذج في الخلفية عند بدء التشغيل
+        this.loadCustomModel().catch(() => {});
         this.loadModel().catch(() => {});
     }
 
     /**
-     * تحميل نموذج MobileNet عبر مكتبة TensorFlow.js
+     * تحميل النموذج المخصص لتصنيف النفايات (Custom Garbage Classifier CNN)
+     */
+    async loadCustomModel() {
+        if (this.customModel && this.customLabels) {
+            return { model: this.customModel, labels: this.customLabels };
+        }
+        if (this.customModelLoadingPromise) {
+            return this.customModelLoadingPromise;
+        }
+
+        if (typeof window === 'undefined' || typeof tf === 'undefined' || typeof tf.loadLayersModel !== 'function') {
+            return null;
+        }
+
+        this.customModelLoadingPromise = (async () => {
+            try {
+                // تحميل نموذج Keras/TFJS وملف الفئات المنفصل
+                const [loadedModel, labelsResp] = await Promise.all([
+                    tf.loadLayersModel(this.customModelPath),
+                    fetch(this.customLabelsPath, { cache: 'no-cache' })
+                ]);
+
+                const labelsData = await labelsResp.json();
+                this.customModel = loadedModel;
+                this.customLabels = labelsData;
+
+                console.log(`[VisionModule] تم تحميل النموذج المخصص بنجاح: ${labelsData.modelName || 'Garbage Classification CNN'}`);
+                return { model: this.customModel, labels: this.customLabels };
+            } catch (err) {
+                console.warn('[VisionModule] تعذّر تحميل النموذج المخصص، سيتم الاعتماد على النموذج العام أو المحرك الاحتياطي:', err);
+                this.customModel = null;
+                this.customLabels = null;
+                return null;
+            }
+        })();
+
+        return this.customModelLoadingPromise;
+    }
+
+    /**
+     * استدلال مباشر باستخدام النموذج المخصص المرفوع (Garbage CNN)
+     * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement} imgElement
+     */
+    async classifyWithCustomModel(imgElement) {
+        if (typeof tf === 'undefined') return null;
+
+        const customData = await this.loadCustomModel();
+        if (!customData || !customData.model || !customData.labels) {
+            return null;
+        }
+
+        const { model, labels } = customData;
+        const inputSize = labels.inputSize || 224;
+        const classes = labels.classes || [];
+
+        // معالجة مسبقة: تغيير الحجم إلى 224x224 وقسمة البكسلات على 255
+        const outputTensor = tf.tidy(() => {
+            const tensor = tf.browser.fromPixels(imgElement)
+                .resizeBilinear([inputSize, inputSize])
+                .toFloat()
+                .div(255)
+                .expandDims(0);
+            return model.predict(tensor);
+        });
+
+        try {
+            const rawScores = await outputTensor.data();
+            const scores = Array.from(rawScores);
+
+            if (!scores || scores.length === 0) return null;
+
+            // ترتيب الفئات تنازلياً حسب أعلى ثقة
+            const sorted = scores
+                .map((score, index) => {
+                    const classInfo = classes.find(c => c.index === index) || classes[index] || {
+                        index,
+                        name: `class_${index}`,
+                        labelAr: `فئة ${index}`
+                    };
+                    return {
+                        ...classInfo,
+                        score: typeof score === 'number' && !isNaN(score) ? score : 0
+                    };
+                })
+                .sort((a, b) => b.score - a.score);
+
+            const top = sorted[0];
+            const runnerUp = sorted[1];
+
+            // ربط الفئة الناتجة بقاعدة بيانات المخلفات WASTE_DATABASE
+            const wasteItem = this.mapCustomClassToWasteItem(top.name);
+            if (!wasteItem) return null;
+
+            // حساب نسبة الثقة
+            const confidencePercent = Number(Math.min(99.9, Math.max(70.0, top.score * 100)).toFixed(1));
+
+            // صياغة الوصف البصري والخصائص بدقة
+            let opticalDesc = `نموذج CNN المخصص: تم التعرف على "${top.labelAr || top.name}" بنسبة ثقة ${confidencePercent}%`;
+            if (runnerUp && runnerUp.score > 0.05) {
+                const runnerPct = (runnerUp.score * 100).toFixed(1);
+                opticalDesc += ` | البديل المحتمل: "${runnerUp.labelAr || runnerUp.name}" (${runnerPct}%)`;
+            }
+
+            return {
+                item: wasteItem,
+                confidence: confidencePercent,
+                inferenceTimeMs: 0, // تُحسب في classifyImage
+                modelName: `Garbage Classification CNN (${labels.modelName || 'On-Device'})`,
+                texture: wasteItem.textureDescription,
+                opticalFeatures: opticalDesc,
+                sourceType: 'ai-custom-cnn',
+                allPredictions: sorted.map(s => ({
+                    name: s.name,
+                    labelAr: s.labelAr,
+                    score: s.score,
+                    percentage: (s.score * 100).toFixed(1)
+                }))
+            };
+        } finally {
+            outputTensor.dispose();
+        }
+    }
+
+    /**
+     * مطابقة الفئات الست للنموذج المخصص مع قاعدة بيانات المخلفات
+     * @param {string} className 
+     */
+    mapCustomClassToWasteItem(className) {
+        const name = (className || '').toLowerCase().trim();
+        const db = window.WASTE_DATABASE || [];
+
+        switch (name) {
+            case 'cardboard':
+                return db.find(w => w.id === 'cardboard_box') || db.find(w => w.binType === 'paper');
+
+            case 'glass':
+                return db.find(w => w.id === 'glass_bottle') || db.find(w => w.binType === 'glass') || db[0];
+
+            case 'metal':
+                return db.find(w => w.id === 'alu_can') || db.find(w => w.binType === 'metal');
+
+            case 'paper':
+                return db.find(w => w.id === 'paper_sheet') || db.find(w => w.id === 'cardboard_box') || db.find(w => w.binType === 'paper');
+
+            case 'plastic':
+                return db.find(w => w.id === 'pet_bottle') || db.find(w => w.id === 'hdpe_container') || db.find(w => w.binType === 'plastic');
+
+            case 'trash':
+                return db.find(w => w.id === 'mixed_trash') || db.find(w => w.id === 'organic_food') || db.find(w => w.binType === 'organic');
+
+            default:
+                return db[0];
+        }
+    }
+
+    /**
+     * تحميل نموذج MobileNet عبر مكتبة TensorFlow.js (نموذج احتياطي عام)
      */
     async loadModel() {
         if (this.model) return this.model;
@@ -188,14 +358,26 @@ class VisionModule {
     }
 
     /**
-     * المحرك الشامل للتعرف البصري: يدمج MobileNet + فحص اسم الملف + تحليل بكسلات الكانفاس
-     * @param {HTMLImageElement} img 
+     * المحرك الشامل للتعرف البصري: يدمج النموذج المخصص + MobileNet + فحص اسم الملف + تحليل بكسلات الكانفاس
+     * @param {HTMLImageElement|HTMLCanvasElement|HTMLVideoElement} img 
      * @param {string} filename 
      */
     async classifyImage(img, filename = '') {
         const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
-        // 1. استدعاء نموذج MobileNet الحقيقي عبر TensorFlow.js إن وُجد
+        // 1. الطبقة الأولى (Primary Tier): النموذج المخصص المدرب لتصنيف المخلفات (Custom Garbage CNN)
+        try {
+            const customResult = await this.classifyWithCustomModel(img);
+            if (customResult) {
+                const endTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                customResult.inferenceTimeMs = Math.max(1, Number((endTime - startTime).toFixed(1)));
+                return customResult;
+            }
+        } catch (err) {
+            console.warn('[VisionModule] استثناء أثناء تشغيل النموذج المخصص:', err);
+        }
+
+        // 2. الطبقة الثانية (Secondary Tier): نموذج MobileNet العام عبر TensorFlow.js إن وُجد
         let mobileNetResult = null;
         try {
             const model = await this.loadModel();
@@ -215,7 +397,7 @@ class VisionModule {
             return mobileNetResult;
         }
 
-        // 2. خط الدفاع الثاني: فحص اسم الملف (Filename Keyword Fallback)
+        // 3. الطبقة الثالثة (Third Tier): فحص اسم الملف (Filename Keyword Fallback)
         const filenameResult = this.classifyByFilename(filename);
         if (filenameResult) {
             const endTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -223,7 +405,7 @@ class VisionModule {
             return filenameResult;
         }
 
-        // 3. خط الدفاع الثالث: التحليل الذكي للسطوع والتباين وألوان البكسلات (Canvas Pixel Analysis)
+        // 4. الطبقة الرابعة (Fourth Tier): التحليل الذكي للسطوع والتباين وألوان البكسلات (Canvas Pixel Analysis)
         const pixelResult = this.analyzeImageOnCanvas(img, filename);
         const endTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
         pixelResult.inferenceTimeMs = Math.max(1, Number((endTime - startTime).toFixed(1)));
@@ -266,7 +448,7 @@ class VisionModule {
     }
 
     /**
-     * فحص الكلمات المفتاحية في اسم الملف كخط دفاع ثانٍ
+     * فحص الكلمات المفتاحية في اسم الملف كخط دفاع ثالث
      * @param {string} filename 
      */
     classifyByFilename(filename = '') {
@@ -277,11 +459,14 @@ class VisionModule {
 
         const rules = [
             { id: 'hdpe_container', keywords: ['hdpe', 'shampoo', 'شامبو', 'منظف', 'صابون', 'lotion', 'detergent', 'كلور', 'جركن'] },
+            { id: 'glass_bottle', keywords: ['glass', 'زجاج', 'قارورة', 'معمل', 'كيمياء', 'دورق', 'كوب زجاج', 'برطمان'] },
             { id: 'alu_can', keywords: ['can', 'canz', 'كانز', 'cola', 'pepsi', 'metal', 'معدن', 'aluminum', 'ألومنيوم', 'صودا', 'قصدير'] },
             { id: 'cardboard_box', keywords: ['cardboard', 'box', 'paper', 'كرتون', 'ورق', 'اوراق', 'carton', 'تغليف', 'طرد'] },
+            { id: 'paper_sheet', keywords: ['مذكرة', 'مستند', 'دفتر', 'امتحان', 'تقرير', 'مطبوعات'] },
             { id: 'organic_food', keywords: ['food', 'organic', 'طعام', 'بقايا', 'خضار', 'فاكهة', 'وجبة', 'اكل', 'كومبوست'] },
             { id: 'e_waste', keywords: ['battery', 'ewaste', 'بطارية', 'الكتروني', 'شاحن', 'كابل', 'بوردة', 'هاتف', 'لابتوب'] },
-            { id: 'pet_bottle', keywords: ['pet', 'bottle', 'زجاجة', 'مياه', 'قارورة', 'بلاستيك', 'شفاف', 'عصير'] }
+            { id: 'pet_bottle', keywords: ['pet', 'bottle', 'زجاجة', 'مياه', 'قارورة', 'بلاستيك', 'شفاف', 'عصير'] },
+            { id: 'mixed_trash', keywords: ['trash', 'waste', 'قمامة', 'زبالة', 'مختلط', 'مناديل', 'شيبسي', 'نفايات عامة'] }
         ];
 
         for (const rule of rules) {
