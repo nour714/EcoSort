@@ -1,0 +1,57 @@
+{
+  "total_samples": 300,
+  "overall_accuracy": 80.33,
+  "avg_latency_ms": 26.71,
+  "ece": 0.1013,
+  "norm_mode": "zero_one",
+  "resize_mode": "direct",
+  "tta_used": true,
+  "per_class": {
+    "cardboard": {
+      "precision": 97.83,
+      "recall": 90.0,
+      "f1_score": 93.75,
+      "support": 50
+    },
+    "glass": {
+      "precision": 76.36,
+      "recall": 84.0,
+      "f1_score": 80.0,
+      "support": 50
+    },
+    "metal": {
+      "precision": 90.0,
+      "recall": 72.0,
+      "f1_score": 80.0,
+      "support": 50
+    },
+    "paper": {
+      "precision": 71.19,
+      "recall": 84.0,
+      "f1_score": 77.06,
+      "support": 50
+    },
+    "plastic": {
+      "precision": 73.91,
+      "recall": 68.0,
+      "f1_score": 70.83,
+      "support": 50
+    },
+    "trash": {
+      "precision": 77.78,
+      "recall": 84.0,
+      "f1_score": 80.77,
+      "support": 50
+    }
+  },
+  "macro_avg": {
+    "precision": 81.18,
+    "recall": 80.33,
+    "f1_score": 80.4
+  },
+  "weighted_avg": {
+    "precision": 81.18,
+    "recall": 80.33,
+    "f1_score": 80.4
+  }
+}

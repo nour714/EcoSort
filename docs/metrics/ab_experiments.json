@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Baseline (norm=0..1, resize=direct, no-tta)",
+    "norm": "zero_one",
+    "resize": "direct",
+    "tta": false,
+    "accuracy": 81.67,
+    "f1": 81.67,
+    "ece": 0.0991
+  },
+  {
+    "name": "Norm=[0..255] raw (resize=direct, no-tta)",
+    "norm": "raw",
+    "resize": "direct",
+    "tta": false,
+    "accuracy": 33.67,
+    "f1": 27.31,
+    "ece": 0.6625
+  },
+  {
+    "name": "Norm=[-1..1] signed (resize=direct, no-tta)",
+    "norm": "signed",
+    "resize": "direct",
+    "tta": false,
+    "accuracy": 17.33,
+    "f1": 6.98,
+    "ece": 0.8196
+  },
+  {
+    "name": "Resize=crop (norm=0..1, no-tta)",
+    "norm": "zero_one",
+    "resize": "crop",
+    "tta": false,
+    "accuracy": 76.0,
+    "f1": 75.99,
+    "ece": 0.0683
+  },
+  {
+    "name": "Resize=pad (norm=0..1, no-tta)",
+    "norm": "zero_one",
+    "resize": "pad",
+    "tta": false,
+    "accuracy": 62.0,
+    "f1": 61.27,
+    "ece": 0.1107
+  },
+  {
+    "name": "TTA=True (norm=0..1, resize=direct)",
+    "norm": "zero_one",
+    "resize": "direct",
+    "tta": true,
+    "accuracy": 80.33,
+    "f1": 80.4,
+    "ece": 0.1013
+  }
+]

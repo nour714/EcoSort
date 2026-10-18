@@ -9,3 +9,6 @@ Thumbs.db
 .env
 venv/
 env/
+.venv/
+data/
+docs/metrics/tmp/
