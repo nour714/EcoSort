@@ -102,7 +102,10 @@ class ModelEngine:
         top_k = [
             {
                 "class_name": self.class_names[idx],
-                "confidence": round(float(probs[idx] * 100.0), 1)
+                "confidence": round(float(probs[idx] * 100.0), 1),
+                "confidence_formatted": f"{float(probs[idx] * 100.0):.1f}%",
+                "material_name_ar": WASTE_KNOWLEDGE_BASE.get(self.class_names[idx], {}).get("material_name_ar", self.class_names[idx]),
+                "material_name_en": WASTE_KNOWLEDGE_BASE.get(self.class_names[idx], {}).get("material_name_en", self.class_names[idx]),
             }
             for idx in sorted_indices[:3]
         ]
