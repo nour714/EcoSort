@@ -113,40 +113,6 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Dark Theme via prefers-color-scheme */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --color-bg: #090e17;
-        --color-surface: #131d2e;
-        --color-surface-elevated: #1e293b;
-        --color-text: #f8fafc;
-        --color-text-muted: #94a3b8;
-        --color-text-subtle: #cbd5e1;
-        --color-primary: #10b981;
-        --color-primary-hover: #34d399;
-        --color-primary-light: rgba(16, 185, 129, 0.15);
-        --color-primary-contrast: #090e17;
-        --color-success: #22c55e;
-        --color-success-light: rgba(34, 197, 94, 0.15);
-        --color-warning: #f59e0b;
-        --color-warning-light: rgba(245, 158, 11, 0.15);
-        --color-danger: #ef4444;
-        --color-danger-light: rgba(239, 68, 68, 0.15);
-        --color-info: #38bdf8;
-        --color-info-light: rgba(56, 189, 248, 0.15);
-        --color-border: #233248;
-        --color-border-hover: #334766;
-        --color-focus: #34d399;
-
-        --slate-50: #131d2e;
-        --slate-100: #1a263c;
-        --slate-200: #233248;
-        --slate-800: #f1f5f9;
-        --slate-900: #f8fafc;
-        --surface-card: var(--color-surface);
-        --border-light: var(--color-border);
-    }
-}
 
 /* Skip Link for WCAG Accessibility */
 .skip-link {

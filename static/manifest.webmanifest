@@ -4,8 +4,8 @@
   "description": "Smart Waste Sorting & Route Guidance System for Kafrelsheikh University",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#059669",
-  "theme_color": "#059669",
+  "background_color": "#ffffff",
+  "theme_color": "#047857",
   "orientation": "portrait-primary",
   "icons": [
     {

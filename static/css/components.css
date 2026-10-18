@@ -2226,14 +2226,6 @@ html[dir="ltr"] .step-check {
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
-@media (prefers-color-scheme: dark) {
-    .sticky-bottom {
-        background: rgba(15, 23, 42, 0.95);
-    }
-    .result-error-card {
-        background: rgba(153, 27, 27, 0.15);
-    }
-}
 
 .sr-only {
     position: absolute;
