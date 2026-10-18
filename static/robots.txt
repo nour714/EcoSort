@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ecosort.vercel.app/sitemap.xml

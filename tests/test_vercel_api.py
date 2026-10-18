@@ -61,3 +61,10 @@ def test_vercel_predict_corrupt_file_400(vercel_client):
     assert res.status_code == 400
     body = res.get_json()
     assert body['status'] == 'error'
+
+def test_vercel_security_headers(vercel_client):
+    res = vercel_client.get('/health')
+    assert res.headers.get('X-Content-Type-Options') == 'nosniff'
+    assert res.headers.get('X-Frame-Options') == 'SAMEORIGIN'
+    assert res.headers.get('Referrer-Policy') == 'strict-origin-when-cross-origin'
+

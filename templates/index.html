@@ -35,6 +35,27 @@
     <link rel="preload" href="static/fonts/cairo-arabic-600.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="static/fonts/cairo-arabic-400.woff2" as="font" type="font/woff2" crossorigin>
 
+    <!-- البيانات المنظمة لمحركات البحث (Schema.org JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "EcoSort",
+      "alternateName": "نظام الفرز والتوجيه الذكي بجامعة كفر الشيخ",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "All",
+      "description": "منظومة جامعية ذكية لإدارة وفرز المخلفات وإيجاد أقصر مسار للحاويات المتاحة باستخدام الذكاء الاصطناعي وخوارزميات الرؤية الحاسوبية",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EGP"
+      },
+      "provider": {
+        "@type": "CollegeOrUniversity",
+        "name": "جامعة كفر الشيخ - Kafrelsheikh University"
+      }
+    }
+    </script>
 </head>
 <body>
 
@@ -319,7 +340,7 @@
                             <svg width="28" height="28" aria-hidden="true"><use href="#icon-search"></use></svg>
                         </div>
                         <div class="awaiting-scan-text">
-                            <h4 id="awaiting-scan-title" data-i18n="awaitingTitle">في انتظار التقاط أو رفع صورة للمخلفات</h4>
+                            <h3 id="awaiting-scan-title" data-i18n="awaitingTitle">في انتظار التقاط أو رفع صورة للمخلفات</h3>
                             <p id="awaiting-scan-desc" data-i18n="awaitingDesc">التقط صورة بكاميرا جهازك أو ارفع صورة لقطعة المخلفات ليتم فحصها بصرياً وتحديد نوعها وإرشادات تدويرها وأقرب حاوية ملائمة.</p>
                         </div>
                     </div>
@@ -350,7 +371,7 @@
                         <div class="error-card-body">
                             <svg class="error-icon" width="32" height="32" aria-hidden="true"><use href="#icon-alert-triangle"></use></svg>
                             <div class="error-card-content">
-                                <h4 id="scan-error-title" data-i18n="scanErrorTitle">تعذّر فحص الصورة</h4>
+                                <h3 id="scan-error-title" data-i18n="scanErrorTitle">تعذّر فحص الصورة</h3>
                                 <p id="scan-error-desc" data-i18n="scanErrorDesc">حدث خطأ أثناء معالجة الصورة أو الاتصال بالخادم. يرجى المحاولة مرة أخرى.</p>
                             </div>
                             <button type="button" class="btn btn-outline-sm" id="btn-scan-error-retry">

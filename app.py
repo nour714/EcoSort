@@ -28,6 +28,16 @@ else:
     origins = [orig.strip() for orig in Config.CORS_ORIGINS.split(',')]
     CORS(app, origins=origins)
 
+# Security Headers Middleware
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'camera=(self), geolocation=()'
+    return response
+
 # Initialize deep learning engine singleton
 engine = ModelEngine.get_instance()
 
@@ -70,6 +80,19 @@ def internal_server_error(error):
 def index():
     """Render the main EcoSort single-page interface."""
     return render_template('index.html')
+
+
+@app.route('/robots.txt')
+def robots():
+    """Serve robots.txt for search crawlers."""
+    return send_from_directory(app.static_folder, 'robots.txt')
+
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """Serve sitemap.xml for search engine indexing."""
+    return send_from_directory(app.static_folder, 'sitemap.xml', mimetype='application/xml')
+
 
 
 @app.route('/health', methods=['GET'])

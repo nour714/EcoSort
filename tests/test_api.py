@@ -59,3 +59,19 @@ def test_predict_corrupt_file_400(client):
     assert res.status_code == 400
     body = res.get_json()
     assert body['status'] == 'error'
+
+def test_security_headers(client):
+    res = client.get('/health')
+    assert res.headers.get('X-Content-Type-Options') == 'nosniff'
+    assert res.headers.get('X-Frame-Options') == 'SAMEORIGIN'
+    assert res.headers.get('Referrer-Policy') == 'strict-origin-when-cross-origin'
+
+def test_robots_and_sitemap(client):
+    res_robots = client.get('/robots.txt')
+    assert res_robots.status_code == 200
+    assert b'User-agent' in res_robots.data
+
+    res_sitemap = client.get('/sitemap.xml')
+    assert res_sitemap.status_code == 200
+    assert b'urlset' in res_sitemap.data
+
