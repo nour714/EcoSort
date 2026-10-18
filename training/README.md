@@ -81,6 +81,6 @@ Upon completion, the pipeline outputs:
 
 ### Deploying the Trained Model:
 ```bash
-cp training/output/model.keras ./model.keras
+cp training/output/model.keras models/model.keras
 python app.py
 ```

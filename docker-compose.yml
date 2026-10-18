@@ -15,4 +15,4 @@ services:
       - MARGIN_MIN=20.0
       - TTA_ENABLED=False
     volumes:
-      - ./model.keras:/app/model.keras:ro
+      - ./models/model.keras:/app/models/model.keras:ro

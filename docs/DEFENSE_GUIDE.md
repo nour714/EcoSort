@@ -29,7 +29,7 @@ This guide is designed to assist the project team in successfully defending the 
 
 ## 2. AI Architecture & Classification Pipeline
 
-### Deployed Model (`model.keras`):
+### Deployed Model (`models/model.keras`):
 * **Architecture**: Custom Sequential Convolutional Neural Network (CNN).
 * **Layer Topology**:
   $$\text{Input}(224 \times 224 \times 3) \rightarrow \text{Conv2D}(32) \rightarrow \text{MaxPool} \rightarrow \text{Conv2D}(64) \rightarrow \text{MaxPool} \rightarrow \text{Conv2D}(32) \rightarrow \text{MaxPool} \rightarrow \text{Flatten} \rightarrow \text{Dense}(64) \rightarrow \text{Dropout}(0.2) \rightarrow \text{Dense}(32) \rightarrow \text{Dropout}(0.2) \rightarrow \text{Dense}(6, \text{softmax})$$
@@ -51,7 +51,7 @@ This guide is designed to assist the project team in successfully defending the 
 Model performance was rigorously evaluated across 300 evaluation samples from the TrashNet distribution (50 samples per class) using `scripts/run_experiments.py`.
 
 > [!NOTE]
-> The training/test split of the provided legacy `model.keras` is unverified. These 300 samples represent in-distribution performance and may reflect optimistic upper bounds. A dedicated campus photo dataset (`data/campus_photos/`) has been structured for real-world out-of-distribution evaluation.
+> The training/test split of the provided legacy `models/model.keras` is unverified. These 300 samples represent in-distribution performance and may reflect optimistic upper bounds. A dedicated campus photo dataset (`data/campus_photos/`) has been structured for real-world out-of-distribution evaluation.
 
 | Experiment | Normalization Mode | Resize Mode | Test-Time Aug (TTA) | Overall Accuracy | Macro F1-Score | Expected Calibration Error (ECE) |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|

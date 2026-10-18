@@ -2,7 +2,7 @@
 """
 Download original TrashNet dataset and extract 50 samples per class into samples/.
 Note: 300 evaluation samples from the TrashNet distribution (training/test split
-of the provided model.keras is unverified; results represent in-distribution
+of the provided models/model.keras is unverified; results represent in-distribution
 performance and may reflect optimistic upper bounds).
 """
 import os

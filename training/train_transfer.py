@@ -324,6 +324,7 @@ def train_model(args):
     logger.info(f"- Model: {final_model_path}")
     logger.info(f"- Labels: {labels_path}")
     logger.info(f"- Metrics: {metrics_path}")
+    logger.info(f"To deploy to EcoSort, run: cp {final_model_path} models/model.keras")
 
 
 if __name__ == "__main__":

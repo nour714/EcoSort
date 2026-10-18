@@ -57,7 +57,7 @@ flowchart TD
     subgraph Backend Pipeline
         Flask --> Quality["Image Quality Guardrails\n(Blur, Luminance, Flatness)"]
         Quality --> Preproc["Preprocessing & Normalization\n(EXIF Transpose, Direct Bilinear, [0, 1])"]
-        Preproc --> ModelEngine["ModelEngine Singleton\n(Keras 3 CNN &bull; model.keras)"]
+        Preproc --> ModelEngine["ModelEngine Singleton\n(Keras 3 CNN &bull; models/model.keras)"]
         ModelEngine --> Softmax["Softmax Output Distribution (6 Classes)"]
         Softmax --> Gating["Confidence Gating Engine\n(Confident &bull; Uncertain &bull; Rejected)"]
         Gating --> IR["Information Retrieval & Carbon Registry\n(Resin Codes, CO2 Math, Recycling Guide)"]
@@ -170,7 +170,7 @@ Statistical descriptors evaluated on a 128x128 grayscale thumbnail prior to neur
 ## Limitations & Dataset Provenance
 
 > [!WARNING]
-> **Dataset Provenance**: The 300 benchmark samples originate from the standard TrashNet dataset. The exact train/test split of the original legacy `model.keras` cannot be independently verified; therefore, these metrics reflect in-distribution performance and should be considered optimistic upper bounds.
+> **Dataset Provenance**: The 300 benchmark samples originate from the standard TrashNet dataset. The exact train/test split of the original legacy `models/model.keras` cannot be independently verified; therefore, these metrics reflect in-distribution performance and should be considered optimistic upper bounds.
 >
 > **Domain Shift on Campus**: Real-world smartphone captures in cafeteria and hallway lighting differ substantially from clean, white-background laboratory datasets. Literature indicates an expected drop of 15–30 percentage points on wild domain shifts.
 >

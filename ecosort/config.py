@@ -12,12 +12,7 @@ class Config:
     DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1')
 
     # Model & Preprocessing
-    _default_model_path = Path(__file__).resolve().parents[1] / "models" / "model.keras"
-    if not _default_model_path.exists():
-        _root_model_path = Path(__file__).resolve().parents[1] / "model.keras"
-        if _root_model_path.exists():
-            _default_model_path = _root_model_path
-    MODEL_PATH = os.environ.get('MODEL_PATH', str(_default_model_path))
+    MODEL_PATH = os.environ.get('MODEL_PATH', str(Path(__file__).resolve().parents[1] / "models" / "model.keras"))
     INPUT_SIZE = (224, 224)
     NORM_MODE = os.environ.get('NORM_MODE', 'zero_one')  # 'zero_one' [0, 1] empirically verified
     RESIZE_MODE = os.environ.get('RESIZE_MODE', 'direct')  # 'direct' bilinear empirically verified

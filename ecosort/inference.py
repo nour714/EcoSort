@@ -53,7 +53,7 @@ class ModelEngine:
         Run inference with quality validation, optional TTA, and confidence gating.
         """
         if self.model is None:
-            raise RuntimeError("Model is not loaded on server. Please verify model.keras exists.")
+            raise RuntimeError(f"Model is not loaded on server. Please verify model file exists at: {Config.MODEL_PATH}")
 
         start_time = time.time()
         tta = Config.TTA_ENABLED if use_tta is None else use_tta
