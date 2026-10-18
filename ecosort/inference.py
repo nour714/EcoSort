@@ -14,6 +14,20 @@ from ecosort.knowledge import WASTE_KNOWLEDGE_BASE
 
 logger = logging.getLogger('EcoSortInference')
 
+def decide(top1: float, margin: float, quality_warnings: list | None = None) -> str:
+    """
+    Apply EcoSort 3-tier confidence gating policy.
+    - 'rejected': flat/empty image warning present OR top1 confidence < Config.CONF_LOW.
+    - 'confident': top1 confidence >= Config.CONF_HIGH AND margin >= Config.MARGIN_MIN.
+    - 'uncertain': intermediate confidence / close competitors.
+    """
+    warnings = quality_warnings or []
+    if "image_empty_or_flat" in warnings or top1 < Config.CONF_LOW:
+        return "rejected"
+    if top1 >= Config.CONF_HIGH and margin >= Config.MARGIN_MIN:
+        return "confident"
+    return "uncertain"
+
 class ModelEngine:
     _instance = None
     _lock = threading.Lock()
@@ -91,12 +105,7 @@ class ModelEngine:
         predicted_class = self.class_names[top1_idx] if top1_idx < len(self.class_names) else 'trash'
 
         # 4. Confidence Gating Decision
-        if "image_empty_or_flat" in quality_warnings or top1_conf < Config.CONF_LOW:
-            decision = "rejected"
-        elif top1_conf >= Config.CONF_HIGH and margin >= Config.MARGIN_MIN:
-            decision = "confident"
-        else:
-            decision = "uncertain"
+        decision = decide(top1_conf, margin, quality_warnings)
 
         # 5. Top-3 classes
         top_k = [

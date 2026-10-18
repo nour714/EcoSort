@@ -20,12 +20,20 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix
 
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from ecosort.inference import decide  # noqa: E402
+from ecosort.preprocess import check_image_quality  # noqa: E402
+
 DEFAULT_CLASSES = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']
 
-def load_and_preprocess(img_path: str, target_size=(224, 224), norm_mode='zero_one', resize_mode='direct') -> np.ndarray:
+def load_and_preprocess(img_path: str, target_size=(224, 224), norm_mode='zero_one', resize_mode='direct'):
     """Preprocess single image with configurable normalization and resize modes."""
     img = Image.open(img_path)
     img = ImageOps.exif_transpose(img)
+    quality_warnings = check_image_quality(img)
 
     # Handle transparency
     if img.mode in ('RGBA', 'LA', 'P'):
@@ -66,7 +74,7 @@ def load_and_preprocess(img_path: str, target_size=(224, 224), norm_mode='zero_o
     elif norm_mode == 'raw':
         pass  # keep [0, 255]
 
-    return arr
+    return arr, quality_warnings
 
 def predict_single(model, img_arr: np.ndarray, use_tta=False) -> np.ndarray:
     """Predict probabilities with optional Test-Time Augmentation (TTA)."""
@@ -191,6 +199,7 @@ def main():
     y_pred = []
     all_probs = []
     sample_files = []
+    sample_warnings = []
 
     start_time = time.time()
     for cls in classes:
@@ -201,13 +210,14 @@ def main():
         for f in files:
             path = os.path.join(cls_dir, f)
             try:
-                arr = load_and_preprocess(path, norm_mode=args.norm, resize_mode=args.resize_mode)
+                arr, warnings = load_and_preprocess(path, norm_mode=args.norm, resize_mode=args.resize_mode)
                 probs = predict_single(model, arr, use_tta=args.tta)
                 pred_idx = int(np.argmax(probs))
 
                 y_true.append(class_to_idx[cls])
                 y_pred.append(pred_idx)
                 all_probs.append(probs)
+                sample_warnings.append(warnings)
                 sample_files.append(path)
             except Exception as e:
                 print(f"Skipping {path}: {e}")
@@ -249,19 +259,14 @@ def main():
     plot_coverage_curve(confidences, accuracies, cov_path)
     print(f"Saved Coverage Curve to: {cov_path}")
 
-    # Gating statistics
+    # Gating statistics using shared engine decision logic and configured thresholds
     decisions = []
-    for probs in all_probs:
+    for probs, warnings in zip(all_probs, sample_warnings):
         sorted_p = np.sort(probs)[::-1]
-        top1 = sorted_p[0] * 100.0
-        top2 = sorted_p[1] * 100.0 if len(sorted_p) > 1 else 0.0
-        margin = top1 - top2
-        if top1 < 45.0:
-            decisions.append('rejected')
-        elif top1 >= 75.0 and margin >= 20.0:
-            decisions.append('confident')
-        else:
-            decisions.append('uncertain')
+        top1 = round(float(sorted_p[0] * 100.0), 1)
+        top2 = round(float(sorted_p[1] * 100.0), 1) if len(sorted_p) > 1 else 0.0
+        margin = round(top1 - top2, 1)
+        decisions.append(decide(top1, margin, warnings))
 
     decisions = np.array(decisions)
     gating_summary = {}

@@ -1,7 +1,7 @@
 {
   "total_samples": 300,
   "overall_accuracy": 81.67,
-  "avg_latency_ms": 26.04,
+  "avg_latency_ms": 27.66,
   "ece": 0.0991,
   "norm_mode": "zero_one",
   "resize_mode": "direct",
@@ -61,14 +61,14 @@
       "accuracy_pct": 93.96
     },
     "uncertain": {
-      "count": 109,
-      "coverage_pct": 36.33,
-      "accuracy_pct": 71.56
+      "count": 107,
+      "coverage_pct": 35.67,
+      "accuracy_pct": 71.03
     },
     "rejected": {
-      "count": 42,
-      "coverage_pct": 14.0,
-      "accuracy_pct": 64.29
+      "count": 44,
+      "coverage_pct": 14.67,
+      "accuracy_pct": 65.91
     }
   },
   "confusion_matrix": [

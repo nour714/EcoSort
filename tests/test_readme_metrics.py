@@ -5,6 +5,7 @@ Prevents silent divergence between baseline results and experiment reports.
 """
 import os
 import json
+import re
 import pytest
 
 def test_per_class_matches_baseline_experiment():
@@ -36,3 +37,31 @@ def test_per_class_matches_baseline_experiment():
     gating = per_class_data["gating"]
     total_gated = sum(gating[k]["count"] for k in ["confident", "uncertain", "rejected"])
     assert total_gated == per_class_data["total_samples"]
+
+
+def test_readme_gating_counts_match_metrics():
+    """
+    Ensure the README confidence gating table numbers strictly match
+    the authoritative docs/metrics/per_class_metrics.json file.
+    """
+    readme_path = "README.md"
+    metrics_path = os.path.join("docs", "metrics", "per_class_metrics.json")
+    assert os.path.exists(readme_path), f"Missing {readme_path}"
+    assert os.path.exists(metrics_path), f"Missing {metrics_path}"
+
+    with open(metrics_path, "r", encoding="utf-8") as f:
+        metrics = json.load(f)
+    gating = metrics["gating"]
+
+    with open(readme_path, "r", encoding="utf-8") as f:
+        readme_text = f.read()
+
+    for state in ["confident", "uncertain", "rejected"]:
+        pattern = rf"\|\s*\*\*`{state}`\*\*\s*\|[^|]+\|\s*(\d+)\s*\|\s*([\d\.]+)%\s*\|\s*(\*\*[\d\.]+%\*\*|[\d\.]+%)\s*\|"
+        match = re.search(pattern, readme_text)
+        assert match is not None, f"Could not find gating table row for {state} in README.md"
+        count = int(match.group(1))
+        expected_count = gating[state]["count"]
+        assert count == expected_count, (
+            f"README gating count for '{state}' is {count}, but metrics file specifies {expected_count}"
+        )
