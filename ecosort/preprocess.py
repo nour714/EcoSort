@@ -6,6 +6,8 @@ import io
 import numpy as np
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from ecosort.config import Config
+
 # Optional pillow-heif support for iPhone photos
 try:
     import pillow_heif
@@ -50,14 +52,6 @@ def load_image(image_bytes: bytes) -> Image.Image:
     except (UnidentifiedImageError, OSError) as e:
         raise InvalidImageError("الملف المرفوع ليس ملف صورة صالح أو أنه تالف.") from e
 
-try:
-    from config import Config
-except ImportError:
-    class Config:
-        BLUR_VAR_MIN = 35.0
-        DARK_MEAN_MAX = 30.0
-        BRIGHT_MEAN_MIN = 230.0
-        FLAT_STD_MIN = 15.0
 
 def check_image_quality(img: Image.Image, blur_min: float = None, dark_max: float = None, bright_min: float = None, flat_min: float = None) -> list:
     """

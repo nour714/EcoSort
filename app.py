@@ -9,7 +9,7 @@ import logging
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 
-from config import Config
+from ecosort.config import Config
 from ecosort.preprocess import InvalidImageError
 from ecosort.inference import ModelEngine
 

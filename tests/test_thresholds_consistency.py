@@ -5,7 +5,7 @@ Ensures code defaults, environment overrides, and documentation stay in strict s
 """
 import os
 from PIL import Image
-from config import Config
+from ecosort.config import Config
 from ecosort.preprocess import check_image_quality
 
 def test_default_quality_thresholds():

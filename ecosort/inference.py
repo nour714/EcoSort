@@ -8,7 +8,7 @@ import logging
 import numpy as np
 import tensorflow as tf
 
-from config import Config
+from ecosort.config import Config
 from ecosort.preprocess import preprocess_image
 from ecosort.knowledge import WASTE_KNOWLEDGE_BASE
 

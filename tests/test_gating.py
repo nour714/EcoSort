@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from config import Config
+from ecosort.config import Config
 
 def test_confidence_gating_logic():
     # 1. Confident case: Top1 >= 75% and Margin >= 20%
