@@ -25,6 +25,72 @@
  * =========================================================================================
  */
 
+var PriorityQueue = (typeof BinaryMinHeap !== 'undefined') ? BinaryMinHeap : ((typeof window !== 'undefined' && window.BinaryMinHeap) ? window.BinaryMinHeap : class {
+    constructor() {
+        this.heap = [];
+    }
+    push(item, priority) {
+        this.heap.push({ item, priority });
+        this._bubbleUp(this.heap.length - 1);
+    }
+    pop() {
+        if (this.heap.length === 0) return null;
+        const top = this.heap[0];
+        const bottom = this.heap.pop();
+        if (this.heap.length > 0) {
+            this.heap[0] = bottom;
+            this._sinkDown(0);
+        }
+        return top;
+    }
+    peek() {
+        return this.heap.length > 0 ? this.heap[0] : null;
+    }
+    isEmpty() {
+        return this.heap.length === 0;
+    }
+    get size() {
+        return this.heap.length;
+    }
+    _bubbleUp(index) {
+        const element = this.heap[index];
+        while (index > 0) {
+            const parentIndex = Math.floor((index - 1) / 2);
+            const parent = this.heap[parentIndex];
+            if (element.priority >= parent.priority) break;
+            this.heap[index] = parent;
+            this.heap[parentIndex] = element;
+            index = parentIndex;
+        }
+    }
+    _sinkDown(index) {
+        const length = this.heap.length;
+        const element = this.heap[index];
+        while (true) {
+            const leftChildIdx = 2 * index + 1;
+            const rightChildIdx = 2 * index + 2;
+            let swap = null;
+            if (leftChildIdx < length) {
+                if (this.heap[leftChildIdx].priority < element.priority) {
+                    swap = leftChildIdx;
+                }
+            }
+            if (rightChildIdx < length) {
+                if (
+                    (swap === null && this.heap[rightChildIdx].priority < element.priority) ||
+                    (swap !== null && this.heap[rightChildIdx].priority < this.heap[leftChildIdx].priority)
+                ) {
+                    swap = rightChildIdx;
+                }
+            }
+            if (swap === null) break;
+            this.heap[index] = this.heap[swap];
+            this.heap[swap] = element;
+            index = swap;
+        }
+    }
+});
+
 class DijkstraAlgorithm {
     /**
      * حساب أقصر مسار من عقدة البداية إلى أقرب عقدة هدف تحقق الشروط (نوع الحاوية والحالة المتاحة)
@@ -40,7 +106,7 @@ class DijkstraAlgorithm {
         const allNodes = graph.getAllNodes();
         const distances = new Map();
         const previous = new Map();
-        const unvisited = new Set();
+        const visited = new Set();
         const visitedOrder = []; // ترتيب العقد أثناء الفحص (لأغراض التحليل المرئي)
         const targetSet = new Set(targetNodeIds);
 
@@ -48,11 +114,13 @@ class DijkstraAlgorithm {
         allNodes.forEach(node => {
             distances.set(node.id, Infinity);
             previous.set(node.id, null);
-            unvisited.add(node.id);
         });
 
         // مسافة عقدة البداية إلى نفسها دائماً 0
         distances.set(startNodeId, 0);
+
+        const pq = new PriorityQueue();
+        pq.push(startNodeId, 0);
 
         let destinationFound = null;
 
@@ -74,33 +142,23 @@ class DijkstraAlgorithm {
             };
         }
 
-        // خطوة 2: حلقة الفحص الرئيسية (Main Exploration Loop)
-        while (unvisited.size > 0) {
-            // اختيار العقدة ذات المسافة الأدنى من بين العقد غير المزارة
-            let currentNodeId = null;
-            let minDistance = Infinity;
+        // خطوة 2: حلقة الفحص الرئيسية عبر طابور الأولوية (Priority Queue O((V + E) log V))
+        while (!pq.isEmpty()) {
+            const top = pq.pop();
+            const currentNodeId = top.item;
+            const currentDist = top.priority;
 
-            for (const nodeId of unvisited) {
-                const dist = distances.get(nodeId);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    currentNodeId = nodeId;
-                }
-            }
+            // تخطي العقد التي تمت زيارتها أو التي سُجل لها مسار أقصر مسبقاً
+            if (visited.has(currentNodeId)) continue;
+            if (currentDist > distances.get(currentNodeId)) continue;
 
-            // إذا كانت أصغر مسافة هي المالانهاية، فهذا يعني أن باقي العقد غير متصلة
-            if (currentNodeId === null || minDistance === Infinity) {
-                break;
-            }
-
-            // إزالة العقدة الحالية من مجموعة غير المزار وتوثيق زيارتها
-            unvisited.delete(currentNodeId);
+            visited.add(currentNodeId);
             visitedOrder.push(currentNodeId);
 
             // التحقق مما إذا وصلنا إلى إحدى العقد الهدف المتاحة
             if (targetSet.has(currentNodeId)) {
                 destinationFound = currentNodeId;
-                break; // نكتفي بالوصول لأول عقدة هدف لأن ديكسترا يضمن أنها الأقرب على الإطلاق
+                break; // نكتفي بالوصول لأول عقدة هدف لأن ديكسترا مع الكومة الصغرى يضمن أنها الأقرب على الإطلاق
             }
 
             // خطوة 3: فحص الجيران وتطبيق الاسترخاء (Edge Relaxation)
@@ -110,7 +168,7 @@ class DijkstraAlgorithm {
                 const neighborId = neighbor.node;
                 const edgeWeight = neighbor.weight;
 
-                if (!unvisited.has(neighborId)) continue;
+                if (visited.has(neighborId)) continue;
 
                 const tentativeDistance = distances.get(currentNodeId) + edgeWeight;
 
@@ -118,6 +176,7 @@ class DijkstraAlgorithm {
                 if (tentativeDistance < distances.get(neighborId)) {
                     distances.set(neighborId, tentativeDistance);
                     previous.set(neighborId, currentNodeId);
+                    pq.push(neighborId, tentativeDistance);
                 }
             }
         }
@@ -171,33 +230,32 @@ class DijkstraAlgorithm {
     static calculateAllDistances(graph, startNodeId) {
         const allNodes = graph.getAllNodes();
         const distances = new Map();
-        const unvisited = new Set();
+        const visited = new Set();
+        const pq = new PriorityQueue();
 
         allNodes.forEach(node => {
             distances.set(node.id, Infinity);
-            unvisited.add(node.id);
         });
         distances.set(startNodeId, 0);
+        pq.push(startNodeId, 0);
 
-        while (unvisited.size > 0) {
-            let curr = null;
-            let minDist = Infinity;
-            for (const id of unvisited) {
-                const d = distances.get(id);
-                if (d < minDist) {
-                    minDist = d;
-                    curr = id;
-                }
-            }
-            if (curr === null || minDist === Infinity) break;
-            unvisited.delete(curr);
+        while (!pq.isEmpty()) {
+            const top = pq.pop();
+            const curr = top.item;
+            const currDist = top.priority;
+
+            if (visited.has(curr)) continue;
+            if (currDist > distances.get(curr)) continue;
+
+            visited.add(curr);
 
             const neighbors = graph.getNeighbors(curr);
             for (const neighbor of neighbors) {
-                if (!unvisited.has(neighbor.node)) continue;
+                if (visited.has(neighbor.node)) continue;
                 const newDist = distances.get(curr) + neighbor.weight;
                 if (newDist < distances.get(neighbor.node)) {
                     distances.set(neighbor.node, newDist);
+                    pq.push(neighbor.node, newDist);
                 }
             }
         }

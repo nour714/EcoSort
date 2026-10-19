@@ -31,6 +31,72 @@
  * =========================================================================================
  */
 
+var PriorityQueue = (typeof BinaryMinHeap !== 'undefined') ? BinaryMinHeap : ((typeof window !== 'undefined' && window.BinaryMinHeap) ? window.BinaryMinHeap : class {
+    constructor() {
+        this.heap = [];
+    }
+    push(item, priority) {
+        this.heap.push({ item, priority });
+        this._bubbleUp(this.heap.length - 1);
+    }
+    pop() {
+        if (this.heap.length === 0) return null;
+        const top = this.heap[0];
+        const bottom = this.heap.pop();
+        if (this.heap.length > 0) {
+            this.heap[0] = bottom;
+            this._sinkDown(0);
+        }
+        return top;
+    }
+    peek() {
+        return this.heap.length > 0 ? this.heap[0] : null;
+    }
+    isEmpty() {
+        return this.heap.length === 0;
+    }
+    get size() {
+        return this.heap.length;
+    }
+    _bubbleUp(index) {
+        const element = this.heap[index];
+        while (index > 0) {
+            const parentIndex = Math.floor((index - 1) / 2);
+            const parent = this.heap[parentIndex];
+            if (element.priority >= parent.priority) break;
+            this.heap[index] = parent;
+            this.heap[parentIndex] = element;
+            index = parentIndex;
+        }
+    }
+    _sinkDown(index) {
+        const length = this.heap.length;
+        const element = this.heap[index];
+        while (true) {
+            const leftChildIdx = 2 * index + 1;
+            const rightChildIdx = 2 * index + 2;
+            let swap = null;
+            if (leftChildIdx < length) {
+                if (this.heap[leftChildIdx].priority < element.priority) {
+                    swap = leftChildIdx;
+                }
+            }
+            if (rightChildIdx < length) {
+                if (
+                    (swap === null && this.heap[rightChildIdx].priority < element.priority) ||
+                    (swap !== null && this.heap[rightChildIdx].priority < this.heap[leftChildIdx].priority)
+                ) {
+                    swap = rightChildIdx;
+                }
+            }
+            if (swap === null) break;
+            this.heap[index] = this.heap[swap];
+            this.heap[swap] = element;
+            index = swap;
+        }
+    }
+});
+
 class AStarAlgorithm {
     /**
      * حساب أقصر مسار باستخدام A* مع المقاييس الأكاديمية
@@ -93,8 +159,8 @@ class AStarAlgorithm {
          */
         const heuristic = (nodeId) => AStarAlgorithm.computeHeuristic(graph, nodeId, targetNodeIds);
 
-        // المجموعات: Open Set (قيد الفحص) و Closed Set (تم الانتهاء منها)
-        const openSet = new Set([startNodeId]);
+        // المجموعات: Open Set عبر طابور الأولوية (Priority Queue O((V + E) log V)) و Closed Set
+        const openSet = new PriorityQueue();
         const closedSet = new Set();
         const visitedOrder = [];
 
@@ -109,23 +175,21 @@ class AStarAlgorithm {
         });
 
         gScore.set(startNodeId, 0);
-        fScore.set(startNodeId, heuristic(startNodeId));
+        const startF = heuristic(startNodeId);
+        fScore.set(startNodeId, startF);
+        openSet.push(startNodeId, startF);
 
         let destinationFound = null;
 
         // حلقة الاستكشاف الاسترشادي
-        while (openSet.size > 0) {
-            // اختيار العقدة ذات أقل fScore في Open Set
-            let current = null;
-            let lowestF = Infinity;
+        while (!openSet.isEmpty()) {
+            const top = openSet.pop();
+            const current = top.item;
+            const currentF = top.priority;
 
-            for (const nodeId of openSet) {
-                const f = fScore.get(nodeId);
-                if (f < lowestF) {
-                    lowestF = f;
-                    current = nodeId;
-                }
-            }
+            // تخطي العقد التي تمت معالجتها أو التي يوجد لها تقييم أفضل مسجل
+            if (closedSet.has(current)) continue;
+            if (currentF > fScore.get(current)) continue;
 
             // إذا وصلنا إلى إحدى العقد الهدف
             if (targetSet.has(current)) {
@@ -135,7 +199,6 @@ class AStarAlgorithm {
             }
 
             // نقل العقدة من Open إلى Closed
-            openSet.delete(current);
             closedSet.add(current);
             visitedOrder.push(current);
 
@@ -152,16 +215,16 @@ class AStarAlgorithm {
                 // التكلفة المؤقتة للوصول إلى الجار عبر العقدة الحالية
                 const tentativeG = gScore.get(current) + weight;
 
-                if (!openSet.has(neighborId)) {
-                    openSet.add(neighborId); // إضافة الجار للمجموعة المفتوحة
-                } else if (tentativeG >= gScore.get(neighborId)) {
+                if (tentativeG >= gScore.get(neighborId)) {
                     continue; // وجدنا مساراً غير أفضل، نتخطاه
                 }
 
                 // هذا المسار هو الأفضل حتى الآن، نسجله
                 cameFrom.set(neighborId, current);
                 gScore.set(neighborId, tentativeG);
-                fScore.set(neighborId, tentativeG + heuristic(neighborId));
+                const neighborF = tentativeG + heuristic(neighborId);
+                fScore.set(neighborId, neighborF);
+                openSet.push(neighborId, neighborF);
             }
         }
 
