@@ -64,15 +64,21 @@ def test_no_drift_ecosort_package():
                 )
 
 
-def test_vercel_includes_single_sources():
-    """Verify vercel.json packages single sources models and ecosort."""
+def test_vercel_serverless_routing_and_no_unmatched_functions():
+    """Verify vercel.json routes to serverless api/index without invalid function patterns."""
     vercel_path = ROOT_DIR / "vercel.json"
     with open(vercel_path, "r", encoding="utf-8") as fp:
         config = json.load(fp)
 
-    funcs = config.get("functions", {})
-    api_func = funcs.get("api/index.py", {})
-    include_files = api_func.get("includeFiles", "")
+    # 1. Ensure /predict, /health and /api/(.*) route to /api/index
+    rewrites = config.get("rewrites", [])
+    predict_rewrites = [r for r in rewrites if r.get("source") == "/predict"]
+    assert len(predict_rewrites) == 1, "vercel.json must rewrite /predict to /api/index"
+    assert predict_rewrites[0]["destination"] == "/api/index"
 
-    assert "models" in include_files, "vercel.json must include models in includeFiles"
-    assert "ecosort" in include_files, "vercel.json must include ecosort in includeFiles"
+    # 2. Ensure no unmatched function patterns exist (which cause Vercel build failure)
+    funcs = config.get("functions", {})
+    assert "api/index.py" not in funcs, (
+        "vercel.json must not define 'api/index.py' under functions, as Vercel zero-config Python "
+        "rejects explicit function patterns and automatically bundles repository files."
+    )

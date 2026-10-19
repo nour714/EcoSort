@@ -445,7 +445,7 @@ EcoSort supports two production deployment topologies depending on operational r
 | :--- | :--- | :--- |
 | **Target Runtime** | Docker / VPS / PaaS (Render, Railway, Hugging Face) | Vercel Serverless Edge Functions + Global CDN |
 | **Inference Engine** | Full Keras 3 / TensorFlow / TFLite runtime | Google LiteRT (`ai-edge-litert`) serverless runtime |
-| **Model Artifact** | `models/model.keras` or `models/model.tflite` | `models/model.tflite` (via `includeFiles`) |
+| **Model Artifact** | `models/model.keras` or `models/model.tflite` | `models/model.tflite` (workspace root) |
 | **Concurrency & Workers** | Gunicorn multi-worker (`wsgi.py`, threads per worker) | Auto-scaling per-invocation serverless workers |
 | **Rate Limiting** | In-memory sliding-window token bucket (`ecosort/rate_limiter.py`) | Edge rate limiting / proxy or external gateway |
 | **Static Delivery** | Flask `static/` route with caching headers | Vercel Global Edge Network with pre-compressed assets |
