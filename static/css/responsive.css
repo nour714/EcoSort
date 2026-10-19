@@ -98,10 +98,12 @@ button, input, select, textarea { font: inherit; }
     .algo-switcher-group { flex: 1; }
     .algo-switch-btn { flex: 1; text-align: center; }
 
-    .route-kpis-strip {
+    .route-kpis-strip,
+    .route-advanced-metrics {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         width: 100%;
+        gap: 0.75rem;
     }
 
     .route-summary-header { gap: 1rem; }
@@ -240,6 +242,17 @@ button, input, select, textarea { font: inherit; }
 
     .walking-steps-path { font-size: 0.85rem; line-height: 1.8; }
 
+    .advanced-toolbar {
+        width: 100%;
+        margin-bottom: 0.75rem;
+    }
+
+    .academic-tips-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.45rem;
+    }
+
     /* ----- جدول المقارنة يتحول لبطاقات بدل تمرير أفقي ----- */
     .table-responsive { overflow: visible; }
     .academic-table, .academic-table tbody { display: block; width: 100%; }
@@ -248,7 +261,7 @@ button, input, select, textarea { font: inherit; }
         display: block;
         border: 1px solid var(--border-light);
         border-radius: var(--radius-md);
-        margin-bottom: 0.65rem;
+        margin-bottom: 0.85rem;
         overflow: hidden;
         background: #ffffff;
     }

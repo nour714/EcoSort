@@ -555,21 +555,30 @@
     flex-wrap: wrap;
 }
 
+.manual-override-row {
+    margin-top: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
 .manual-waste-select {
-    padding: 0.35rem 0.65rem;
-    font-size: 0.75rem;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: var(--slate-700);
+    color: var(--slate-800);
     background: #ffffff;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-md);
     cursor: pointer;
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .manual-waste-select:focus {
     border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 /* بطاقة انتظار الفحص الأولي للمخلفات */
@@ -841,9 +850,9 @@
 }
 
 .impact-metrics-col {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
 }
 
 .eco-kpi-card {
@@ -853,23 +862,47 @@
     padding: 0.65rem 0.85rem;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.eco-kpi-card.eco-kpi-compact {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 68px;
+    padding: 0.65rem 0.5rem;
+}
+
+.eco-kpi-card.eco-kpi-full {
+    grid-column: 1 / -1;
     align-items: flex-start;
     gap: 0.25rem;
-    min-width: 0;
 }
 
 .eco-kpi-val {
-    font-size: 0.95rem;
-    font-weight: 800;
+    font-size: 1.05rem;
+    font-weight: 900;
     color: var(--primary-700);
-    line-height: 1.45;
+    line-height: 1.35;
     word-break: break-word;
 }
 
+.eco-kpi-card.eco-kpi-full .eco-kpi-val {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--primary-800);
+    line-height: 1.45;
+}
+
 .eco-kpi-lbl {
-    font-size: 0.75rem;
+    font-size: 0.725rem;
     color: var(--slate-600);
     font-weight: 700;
+}
+
+.result-actions-strip {
+    margin-top: 1.25rem;
 }
 
 
@@ -1021,31 +1054,46 @@
     margin-top: 0.25rem;
 }
 
-.route-kpis-strip {
-    display: flex;
+.route-kpis-strip,
+.route-advanced-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
-    flex-wrap: wrap;
+    width: 100%;
 }
 
 .kpi-mini-card {
     background: var(--slate-50);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
-    padding: 0.5rem 0.85rem;
+    padding: 0.65rem 0.85rem;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 64px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .kpi-mini-val {
     font-size: 1.15rem;
     font-weight: 900;
+    line-height: 1.25;
 }
 
 .kpi-mini-lbl {
-    font-size: 0.675rem;
-    color: var(--slate-500);
-    font-weight: 600;
+    font-size: 0.725rem;
+    color: var(--slate-600);
+    font-weight: 700;
+    margin-top: 0.25rem;
+}
+
+.academic-tips-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .walking-steps-container {

@@ -139,10 +139,20 @@ class VisionModule {
         formData.append('file', file);
 
         const endpoint = (typeof window !== 'undefined' && window.ECOSORT_API_URL) ? window.ECOSORT_API_URL : '/predict';
-        const resp = await fetch(endpoint, {
+        let resp = await fetch(endpoint, {
             method: 'POST',
             body: formData
         });
+
+        // Vercel fallback: if /predict returns 404, retry with /api/predict automatically
+        if (!resp.ok && resp.status === 404 && endpoint === '/predict') {
+            try {
+                resp = await fetch('/api/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (_) {}
+        }
 
         if (!resp.ok) {
             let errorText = `HTTP ${resp.status}`;
