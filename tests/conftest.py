@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 @pytest.fixture
 def client():
+    # Lazy import: app.py needs TensorFlow, which the Vercel clean-venv job does not install.
     from app import app
 
     app.config['TESTING'] = True

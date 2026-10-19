@@ -99,3 +99,20 @@ def test_vercel_startup_error_forces_500_and_no_leak():
                 "message": "Service temporarily unavailable"
             }
 
+
+def test_vercel_health_honest_model_loaded_with_backend_proxy(vercel_client, monkeypatch):
+    """Ensure model_loaded reflects ONLY the local interpreter, even if backend proxy is set."""
+    monkeypatch.setenv('ECOSORT_BACKEND_URL', 'https://mock-backend.railway.app')
+    from api.index import engine
+    original_interp = engine.interpreter
+    try:
+        engine.interpreter = None
+        res = vercel_client.get('/health')
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data['model_loaded'] is False
+        assert data['backend_proxy_configured'] is True
+        assert data['status'] == 'healthy'
+    finally:
+        engine.interpreter = original_interp
+

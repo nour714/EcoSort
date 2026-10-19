@@ -240,9 +240,9 @@ try:
         if request.method == 'OPTIONS':
             return ('', 204)
         backend_url = os.environ.get('ECOSORT_BACKEND_URL') or os.environ.get('BACKEND_URL')
-        model_loaded = (engine.interpreter is not None) or bool(backend_url)
+        model_loaded = engine.interpreter is not None
         return jsonify({
-            'status': 'healthy' if model_loaded else 'degraded',
+            'status': 'healthy' if (model_loaded or bool(backend_url)) else 'degraded',
             'service': 'EcoSort Vercel Serverless API',
             'model_loaded': model_loaded,
             'classes': Config.CLASS_NAMES,
@@ -328,10 +328,10 @@ except Exception:
 
 
 if STARTUP_ERROR:
-    sys.stderr.write(f"EcoSort Startup Error:\n{STARTUP_ERROR}\n")
+    # Log full details server-side only; never expose traceback / sys.path to clients.
+    print("EcoSort startup error:\n" + STARTUP_ERROR, file=sys.stderr)
 
     def error_app(environ, start_response):
-        sys.stderr.write(f"[ERROR] Service unavailable due to startup error: {STARTUP_ERROR}\n")
         body = json.dumps({
             'status': 'error',
             'message': 'Service temporarily unavailable'
@@ -342,11 +342,15 @@ if STARTUP_ERROR:
         ])
         return [body]
 
-    app = error_app
-    handler = error_app
+    _entrypoint = error_app
 else:
-    app = flask_app
-    handler = flask_app
+    _entrypoint = flask_app
+
+# IMPORTANT: Vercel's zero-config detection only recognises a Python function when
+# `app` (or `handler`) is assigned at MODULE LEVEL (column 0). Assigning it inside an
+# if/else block makes Vercel treat api/index.py as a plain static file -> HTTP 405.
+app = _entrypoint
+handler = _entrypoint
 
 if __name__ == '__main__':
     if not STARTUP_ERROR:
