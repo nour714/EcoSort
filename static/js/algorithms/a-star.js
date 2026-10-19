@@ -14,14 +14,15 @@
  * 
  * شروط الدالة الاسترشادية (Admissibility & Consistency):
  * 1. مقبولة (Admissible): h(n) <= h*(n)
- *    المسافة التقديرية لا تتجاوز أبداً المسافة الحقيقية، وتم استخدام المسافة الإقليدية (Euclidean Distance):
- *    h(n) = sqrt((x_n - x_target)^2 + (y_n - y_target)^2) * scaleFactor
+ *    المسافة التقديرية لا تتجاوز أبداً المسافة الحقيقية، وتم اشتقاقها من مسافة الدائرة العظمى (Haversine Distance):
+ *    h(n) = haversine(node_n, target)
  * 2. متسقة (Consistent / Monotonic):
- *    تحقق متباينة المثلث: h(n) <= cost(n, p) + h(p)
+ *    تحقق متباينة المثلث: h(u) <= cost(u, v) + h(v)
+ *    حيث أن جميع أوزان الحواف أكبر من أو تساوي مسافة هافرساين المباشرة (weight >= haversine).
  * 
  * في سيناريو EcoSort متعدد الأهداف (Multiple available bins):
- * يتم حساب h(n) كأصغر مسافة إقليدية من العقدة n إلى أي حاوية متاحة مقبولة:
- * h(n) = min_{t in Targets} [ EuclideanDistance(n, t) ]
+ * يتم حساب h(n) كأصغر مسافة هافرساين من العقدة n إلى أي حاوية متاحة مقبولة:
+ * h(n) = min_{t in Targets} [ HaversineDistance(n, t) ]
  * 
  * التعقيد الحسابي:
  * - في أفضل الأحوال: O(b * d) حيث b هو عامل التفرع و d هو عمق الهدف.
@@ -87,25 +88,10 @@ class AStarAlgorithm {
         const targetNodes = targetNodeIds.map(id => nodeMap.get(id)).filter(Boolean);
 
         /**
-         * دالة التقدير الإرشادي (Admissible Euclidean Heuristic)
-         * مقياس الرسم التقريبي: 1 بكسل على خريطة الكانفاس يعادل حوالي 0.65 متر مشي حقيقي.
+         * دالة التقدير الإرشادي (Admissible & Consistent Haversine Heuristic)
+         * مسافة الدائرة العظمى (Haversine) بين موقع العقدة الحالية وأقرب عقدة هدف.
          */
-        const SCALE_FACTOR = 0.65;
-        const heuristic = (nodeId) => {
-            const currentNode = nodeMap.get(nodeId);
-            if (!currentNode) return 0;
-
-            let minEuclidean = Infinity;
-            for (const target of targetNodes) {
-                const dx = currentNode.x - target.x;
-                const dy = currentNode.y - target.y;
-                const euclideanDistance = Math.hypot(dx, dy) * SCALE_FACTOR;
-                if (euclideanDistance < minEuclidean) {
-                    minEuclidean = euclideanDistance;
-                }
-            }
-            return minEuclidean === Infinity ? 0 : minEuclidean;
-        };
+        const heuristic = (nodeId) => AStarAlgorithm.computeHeuristic(graph, nodeId, targetNodeIds);
 
         // المجموعات: Open Set (قيد الفحص) و Closed Set (تم الانتهاء منها)
         const openSet = new Set([startNodeId]);
@@ -220,6 +206,45 @@ class AStarAlgorithm {
             gScore
         };
     }
+
+    /**
+     * حساب الدالة الاسترشادية المتسقة والمقبولة h(n)
+     * h(n) = min_{t in Targets} [ HaversineDistance(n, t) ]
+     */
+    static computeHeuristic(graph, nodeId, targetNodeIds = []) {
+        const node = graph.getNode(nodeId);
+        if (!node || typeof node.lat !== 'number' || typeof node.lng !== 'number') return 0;
+
+        const haversine = (typeof CampusGraph !== 'undefined' && CampusGraph.haversineDistance)
+            ? CampusGraph.haversineDistance
+            : (lat1, lon1, lat2, lon2) => {
+                const toRad = deg => (deg * Math.PI) / 180;
+                const R = 6371000;
+                const dLat = toRad(lat2 - lat1);
+                const dLon = toRad(lon2 - lon1);
+                const a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            };
+
+        let minDistance = Infinity;
+        for (const tid of targetNodeIds) {
+            const target = graph.getNode(tid);
+            if (!target || typeof target.lat !== 'number' || typeof target.lng !== 'number') continue;
+            const d = haversine(node.lat, node.lng, target.lat, target.lng);
+            if (d < minDistance) {
+                minDistance = d;
+            }
+        }
+        return minDistance === Infinity ? 0 : minDistance;
+    }
 }
 
-window.AStarAlgorithm = AStarAlgorithm;
+if (typeof window !== 'undefined') {
+    window.AStarAlgorithm = AStarAlgorithm;
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = AStarAlgorithm;
+}

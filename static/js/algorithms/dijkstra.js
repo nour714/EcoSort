@@ -205,4 +205,9 @@ class DijkstraAlgorithm {
     }
 }
 
-window.DijkstraAlgorithm = DijkstraAlgorithm;
+if (typeof window !== 'undefined') {
+    window.DijkstraAlgorithm = DijkstraAlgorithm;
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = DijkstraAlgorithm;
+}

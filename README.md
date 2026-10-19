@@ -183,7 +183,7 @@ Statistical descriptors evaluated on a 128x128 grayscale thumbnail prior to neur
 
 ## Graph Routing & Ranking Algorithms
 
-EcoSort models Kafrelsheikh University campus as a weighted, directed graph spanning 12 landmark faculties and administrative centres.
+EcoSort models the pedestrian network of Kafrelsheikh University campus as an illustrative, weighted graph spanning 12 landmark faculties and facilities. Edge weights are derived from real geographical coordinates (lat/lng) calculated via the Haversine formula scaled with a realistic pedestrian detour factor (1.15), ensuring `weight >= haversine` across all edges.
 
 ### Dijkstra vs A* Algorithm Comparison
 
@@ -191,9 +191,9 @@ EcoSort models Kafrelsheikh University campus as a weighted, directed graph span
 |---|---|---|
 | **Search Strategy** | Uniform Cost Search (uninformed) | Best-First Search with Admissible Heuristic |
 | **Cost Formulation** | `f(n) = g(n)` | `f(n) = g(n) + h(n)` |
-| **Heuristic Function** | None (`h(n) = 0`) | Euclidean distance to target bin |
+| **Heuristic Function** | None (`h(n) = 0`) | Haversine distance to target bin (`h(n) <= h*(n)`, consistent) |
 | **Exploration Pattern** | Radial, uniform in all directions | Directed ellipse toward destination |
-| **Shortest Path Optimality** | Guaranteed optimal | Guaranteed optimal (`h(n)` is admissible) |
+| **Shortest Path Optimality** | Guaranteed optimal | Guaranteed optimal (`h(n)` is admissible and consistent) |
 | **Time Complexity** | `O((V + E) log V)` with priority queue | `O(b^d)` worst case; approaches `O(d)` |
 
 ### Merge Sort for Distance Ranking

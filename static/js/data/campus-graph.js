@@ -264,52 +264,53 @@ const CAMPUS_GRAPH_DATA = {
         }
     ],
 
-    // الحواف (Edges): الممرات ومسافات المشي المباشرة بالمتر
+    // الحواف (Edges): مسارات المشي المحسوبة بناءً على المسافة الجغرافية الحقيقية وعامل الالتفاف للممرات (Detour Factor = 1.15)
+    // جميع أوزان الحواف تحقق شرط الاتساق: weight >= haversine
     edges: [
         // اتصالات البوابة الرئيسية
-        { from: 'gate', to: 'ai', weight: 190 },
-        { from: 'gate', to: 'eng', weight: 210 },
-        { from: 'gate', to: 'sci', weight: 220 },
-        { from: 'gate', to: 'agri', weight: 230 },
+        { from: 'gate', to: 'ai', weight: 311 },
+        { from: 'gate', to: 'eng', weight: 267 },
+        { from: 'gate', to: 'sci', weight: 336 },
+        { from: 'gate', to: 'agri', weight: 440 },
 
         // اتصالات كلية الذكاء الاصطناعي
-        { from: 'ai', to: 'fci', weight: 140 },
-        { from: 'ai', to: 'eng', weight: 130 },
+        { from: 'ai', to: 'fci', weight: 179 },
+        { from: 'ai', to: 'eng', weight: 207 },
 
         // اتصالات كلية الحاسبات والمعلومات
-        { from: 'fci', to: 'sports', weight: 160 },
-        { from: 'fci', to: 'library', weight: 190 },
-        { from: 'fci', to: 'eng', weight: 180 },
+        { from: 'fci', to: 'sports', weight: 246 },
+        { from: 'fci', to: 'library', weight: 300 },
+        { from: 'fci', to: 'eng', weight: 263 },
 
         // اتصالات كلية الهندسة
-        { from: 'eng', to: 'restaurant', weight: 120 },
-        { from: 'eng', to: 'library', weight: 170 },
-        { from: 'eng', to: 'sci', weight: 190 },
+        { from: 'eng', to: 'restaurant', weight: 185 },
+        { from: 'eng', to: 'library', weight: 283 },
+        { from: 'eng', to: 'sci', weight: 369 },
 
         // اتصالات كلية العلوم
-        { from: 'sci', to: 'restaurant', weight: 130 },
-        { from: 'sci', to: 'pharmacy', weight: 150 },
-        { from: 'sci', to: 'agri', weight: 160 },
+        { from: 'sci', to: 'restaurant', weight: 324 },
+        { from: 'sci', to: 'pharmacy', weight: 222 },
+        { from: 'sci', to: 'agri', weight: 208 },
 
         // اتصالات المطعم المركزي
-        { from: 'restaurant', to: 'library', weight: 140 },
-        { from: 'restaurant', to: 'admin', weight: 150 },
-        { from: 'restaurant', to: 'pharmacy', weight: 220 },
+        { from: 'restaurant', to: 'library', weight: 208 },
+        { from: 'restaurant', to: 'admin', weight: 239 },
+        { from: 'restaurant', to: 'pharmacy', weight: 374 },
 
         // اتصالات الصيدلة
-        { from: 'pharmacy', to: 'medicine', weight: 160 },
-        { from: 'pharmacy', to: 'admin', weight: 210 },
-        { from: 'pharmacy', to: 'agri', weight: 180 },
+        { from: 'pharmacy', to: 'medicine', weight: 310 },
+        { from: 'pharmacy', to: 'admin', weight: 375 },
+        { from: 'pharmacy', to: 'agri', weight: 320 },
 
         // اتصالات الطب البشري
-        { from: 'medicine', to: 'admin', weight: 240 },
+        { from: 'medicine', to: 'admin', weight: 406 },
 
         // اتصالات المكتبة المركزية
-        { from: 'library', to: 'sports', weight: 170 },
-        { from: 'library', to: 'admin', weight: 170 },
+        { from: 'library', to: 'sports', weight: 308 },
+        { from: 'library', to: 'admin', weight: 263 },
 
         // اتصالات مبنى الإدارة والملاعب
-        { from: 'sports', to: 'admin', weight: 320 }
+        { from: 'sports', to: 'admin', weight: 561 }
     ]
 };
 
@@ -403,39 +404,45 @@ class CampusGraph {
         }
     }
 
+    // دالة حساب مسافة هافرساين الجغرافية بالمتر
+    static haversineDistance(lat1, lon1, lat2, lon2) {
+        const toRad = deg => (deg * Math.PI) / 180;
+        const R = 6371000; // نصف قطر الأرض بالمتر
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
     // البحث عن أقرب مبنى أو كلية باستخدام الإحداثيات الجغرافية الحقيقية (Haversine formula)
     findNearestNodeByGPS(lat, lng) {
         let nearestNode = null;
-        let minDistanceKm = Infinity;
-
-        const toRad = deg => (deg * Math.PI) / 180;
-        const R = 6371; // نصف قطر الأرض بالكيلومتر
+        let minDistanceMeters = Infinity;
 
         this.getAllNodes().forEach(node => {
             if (typeof node.lat !== 'number' || typeof node.lng !== 'number') return;
-
-            const dLat = toRad(node.lat - lat);
-            const dLon = toRad(node.lng - lng);
-            const a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(toRad(lat)) * Math.cos(toRad(node.lat)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            const dKm = R * c;
-
-            if (dKm < minDistanceKm) {
-                minDistanceKm = dKm;
+            const d = CampusGraph.haversineDistance(lat, lng, node.lat, node.lng);
+            if (d < minDistanceMeters) {
+                minDistanceMeters = d;
                 nearestNode = node;
             }
         });
 
         return {
             node: nearestNode,
-            distanceMeters: Math.round(minDistanceKm * 1000)
+            distanceMeters: Math.round(minDistanceMeters)
         };
     }
 }
 
-// تصدير وتوفير الكائن في النطاق العام للمتصفح
-window.CampusGraph = CampusGraph;
-window.CAMPUS_GRAPH_DATA = CAMPUS_GRAPH_DATA;
+// تصدير وتوفير الكائن في النطاق العام للمتصفح وبيئة Node.js
+if (typeof window !== 'undefined') {
+    window.CampusGraph = CampusGraph;
+    window.CAMPUS_GRAPH_DATA = CAMPUS_GRAPH_DATA;
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { CampusGraph, CAMPUS_GRAPH_DATA };
+}
