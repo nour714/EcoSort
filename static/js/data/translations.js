@@ -141,6 +141,7 @@ const ECOSORT_TRANSLATIONS = {
         kpiCo2Label: "توفير انبعاثات كربون",
         kpiEnergyLabel: "وفر الطاقة والكهرباء المكافئة",
         kpiWaterLabel: "توفير مياه نقية",
+        metricsDisclaimer: "* تقديرات بيئية تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA) ونموذج EPA WARM.",
         btnBackStep1: "تغيير موقعي",
         btnGoStep3: "إظهار الخريطة وأقرب حاوية متاحة",
 
@@ -358,6 +359,7 @@ const ECOSORT_TRANSLATIONS = {
         kpiCo2Label: "CO₂ Emissions Saved",
         kpiEnergyLabel: "Energy Savings Equivalent",
         kpiWaterLabel: "Clean Water Saved",
+        metricsDisclaimer: "* Approximate environmental estimates based on Life Cycle Assessment (LCA) and EPA WARM.",
         btnBackStep1: "Change Location",
         btnGoStep3: "Show Route & Nearest Available Bin",
 

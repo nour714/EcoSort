@@ -362,7 +362,8 @@
                             <div class="detection-top-row">
                                 <div class="detected-material-meta">
                                     <span class="text-xs text-gray-500 font-bold" id="cv-detected-material-label" data-i18n="detectedMatLabel">الخامة المكتشفة:</span>
-                                    <h3 class="text-xl font-black text-slate-900" id="cv-detected-material-name">زجاجة بلاستيك شفافة (PET)</h3>
+                                    <h3 class="text-xl font-black text-slate-900" id="cv-detected-material-name">بلاستيك وبوليمرات عامة</h3>
+                                    <span class="badge badge-sm badge-slate hidden" id="cv-detected-resin-code"></span>
                                 </div>
                                 <div class="target-bin-display">
                                     <span class="text-xs text-gray-500 font-bold" id="ir-target-bin-label" data-i18n="targetBinLabel">الحاوية المستهدفة:</span>
@@ -374,6 +375,7 @@
                             <div class="manual-override-row">
                                 <label for="manual-waste-selector" class="text-xs text-gray-500 font-bold" id="manual-select-label" data-i18n="manualSelectPrompt">تعديل الخامة يدوياً إذا لزم الأمر:</label>
                                 <select id="manual-waste-selector" class="manual-waste-select" aria-label="تعديل نوع المخلفات يدوياً">
+                                    <option value="generic_plastic">بلاستيك وبوليمرات عامة (Plastic)</option>
                                     <option value="pet_bottle">زجاجة بلاستيك مياه (PET)</option>
                                     <option value="hdpe_container">عبوة بلاستيك مقوى (HDPE)</option>
                                     <option value="alu_can">علبة كانز معدن (Can)</option>
@@ -420,13 +422,16 @@
                                         <span class="eco-kpi-lbl" id="ir-co2-label" data-i18n="kpiCo2Label">توفير انبعاثات كربون</span>
                                     </div>
                                     <div class="eco-kpi-card eco-kpi-compact" id="eco-kpi-water">
-                                        <span class="eco-kpi-val text-blue-700" id="ir-water-savings-value">2.8 لتر</span>
+                                        <span class="eco-kpi-val text-blue-700" id="ir-water-savings-value">2.1 لتر</span>
                                         <span class="eco-kpi-lbl" id="ir-water-label" data-i18n="kpiWaterLabel">توفير مياه نقية</span>
                                     </div>
                                     <div class="eco-kpi-card eco-kpi-full" id="eco-kpi-energy">
                                         <span class="eco-kpi-lbl" id="ir-energy-label" data-i18n="kpiEnergyLabel">وفر الطاقة والكهرباء المكافئة</span>
                                         <span class="eco-kpi-val text-emerald-800" id="ir-energy-savings-value">3.5 ساعة</span>
                                     </div>
+                                    <p class="text-[11px] text-gray-500 italic mt-2 text-center col-span-2" id="ir-metrics-disclaimer" data-i18n="metricsDisclaimer">
+                                        * تقديرات بيئية تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA) ونموذج EPA WARM.
+                                    </p>
                                 </div>
                             </div>
 
@@ -565,7 +570,7 @@
                 <div class="route-arrow" id="route-arrow-symbol" aria-hidden="true">&larr;</div>
                 <div class="context-pill">
                     <span class="text-xs text-gray-500" id="step3-waste-name-label" data-i18n="wasteNameLabel">الخامة المراد التخلص منها:</span>
-                    <strong class="text-emerald-700" id="step3-waste-name">زجاجة بلاستيك (PET)</strong>
+                    <strong class="text-emerald-700" id="step3-waste-name">بلاستيك وبوليمرات عامة</strong>
                 </div>
                 <button type="button" class="btn btn-outline-sm ms-auto" id="btn-rescan-step3">
                     <svg width="14" height="14" aria-hidden="true"><use href="#icon-refresh"></use></svg>

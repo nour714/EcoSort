@@ -1003,7 +1003,15 @@ class EcoSortApp {
         const itemName = isEn ? (detection.item.nameEn || detection.item.name) : detection.item.name;
 
         if (nameElem) nameElem.textContent = itemName;
-        if (codeElem) codeElem.textContent = detection.item.resinCode || detection.item.category;
+        if (codeElem) {
+            if (detection.item.resinCode) {
+                codeElem.textContent = detection.item.resinCode;
+                codeElem.classList.remove('hidden');
+            } else {
+                codeElem.textContent = '';
+                codeElem.classList.add('hidden');
+            }
+        }
 
         // نسبة الثقة وزمن الاستدلال
         if (detection.isPreset) {
@@ -1085,7 +1093,14 @@ class EcoSortApp {
 
         if (co2Elem) co2Elem.textContent = `${detection.item.carbonSavingsGrams || 85} ${isEn ? 'g CO₂' : 'جم CO₂'}`;
         if (energyElem) energyElem.textContent = isEn ? (detection.item.energySavingsEn || detection.item.energySavings) : (detection.item.energySavings || '3.5 ساعة إضاءة');
-        if (waterElem) waterElem.textContent = `${detection.item.waterSavingsLiters || 2.5} ${isEn ? 'L clean water' : 'لتر مياه نقية'}`;
+        if (waterElem) waterElem.textContent = `${detection.item.waterSavingsLiters != null ? detection.item.waterSavingsLiters : 2.1} ${isEn ? 'L clean water' : 'لتر مياه نقية'}`;
+
+        const disclaimerElem = document.getElementById('ir-metrics-disclaimer');
+        if (disclaimerElem) {
+            disclaimerElem.textContent = t.metricsDisclaimer || (isEn 
+                ? "* Approximate environmental estimates based on Life Cycle Assessment (LCA) and EPA WARM." 
+                : "* تقديرات بيئية تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA) ونموذج EPA WARM.");
+        }
 
         // 3. تحذيرات جودة الصورة (Quality Warnings)
         const warningsBox = document.getElementById('cv-quality-warnings-box');

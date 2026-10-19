@@ -3,6 +3,9 @@
 EcoSort Environmental Knowledge Base & Information Retrieval (IR)
 """
 
+METRIC_DISCLAIMER_AR = 'تقديرات تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA - Life Cycle Assessment) والوكالة الأمريكية لحماية البيئة (EPA WARM)'
+METRIC_DISCLAIMER_EN = 'Approximate estimates based on standard Life Cycle Assessment (LCA) and EPA WARM emission factors'
+
 WASTE_KNOWLEDGE_BASE = {
     'cardboard': {
         'material': 'Cardboard',
@@ -14,6 +17,8 @@ WASTE_KNOWLEDGE_BASE = {
         'bin_name_en': 'Blue Bin (Paper & Cardboard)',
         'bin_color': '#2563eb',
         'co2_saved_grams': 140,
+        'metric_source': 'Approximate estimates (EPA WARM / LCA)',
+        'metric_source_ar': 'تقديرات تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA)',
         'energy_saved': 'توفير 40% من الطاقة المستهلكة في صناعة الورق والكرتون الجديد.',
         'energy_saved_en': 'Saves 40% of energy required to manufacture virgin cardboard.',
         'water_saved_liters': 7.5,
@@ -42,6 +47,8 @@ WASTE_KNOWLEDGE_BASE = {
         'bin_name_en': 'Green Bin (Glass)',
         'bin_color': '#10b981',
         'co2_saved_grams': 110,
+        'metric_source': 'Approximate estimates (EPA WARM / LCA)',
+        'metric_source_ar': 'تقديرات تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA)',
         'energy_saved': 'توفير 30% من طاقة أفران الصهر وتجنب انبعاثات غازات الاحتباس الحراري.',
         'energy_saved_en': 'Saves 30% furnace melting energy and cuts GHG emissions.',
         'water_saved_liters': 1.5,
@@ -70,6 +77,8 @@ WASTE_KNOWLEDGE_BASE = {
         'bin_name_en': 'Metal & Cans Bin',
         'bin_color': '#64748b',
         'co2_saved_grams': 175,
+        'metric_source': 'Approximate estimates (EPA WARM / LCA)',
+        'metric_source_ar': 'تقديرات تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA)',
         'energy_saved': 'توفير 95% من الطاقة الكهربائية الهائلة اللازمة لاستخلاص الألومنيوم الجديد!',
         'energy_saved_en': 'Saves 95% of electrical energy required for virgin bauxite smelting!',
         'water_saved_liters': 5.2,
@@ -96,8 +105,10 @@ WASTE_KNOWLEDGE_BASE = {
         'target_bin': 'paper',
         'bin_name_ar': 'الحاوية الزرقاء (ورق ومستندات)',
         'bin_name_en': 'Blue Bin (Paper)',
-        'bin_color': '#3b82f6',
+        'bin_color': '#2563eb',
         'co2_saved_grams': 60,
+        'metric_source': 'Approximate estimates (EPA WARM / LCA)',
+        'metric_source_ar': 'تقديرات تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA)',
         'energy_saved': 'حماية الأشجار وتوفير 60% من المياه المستخدمة في صناعة لب الورق البكر.',
         'energy_saved_en': 'Preserves trees and cuts fresh pulp water consumption by 60%.',
         'water_saved_liters': 4.0,
@@ -117,32 +128,34 @@ WASTE_KNOWLEDGE_BASE = {
         'texture_description_en': 'Smooth flexible fibrous sheet, lightweight, white/printed with clean crease.'
     },
     'plastic': {
-        'material': 'PET_Plastic',
-        'material_name_ar': 'زجاجات وعبوات بلاستيك',
-        'material_name_en': 'Plastic Bottle / Container',
-        'resin_code': '01 - PET',
+        'material': 'Plastic',
+        'material_name_ar': 'بلاستيك عام وبوليمرات',
+        'material_name_en': 'General Plastic & Polymers',
+        'resin_code': None,
         'target_bin': 'plastic',
         'bin_name_ar': 'الحاوية الصفراء (بلاستيك)',
         'bin_name_en': 'Yellow Bin (Plastics)',
         'bin_color': '#eab308',
         'co2_saved_grams': 85,
-        'energy_saved': 'توفير طاقة تعادل تشغيل مصباح موفر لمدة 6 ساعات لكل زجاجة.',
-        'energy_saved_en': 'Saves enough energy to power an LED bulb for 6 hours per bottle.',
+        'metric_source': 'Approximate estimates (EPA WARM / LCA)',
+        'metric_source_ar': 'تقديرات تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA)',
+        'energy_saved': 'توفير طاقة تعادل تشغيل مصباح موفر لمدة 6 ساعات لكل عبوة.',
+        'energy_saved_en': 'Saves enough energy to power an LED bulb for 6 hours per container.',
         'water_saved_liters': 2.1,
         'guide': [
-            'تفريغ أي قطرات ماء أو مشروبات متبقية داخل الزجاجة تماماً.',
-            'ضغط الزجاجة باليد لطرد الهواء وتقليص حجمها لتوفير المساحة بالحاوية.',
+            'تفريغ أي قطرات سوائل أو محتويات متبقية داخل العبوة تماماً.',
+            'ضغط العبوة باليد لطرد الهواء وتقليص حجمها لتوفير المساحة بالحاوية.',
             'إعادة ربط الغطاء بإحكام حتى لا يفلت أثناء النقل وإعادة التدوير.',
-            'إلقاء الزجاجة في الحاوية الصفراء المخصصة للمخلفات البلاستيكية.'
+            'إلقاء القطعة في الحاوية الصفراء المخصصة للمخلفات البلاستيكية.'
         ],
         'guide_en': [
-            'Completely drain any residual liquids or beverages.',
-            'Crush the bottle flat to expel air and save bin volume.',
-            'Screw the plastic cap back on tightly so it stays with the bottle.',
+            'Completely drain any residual liquids or contents.',
+            'Crush the plastic item flat to expel air and save bin volume.',
+            'Screw the plastic cap back on tightly if applicable.',
             'Drop into the designated yellow plastic recycling bin.'
         ],
-        'texture_description_ar': 'بلاستيك شفاف أو شبه شفاف، مرن نسبيًا، ملمس أملس مع لمعان خفيف وصوت طقطقة عند الضغط.',
-        'texture_description_en': 'Transparent or semi-translucent polymer, smooth finish with elastic deformation.'
+        'texture_description_ar': 'بلاستيك وبوليمرات متعددة، مرنة أو صلبة، ملمس أملس مع استجابة مرنة عند الضغط.',
+        'texture_description_en': 'Various polymer plastic, flexible or rigid, smooth finish with elastic deformation.'
     },
     'trash': {
         'material': 'General_Trash',
@@ -154,6 +167,8 @@ WASTE_KNOWLEDGE_BASE = {
         'bin_name_en': 'Black/Grey Bin (General Trash)',
         'bin_color': '#475569',
         'co2_saved_grams': 15,
+        'metric_source': 'Approximate estimates (EPA WARM / LCA)',
+        'metric_source_ar': 'تقديرات تقريبية مستندة إلى دراسات تقييم دورة الحياة (LCA)',
         'energy_saved': 'تحويل المخلفات للمدفن الصحي الآمن لمنع انبعاث غاز الميثان في الجو.',
         'energy_saved_en': 'Diverts non-recyclables to controlled sanitary containment.',
         'water_saved_liters': 0.5,

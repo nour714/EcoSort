@@ -221,9 +221,12 @@ class VisionModule {
             return db.find(w => w.id === 'paper_sheet') || db.find(w => w.binType === 'paper') || db[0];
         } else if (cls === 'plastic') {
             if (material && material.toLowerCase().includes('hdpe')) {
-                return db.find(w => w.id === 'hdpe_container') || db.find(w => w.id === 'pet_bottle') || db[0];
+                return db.find(w => w.id === 'hdpe_container') || db[0];
             }
-            return db.find(w => w.id === 'pet_bottle') || db[0];
+            if (material && material.toLowerCase().includes('pet')) {
+                return db.find(w => w.id === 'pet_bottle') || db[0];
+            }
+            return db.find(w => w.id === 'generic_plastic') || db.find(w => w.binType === 'plastic') || db[0];
         } else if (cls === 'trash') {
             return db.find(w => w.id === 'mixed_trash') || db.find(w => w.binType === 'trash') || db[0];
         }
