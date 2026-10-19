@@ -31,7 +31,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: false, capacity: 94, label: 'حاوية بلاستيك PET (ممتلئة بنسبة 94%)', labelEn: 'Plastic PET Bin (Full 94%)' },
                 { type: 'metal', available: true, capacity: 30, label: 'حاوية علب كانز ومعادن', labelEn: 'Metal & Cans Bin' },
                 { type: 'paper', available: true, capacity: 50, label: 'حاوية أوراق وكرتون', labelEn: 'Paper & Cardboard Bin' },
-                { type: 'organic', available: false, capacity: 90, label: 'حاوية عضوي (ممتلئة)', labelEn: 'Organic Bin (Full)' }
+                { type: 'organic', available: false, capacity: 90, label: 'حاوية عضوي (ممتلئة)', labelEn: 'Organic Bin (Full)' },
+                { type: 'trash', available: true, capacity: 45, label: 'حاوية مخلفات عامة وغير قابلة للتدوير', labelEn: 'General Waste & Non-Recyclable Bin' }
             ]
         },
         {
@@ -51,7 +52,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: true, capacity: 35, label: 'حاوية بلاستيك PET & HDPE', labelEn: 'Plastic PET & HDPE Bin' },
                 { type: 'metal', available: true, capacity: 40, label: 'حاوية معادن وإلكترونيات', labelEn: 'Metal & Electronics Bin' },
                 { type: 'paper', available: true, capacity: 25, label: 'حاوية أوراق أكاديمية', labelEn: 'Academic Paper Bin' },
-                { type: 'ewaste', available: true, capacity: 15, label: 'نقطة تجميع مخلفات إلكترونية', labelEn: 'E-Waste Collection Point' }
+                { type: 'ewaste', available: true, capacity: 15, label: 'نقطة تجميع مخلفات إلكترونية', labelEn: 'E-Waste Collection Point' },
+                { type: 'trash', available: true, capacity: 30, label: 'حاوية مخلفات عامة ومختلطة', labelEn: 'General Mixed Waste Bin' }
             ]
         },
         {
@@ -71,7 +73,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: false, capacity: 92, label: 'حاوية بلاستيك (ممتلئة)', labelEn: 'Plastic Bin (Full)' },
                 { type: 'metal', available: true, capacity: 55, label: 'حاوية معادن وكانز', labelEn: 'Metal & Cans Bin' },
                 { type: 'paper', available: true, capacity: 40, label: 'حاوية أوراق وطباعة', labelEn: 'Paper & Printing Bin' },
-                { type: 'ewaste', available: true, capacity: 20, label: 'نقطة مخلفات تقنية', labelEn: 'Tech Waste Point' }
+                { type: 'ewaste', available: true, capacity: 20, label: 'نقطة مخلفات تقنية', labelEn: 'Tech Waste Point' },
+                { type: 'trash', available: true, capacity: 40, label: 'حاوية مخلفات عامة', labelEn: 'General Waste Bin' }
             ]
         },
         {
@@ -91,7 +94,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: true, capacity: 60, label: 'حاوية بوليمرات وبلاستيك', labelEn: 'Polymer & Plastic Bin' },
                 { type: 'metal', available: true, capacity: 30, label: 'حاوية خردة ومعادن وكانز', labelEn: 'Scrap & Metal Bin' },
                 { type: 'paper', available: true, capacity: 45, label: 'حاوية مخططات وأوراق', labelEn: 'Blueprints & Paper Bin' },
-                { type: 'ewaste', available: true, capacity: 35, label: 'حاوية نفايات إلكترونية وبطاريات', labelEn: 'E-Waste & Batteries Bin' }
+                { type: 'ewaste', available: true, capacity: 35, label: 'حاوية نفايات إلكترونية وبطاريات', labelEn: 'E-Waste & Batteries Bin' },
+                { type: 'trash', available: true, capacity: 55, label: 'حاوية مخلفات عامة وورش', labelEn: 'Workshops General Waste Bin' }
             ]
         },
         {
@@ -111,7 +115,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: true, capacity: 40, label: 'حاوية بولي إيثيلين HDPE', labelEn: 'HDPE Polyethylene Bin' },
                 { type: 'metal', available: true, capacity: 50, label: 'حاوية علب كانز', labelEn: 'Beverage Cans Bin' },
                 { type: 'paper', available: false, capacity: 95, label: 'حاوية أوراق (ممتلئة)', labelEn: 'Paper Bin (Full)' },
-                { type: 'glass', available: true, capacity: 25, label: 'حاوية زجاج معملي', labelEn: 'Lab Glass Bin' }
+                { type: 'glass', available: true, capacity: 25, label: 'حاوية زجاج معملي', labelEn: 'Lab Glass Bin' },
+                { type: 'trash', available: true, capacity: 35, label: 'حاوية مخلفات عامة', labelEn: 'General Waste Bin' }
             ]
         },
         {
@@ -131,7 +136,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: true, capacity: 70, label: 'حاوية زجاجات مياه وعصائر', labelEn: 'Water & Juice Bottles Bin' },
                 { type: 'metal', available: true, capacity: 65, label: 'حاوية كانز مشروبات', labelEn: 'Soda Cans Bin' },
                 { type: 'paper', available: true, capacity: 55, label: 'حاوية كرتون وأغلفة أطعمة', labelEn: 'Food Packaging & Cardboard Bin' },
-                { type: 'organic', available: true, capacity: 40, label: 'حاوية بقايا أطعمة (كومبوست)', labelEn: 'Food Waste (Compost) Bin' }
+                { type: 'organic', available: true, capacity: 40, label: 'حاوية بقايا أطعمة (كومبوست)', labelEn: 'Food Waste (Compost) Bin' },
+                { type: 'trash', available: true, capacity: 60, label: 'حاوية مخلفات عامة ومهملات الأغذية', labelEn: 'General Food Packaging Waste Bin' }
             ]
         },
         {
@@ -151,7 +157,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: false, capacity: 88, label: 'حاوية عبوات بلاستيكية (ممتلئة)', labelEn: 'Plastic Containers Bin (Full)' },
                 { type: 'metal', available: true, capacity: 20, label: 'حاوية فويل وألومنيوم', labelEn: 'Foil & Aluminum Bin' },
                 { type: 'paper', available: true, capacity: 30, label: 'حاوية كرتون ونشرات', labelEn: 'Cardboard & Leaflets Bin' },
-                { type: 'glass', available: true, capacity: 40, label: 'حاوية زجاج دوائي', labelEn: 'Pharma Glass Bin' }
+                { type: 'glass', available: true, capacity: 40, label: 'حاوية زجاج دوائي', labelEn: 'Pharma Glass Bin' },
+                { type: 'trash', available: true, capacity: 25, label: 'حاوية مخلفات عامة غير دوائية', labelEn: 'Non-Pharma General Waste Bin' }
             ]
         },
         {
@@ -170,7 +177,8 @@ const CAMPUS_GRAPH_DATA = {
             bins: [
                 { type: 'plastic', available: true, capacity: 50, label: 'حاوية بلاستيك معقم', labelEn: 'Sterile Plastic Bin' },
                 { type: 'metal', available: true, capacity: 45, label: 'حاوية معادن', labelEn: 'Metals Bin' },
-                { type: 'paper', available: true, capacity: 35, label: 'حاوية مستندات طبية', labelEn: 'Medical Documents Bin' }
+                { type: 'paper', available: true, capacity: 35, label: 'حاوية مستندات طبية', labelEn: 'Medical Documents Bin' },
+                { type: 'trash', available: true, capacity: 40, label: 'حاوية مخلفات عامة غير طبية', labelEn: 'Non-Medical General Waste Bin' }
             ]
         },
         {
@@ -189,7 +197,8 @@ const CAMPUS_GRAPH_DATA = {
             bins: [
                 { type: 'plastic', available: true, capacity: 20, label: 'حاوية زجاجات مياه', labelEn: 'Water Bottles Bin' },
                 { type: 'metal', available: true, capacity: 25, label: 'حاوية كانز', labelEn: 'Beverage Cans Bin' },
-                { type: 'paper', available: true, capacity: 40, label: 'حاوية أوراق وكتب وكرتون', labelEn: 'Books & Paper Bin' }
+                { type: 'paper', available: true, capacity: 40, label: 'حاوية أوراق وكتب وكرتون', labelEn: 'Books & Paper Bin' },
+                { type: 'trash', available: true, capacity: 20, label: 'حاوية مخلفات عامة', labelEn: 'General Waste Bin' }
             ]
         },
         {
@@ -208,7 +217,8 @@ const CAMPUS_GRAPH_DATA = {
             bins: [
                 { type: 'plastic', available: true, capacity: 30, label: 'حاوية بلاستيك', labelEn: 'Plastic Bin' },
                 { type: 'metal', available: false, capacity: 96, label: 'حاوية معادن (ممتلئة)', labelEn: 'Metal Bin (Full)' },
-                { type: 'paper', available: true, capacity: 60, label: 'حاوية أوراق إدارية', labelEn: 'Admin Paper Bin' }
+                { type: 'paper', available: true, capacity: 60, label: 'حاوية أوراق إدارية', labelEn: 'Admin Paper Bin' },
+                { type: 'trash', available: true, capacity: 30, label: 'حاوية مخلفات عامة', labelEn: 'General Waste Bin' }
             ]
         },
         {
@@ -227,7 +237,8 @@ const CAMPUS_GRAPH_DATA = {
             bins: [
                 { type: 'plastic', available: true, capacity: 65, label: 'حاوية زجاجات مياه رياضية', labelEn: 'Sports Water Bottles Bin' },
                 { type: 'metal', available: true, capacity: 50, label: 'حاوية مشروبات طاقة وكانز', labelEn: 'Energy Drink Cans Bin' },
-                { type: 'paper', available: true, capacity: 20, label: 'حاوية أوراق', labelEn: 'Paper Bin' }
+                { type: 'paper', available: true, capacity: 20, label: 'حاوية أوراق', labelEn: 'Paper Bin' },
+                { type: 'trash', available: true, capacity: 50, label: 'حاوية مخلفات عامة', labelEn: 'General Waste Bin' }
             ]
         },
         {
@@ -247,7 +258,8 @@ const CAMPUS_GRAPH_DATA = {
                 { type: 'plastic', available: true, capacity: 30, label: 'حاوية أغلفة بلاستيكية', labelEn: 'Plastic Wraps Bin' },
                 { type: 'metal', available: true, capacity: 30, label: 'حاوية معادن', labelEn: 'Metals Bin' },
                 { type: 'paper', available: true, capacity: 25, label: 'حاوية كرتون وأوراق', labelEn: 'Cardboard & Paper Bin' },
-                { type: 'organic', available: true, capacity: 20, label: 'وحدة التسميد والمخلفات العضوية', labelEn: 'Composting & Organic Unit' }
+                { type: 'organic', available: true, capacity: 20, label: 'وحدة التسميد والمخلفات العضوية', labelEn: 'Composting & Organic Unit' },
+                { type: 'trash', available: true, capacity: 35, label: 'حاوية مخلفات عامة غير عضوية', labelEn: 'Non-Organic General Waste Bin' }
             ]
         }
     ],

@@ -221,7 +221,7 @@ class VisionModule {
             }
             return db.find(w => w.id === 'pet_bottle') || db[0];
         } else if (cls === 'trash') {
-            return db.find(w => w.id === 'mixed_trash') || db.find(w => w.id === 'organic_food') || db[0];
+            return db.find(w => w.id === 'mixed_trash') || db.find(w => w.binType === 'trash') || db[0];
         }
         return db[0];
     }
