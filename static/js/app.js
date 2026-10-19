@@ -1174,16 +1174,20 @@ class EcoSortApp {
 
             if (detection.isPreset || detection.decision === 'confident') {
                 decisionBanner.classList.add('decision-banner-confident');
-                if (decisionIcon) decisionIcon.textContent = detection.isPreset ? '📋' : '✅';
+                if (decisionIcon) decisionIcon.textContent = detection.isPreset ? '📋' : (detection.isUserConfirmed ? '👌' : '✅');
                 if (decisionTitle) {
                     decisionTitle.textContent = detection.isPreset 
                         ? (isEn ? 'Verified Reference Preset' : 'عينة مرجعية تجريبية') 
-                        : (t.decisionConfidentTitle || 'تصنيف مؤكد من الذكاء الاصطناعي');
+                        : (detection.isUserConfirmed 
+                            ? (isEn ? 'User-Confirmed Classification' : 'تصنيف مؤكد باختيارك')
+                            : (t.decisionConfidentTitle || 'تصنيف مؤكد من الذكاء الاصطناعي'));
                 }
                 if (decisionDesc) {
                     decisionDesc.textContent = detection.isPreset 
                         ? (isEn ? 'Selected directly from verified campus catalog for testing without running AI.' : 'تم اختيار هذه الخامة مباشرة كعينة اختبار موثقة لقاعدة بيانات الحرم الجامعي.') 
-                        : (t.decisionConfidentDesc || 'تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.');
+                        : (detection.isUserConfirmed 
+                            ? (isEn ? 'You confirmed this material from candidates; routing and carbon metrics updated.' : 'تم تأكيد هذه المادة من بين الترشيحات وتحديث مسار التوجيه وحسابات التوفير البيئي.')
+                            : (t.decisionConfidentDesc || 'تم التعرف على نوع الخامة بنسبة ثقة عالية وهامش أمان كافٍ.'));
                 }
                 if (bannerActions) bannerActions.classList.add('hidden');
                 if (photoAdviceBox) photoAdviceBox.classList.add('hidden');
@@ -1227,8 +1231,10 @@ class EcoSortApp {
                         const candConf = cand.confidenceFormatted || `${cand.confidence}%`;
                         chipBtn.innerHTML = `<span>${candName}</span> <strong class="chip-conf">(${candConf})</strong>`;
                         chipBtn.addEventListener('click', () => {
-                            this.visionModule.selectPreset(cand.materialId);
-                            if (btnGoRoute) btnGoRoute.disabled = false;
+                            const applied = this.confirmCandidateSelection(cand);
+                            if (applied && btnGoRoute) {
+                                btnGoRoute.disabled = false;
+                            }
                         });
                         candidateGrid.appendChild(chipBtn);
                     });
@@ -1258,6 +1264,38 @@ class EcoSortApp {
                 if (btnGoRoute) btnGoRoute.disabled = true;
             }
         }
+    }
+
+    /**
+     * تطبيق تصحيح ترشيح مؤكد بواسطة المستخدم في حالة عدم التأكد (Uncertain State)
+     * @param {Object} cand - كائن الترشيح المختار من Top-K
+     */
+    confirmCandidateSelection(cand) {
+        if (!cand || !cand.materialId) return false;
+        const chosenItem = (window.WASTE_DATABASE || []).find(w => w.id === cand.materialId);
+        if (!chosenItem) return false;
+
+        const currentDet = this.lastDetection || {};
+        const updatedDetection = {
+            ...currentDet,
+            item: chosenItem,
+            isPreset: false,
+            isUserConfirmed: true,
+            decision: 'confident',
+            confidence: cand.confidence != null ? cand.confidence : currentDet.confidence,
+            confidenceFormatted: cand.confidenceFormatted || currentDet.confidenceFormatted,
+            topK: currentDet.topK || [],
+            sourceType: 'user-confirmed-candidate',
+            opticalFeatures: `تأكيد المستخدم: تم اعتماد الخامة "${chosenItem.name}" بناءً على ترشيحات الموديل (${cand.confidenceFormatted || (cand.confidence + '%')})`
+        };
+
+        this.handleWasteDetected(updatedDetection);
+        const isEn = this.currentLang === 'en';
+        const msg = isEn 
+            ? `Confirmed: ${chosenItem.nameEn || chosenItem.name}` 
+            : `تم تأكيد الخامة: ${chosenItem.name}`;
+        this.showToast(msg, 'success');
+        return true;
     }
 
     /**

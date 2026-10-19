@@ -178,13 +178,17 @@ class VisionModule {
             decision: data.decision || 'confident', // 'confident' | 'uncertain' | 'rejected'
             margin: data.margin != null ? Number(data.margin) : null,
             qualityWarnings: data.quality_warnings || [],
-            topK: (data.top_k || []).map(k => ({
-                className: k.class_name,
-                materialNameAr: k.material_name_ar || k.class_name,
-                materialNameEn: k.material_name_en || k.class_name,
-                confidence: Number(k.confidence),
-                confidenceFormatted: k.confidence_formatted || `${k.confidence}%`
-            })),
+            topK: (data.top_k || []).map(k => {
+                const mappedItem = this.mapBackendClassToWasteItem(k.class_name);
+                return {
+                    className: k.class_name,
+                    materialId: mappedItem ? mappedItem.id : null,
+                    materialNameAr: k.material_name_ar || (mappedItem ? mappedItem.name : k.class_name),
+                    materialNameEn: k.material_name_en || (mappedItem ? mappedItem.nameEn : k.class_name),
+                    confidence: Number(k.confidence),
+                    confidenceFormatted: k.confidence_formatted || `${k.confidence}%`
+                };
+            }),
             inferenceTimeMs: data.inference_time_ms || 18.5,
             modelName: data.model_version || (data.backendData && data.backendData.model_version) || 'EcoSort Model',
             texture: data.texture_description_ar || wasteItem.textureDescription,
