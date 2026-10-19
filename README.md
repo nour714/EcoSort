@@ -18,6 +18,7 @@ EcoSort is an intelligent waste sorting and pathfinding platform that bridges Co
 - [Getting Started](#getting-started)
 - [Testing & Quality Assurance](#testing--quality-assurance)
 - [Docker Deployment](#docker-deployment)
+- [Deployment: Flask vs Vercel](#deployment-flask-vs-vercel)
 - [Transfer Learning Pipeline](#transfer-learning-pipeline)
 - [Academic Resources](#academic-resources)
 
@@ -28,7 +29,7 @@ EcoSort is an intelligent waste sorting and pathfinding platform that bridges Co
 Universities face critical waste sorting challenges: recyclable items (plastics, paper, aluminum) are frequently mixed into general trash at the point of disposal, rendering recycling economically unviable. Furthermore, students often find the nearest recycling bin full, leading to improper disposal.
 
 **EcoSort resolves this challenge with an end-to-end pipeline:**
-1. **Visual Material Classification**: A deep learning model (`.keras`) identifies the material category from mobile camera captures.
+1. **Visual Material Classification**: A deep learning model (`.keras` / `.tflite`) identifies the material category from mobile camera captures.
 2. **Information Retrieval (IR)**: Retrieves resin codes, proper handling procedures, and calculated environmental savings (CO₂ avoided, water conserved, LED lighting equivalent).
 3. **Smart Campus Navigation**: Graph pathfinding calculates the shortest walking route to an available bin, dynamically bypassing full receptacles.
 
@@ -36,7 +37,7 @@ Universities face critical waste sorting challenges: recyclable items (plastics,
 
 ## Key Features
 
-- **Lightweight Thread-Safe Backend**: Python Flask application hosting a native Keras 3 model via a thread-safe singleton inference engine.
+- **Lightweight Thread-Safe Backend**: Python Flask application hosting a native Keras 3 model via a thread-safe singleton inference engine, with serverless Vercel edge runtime via Google LiteRT.
 - **Dual-Tier Reliability Guardrails**: Pre-inference statistical checks filter motion blur, under/overexposure, and blank captures before neural inference.
 - **Calibrated Confidence Gating**: Classifies predictions into `confident` (`P1 >= 75%`, `margin >= 20%`), `uncertain`, or `rejected` (`P1 < 45%`) states.
 - **Client-Side Image Preprocessing**: Automatic EXIF orientation correction, client-side downscaling (max 1024px), and alpha compositing over white backgrounds.
@@ -50,7 +51,7 @@ Universities face critical waste sorting challenges: recyclable items (plastics,
 
 ```mermaid
 flowchart TD
-    Client["Client Browser (Vanilla JS + Leaflet + Canvas)"]
+    Client["Client Browser (Vanilla JS + HTML5 Canvas Graph)"]
     Camera["Camera Capture / File Upload / Clipboard"] --> Client
     Client -->|"POST /predict (Multipart Form)"| Flask["Flask Backend Server (app.py)"]
     
@@ -217,40 +218,57 @@ Submits an image for computer vision classification and routing metadata extract
 ```json
 {
   "status": "success",
-  "material": "PET_Plastic",
-  "material_name_ar": "بلاستيك شفاف (PET)",
-  "material_name_en": "Clear Plastic (PET)",
+  "decision": "confident",
   "class_name": "plastic",
-  "confidence": 94.25,
+  "confidence": 94.2,
   "confidence_formatted": "94.2%",
   "margin": 88.5,
-  "decision": "confident",
-  "quality_warnings": [],
   "top_k": [
     {
       "class_name": "plastic",
-      "material_name_ar": "بلاستيك شفاف (PET)",
-      "material_name_en": "Clear Plastic (PET)",
-      "confidence": 94.25,
+      "material_name_ar": "بلاستيك عام وبوليمرات",
+      "material_name_en": "General Plastic & Polymers",
+      "confidence": 94.2,
       "confidence_formatted": "94.2%"
     },
     {
       "class_name": "glass",
-      "material_name_ar": "زجاج شفاف أو ملون",
-      "material_name_en": "Glass (Bottles & Jars)",
-      "confidence": 5.75,
+      "material_name_ar": "زجاجات وعبوات زجاجية",
+      "material_name_en": "Glass Bottle / Container",
+      "confidence": 5.8,
       "confidence_formatted": "5.8%"
     }
   ],
+  "quality_warnings": [],
+  "tta_used": false,
+  "model_version": "2.0.0",
+  "inference_time_ms": 24.8,
+  "material": "Plastic",
+  "material_name_ar": "بلاستيك عام وبوليمرات",
+  "material_name_en": "General Plastic & Polymers",
+  "resin_code": null,
   "target_bin": "plastic",
+  "bin_name_ar": "الحاوية الصفراء (بلاستيك)",
+  "bin_name_en": "Yellow Bin (Plastics)",
+  "bin_color": "#eab308",
   "co2_saved_grams": 85,
-  "resin_code": "1 - PETE",
-  "proper_handling": [
-    "تفريغ السوائل بالكامل قبل التخلص منها",
-    "شطف الزجاجة بالماء للتخلص من الشوائب",
-    "ضغط الزجاجة باليد لتقليل الحجم داخل الحاوية"
+  "energy_saved": "توفير طاقة تعادل تشغيل مصباح موفر لمدة 6 ساعات لكل عبوة.",
+  "energy_saved_en": "Saves enough energy to power an LED bulb for 6 hours per container.",
+  "water_saved_liters": 2.1,
+  "guide": [
+    "تفريغ أي قطرات سوائل أو محتويات متبقية داخل العبوة تماماً.",
+    "ضغط العبوة باليد لطرد الهواء وتقليص حجمها لتوفير المساحة بالحاوية.",
+    "إعادة ربط الغطاء بإحكام حتى لا يفلت أثناء النقل وإعادة التدوير.",
+    "إلقاء القطعة في الحاوية الصفراء المخصصة للمخلفات البلاستيكية."
   ],
-  "inference_time_ms": 24.8
+  "guide_en": [
+    "Completely drain any residual liquids or contents.",
+    "Crush the plastic item flat to expel air and save bin volume.",
+    "Screw the plastic cap back on tightly if applicable.",
+    "Drop into the designated yellow plastic recycling bin."
+  ],
+  "texture_description_ar": "بلاستيك وبوليمرات متعددة، مرنة أو صلبة، ملمس أملس مع استجابة مرنة عند الضغط.",
+  "texture_description_en": "Various polymer plastic, flexible or rigid, smooth finish with elastic deformation."
 }
 ```
 
@@ -280,16 +298,23 @@ EcoSort/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                     # GitHub Actions CI workflow (lint + test)
+├── api/                               # Vercel serverless deployment
+│   ├── index.py                       # Serverless WSGI/LiteRT entrypoint & proxy
+│   └── requirements.txt               # Serverless Python dependencies (ai-edge-litert)
 ├── app.py                             # Flask application routes (/predict, /health)
 ├── wsgi.py                            # Production WSGI application entrypoint
+├── index.html                         # Root static entrypoint for Vercel deployment
+├── vercel.json                        # Vercel routing, rewrites, and security headers
 ├── ecosort/                           # Core Python backend package
 │   ├── __init__.py
 │   ├── config.py                      # Centralized configuration with env overrides
 │   ├── inference.py                   # Thread-safe model singleton engine & gating
 │   ├── knowledge.py                   # Environmental IR & carbon savings registry
-│   └── preprocess.py                  # EXIF correction, quality checks, scaling
+│   ├── preprocess.py                  # EXIF correction, quality checks, scaling
+│   └── rate_limiter.py                # Sliding-window in-memory IP rate limiter
 ├── models/
-│   └── model.keras                    # Pre-trained deep learning CNN model
+│   ├── model.keras                    # Pre-trained deep learning CNN model
+│   └── model.tflite                   # Flatbuffer model for LiteRT inference
 ├── data/
 │   ├── README.md                      # Dataset documentation and evaluation guide
 │   ├── benchmark/                     # 300 TrashNet evaluation samples across 6 classes
@@ -305,7 +330,8 @@ EcoSort/
 ├── scripts/
 │   ├── download_dataset.py            # Dataset acquisition utility
 │   ├── evaluate.py                    # Comprehensive benchmarking script
-│   └── run_experiments.py             # Systematic A/B experiment runner
+│   ├── run_experiments.py             # Systematic A/B experiment runner
+│   └── sync_sources.py                # Single-source verification & sync utility
 ├── static/
 │   ├── assets/images/                 # Favicons, icons, and branding
 │   ├── css/
@@ -316,22 +342,14 @@ EcoSort/
 │   └── js/                            # Client-side routing, algorithms, and CV modules
 ├── templates/
 │   └── index.html                     # Responsive single-page application wizard
-├── tests/
-│   ├── conftest.py                    # Pytest test fixtures
-│   ├── test_api.py                    # Flask API endpoint test cases
-│   ├── test_gating.py                 # Confidence gating threshold tests
-│   ├── test_knowledge_consistency.py  # IR dictionary consistency tests
-│   ├── test_preprocess.py             # Preprocessing & image quality checks
-│   ├── test_readme_metrics.py         # Regression test preventing metric drift
-│   ├── test_regression.py             # End-to-end model regression verification
-│   └── test_thresholds_consistency.py # Reference documentation sync tests
+├── tests/                             # Comprehensive automated test suite (Pytest + Node)
 ├── training/
 │   ├── README.md                      # Transfer learning documentation
 │   └── train_transfer.py              # Two-stage MobileNetV2 / EfficientNet training
 ├── .dockerignore
 ├── .env.example                       # Environment configuration template
 ├── .gitignore
-├── Dockerfile                         # Production multi-stage Docker container
+├── Dockerfile                         # Production single-stage Docker container (python:3.11-slim)
 ├── docker-compose.yml                 # Local Docker Compose setup
 ├── LICENSE
 ├── pyproject.toml                     # Ruff linter and tool configuration
@@ -391,9 +409,12 @@ ruff check .
 
 # Run complete pytest suite
 pytest -v
+
+# Run Node.js graph algorithm & client unit tests
+node --test tests/*.test.js
 ```
 
-All 21 test cases pass deterministically in under 2 seconds.
+Automated unit, integration, and regression suites run across both Python (`pytest`) and Node.js (`node --test`), verifying model inference, confidence gating, graph algorithms, and environmental metrics.
 
 ---
 
@@ -413,6 +434,31 @@ Using Docker Compose:
 ```bash
 docker compose up --build
 ```
+
+---
+
+## Deployment: Flask vs Vercel
+
+EcoSort supports two production deployment topologies depending on operational requirements:
+
+| Dimension | Dedicated Flask Container (`app.py`) | Vercel Serverless (`api/index.py`) |
+| :--- | :--- | :--- |
+| **Target Runtime** | Docker / VPS / PaaS (Render, Railway, Hugging Face) | Vercel Serverless Edge Functions + Global CDN |
+| **Inference Engine** | Full Keras 3 / TensorFlow / TFLite runtime | Google LiteRT (`ai-edge-litert`) serverless runtime |
+| **Model Artifact** | `models/model.keras` or `models/model.tflite` | `models/model.tflite` (via `includeFiles`) |
+| **Concurrency & Workers** | Gunicorn multi-worker (`wsgi.py`, threads per worker) | Auto-scaling per-invocation serverless workers |
+| **Rate Limiting** | In-memory sliding-window token bucket (`ecosort/rate_limiter.py`) | Edge rate limiting / proxy or external gateway |
+| **Static Delivery** | Flask `static/` route with caching headers | Vercel Global Edge Network with pre-compressed assets |
+| **Proxy Architecture** | Direct backend endpoint | Supports transparent proxy via `ECOSORT_BACKEND_URL` |
+| **Security Headers** | Configurable reverse proxy / WSGI middleware | Hardened CSP, HSTS, Permissions-Policy via `vercel.json` |
+
+### Hybrid Proxy Mode
+When deploying frontend static assets to Vercel while running deep neural inference on dedicated hardware (e.g. GPU VPS or Render), configure the `ECOSORT_BACKEND_URL` environment variable in Vercel project settings:
+```bash
+# Example Vercel environment variable
+ECOSORT_BACKEND_URL=https://api.ecosort.example.com
+```
+When `ECOSORT_BACKEND_URL` is set, `api/index.py` transparently streams multipart requests directly to the dedicated Flask instance, bypassing serverless size and execution limits.
 
 ---
 
