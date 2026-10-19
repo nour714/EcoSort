@@ -1839,7 +1839,7 @@ class EcoSortApp {
                 `;
             }).join('');
 
-            modalBinsList.querySelectorAll('.btn-toggle-modal-bin').forEach(btn => {
+            binsList.querySelectorAll('.btn-toggle-modal-bin').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const binType = btn.getAttribute('data-bin-type');
                     this.toggleBinInModal(binType);
