@@ -29,8 +29,8 @@ class Config:
     BRIGHT_MEAN_MIN = float(os.environ.get('BRIGHT_MEAN_MIN', 230.0))
     FLAT_STD_MIN = float(os.environ.get('FLAT_STD_MIN', 15.0))
 
-    # Request limits
-    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 10 * 1024 * 1024))  # 10 MB
+    # Request limits (under ~4 MB)
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 4 * 1024 * 1024))  # 4 MB
 
     # CORS settings
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*')

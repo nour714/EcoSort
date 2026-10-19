@@ -304,12 +304,25 @@ body {
 
 .brand-title-wrap h1,
 .brand-name {
-    font-size: 1.35rem;
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 1.45rem;
     font-weight: 800;
-    color: var(--slate-900);
     line-height: 1;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.025em;
     margin: 0;
+    direction: ltr !important;
+    unicode-bidi: isolate;
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+}
+
+.brand-name .brand-eco {
+    color: #0f172a;
+}
+
+.brand-name .brand-sort {
+    color: #059669;
 }
 
 /* ==================== شريط التقدم العلوي (Progress Stepper) ==================== */

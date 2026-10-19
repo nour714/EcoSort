@@ -31,6 +31,7 @@ try:
     from ecosort.config import Config
     from ecosort.knowledge import WASTE_KNOWLEDGE_BASE
     from ecosort.preprocess import InvalidImageError, preprocess_image
+    from ecosort.rate_limiter import RateLimiter, get_client_ip
 
     # Configure logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
@@ -39,6 +40,17 @@ try:
     flask_app = Flask(__name__)
     flask_app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
     CORS(flask_app)
+
+    # Basic rate limiter: 30 requests per minute per IP
+    rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
+
+    @flask_app.errorhandler(413)
+    def request_entity_too_large(error):
+        return jsonify({
+            'status': 'error',
+            'code': 413,
+            'message': 'حجم الملف المرفوع يتجاوز الحد الأقصى المسموح به (4 ميجابايت).'
+        }), 413
 
     @flask_app.after_request
     def set_security_headers(response):
@@ -230,6 +242,15 @@ try:
     @flask_app.route('/api/index/predict', methods=['POST'])
     @flask_app.route('/api/index.py/predict', methods=['POST'])
     def predict():
+        # 0. Basic Rate Limiting
+        client_ip = get_client_ip(request)
+        allowed, retry_after = rate_limiter.is_allowed(client_ip)
+        if not allowed:
+            return jsonify({
+                'status': 'error',
+                'message': 'تم تجاوز معدل الطلبات المسموح به. يرجى الانتظار قليلاً ثم إعادة المحاولة.'
+            }), 429, {'Retry-After': str(retry_after)}
+
         image_bytes = None
 
         if 'file' in request.files:
@@ -246,8 +267,8 @@ try:
                 if ',' in data_uri:
                     data_uri = data_uri.split(',', 1)[1]
                 image_bytes = base64.b64decode(data_uri)
-            except Exception as e:
-                return jsonify({'status': 'error', 'message': f'بيانات Base64 غير صالحة: {str(e)}'}), 400
+            except Exception:
+                return jsonify({'status': 'error', 'message': 'بيانات Base64 غير صالحة. يرجى إرسال تنسيق تشفير صالح.'}), 400
 
         if not image_bytes:
             return jsonify({
@@ -278,10 +299,10 @@ try:
             response_data = engine.predict(image_bytes)
             return jsonify(response_data)
         except InvalidImageError as e:
-            return jsonify({'status': 'error', 'message': str(e)}), 400
+            return jsonify({'status': 'error', 'message': str(e) or 'الملف المرفوع ليس ملف صورة صالح.'}), 400
         except Exception as e:
             logger.error(f"Prediction failed: {e}", exc_info=True)
-            return jsonify({'status': 'error', 'message': f'فشل فحص الصورة: {str(e)}'}), 500
+            return jsonify({'status': 'error', 'message': 'حدث خطأ داخلي أثناء معالجة الصورة. يرجى المحاولة لاحقاً.'}), 500
 
 except Exception:
     STARTUP_ERROR = traceback.format_exc()

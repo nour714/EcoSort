@@ -135,14 +135,32 @@ class VisionModule {
      */
     async classifyWithBackend(file) {
         if (!file) return null;
+
+        // Ensure client upload stays strictly under ~4 MB: always downscale when > 3 MB
+        if (file.size && file.size > 3 * 1024 * 1024) {
+            try {
+                file = await this.downscaleImage(file, 1024, 0.85);
+                if (file.size && file.size > 3 * 1024 * 1024) {
+                    file = await this.downscaleImage(file, 800, 0.75);
+                }
+            } catch (err) {
+                console.warn('[VisionModule] Downscale before upload failed:', err);
+            }
+        }
+
         const formData = new FormData();
         formData.append('file', file);
 
         const endpoint = (typeof window !== 'undefined' && window.ECOSORT_API_URL) ? window.ECOSORT_API_URL : '/predict';
-        let resp = await fetch(endpoint, {
-            method: 'POST',
-            body: formData
-        });
+        let resp;
+        try {
+            resp = await fetch(endpoint, {
+                method: 'POST',
+                body: formData
+            });
+        } catch (netErr) {
+            throw new Error('تعذر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والاتصال بالشبكة.');
+        }
 
         // Vercel fallback: if /predict returns 404, retry with /api/predict automatically
         if (!resp.ok && resp.status === 404 && endpoint === '/predict') {
@@ -156,10 +174,24 @@ class VisionModule {
 
         if (!resp.ok) {
             let errorText = `HTTP ${resp.status}`;
-            try {
-                const errData = await resp.json();
-                if (errData && errData.message) errorText = errData.message;
-            } catch (_) {}
+            if (resp.status === 413) {
+                errorText = 'حجم الصورة المرفوعة كبير جداً (تجاوز الحد الأقصى 4 ميجابايت). يرجى اختيار صورة أصغر.';
+            } else if (resp.status === 429) {
+                errorText = 'تم تجاوز معدل الطلبات المسموح به. يرجى الانتظار قليلاً ثم إعادة المحاولة.';
+            } else {
+                try {
+                    const errData = await resp.json();
+                    if (errData && errData.message) errorText = errData.message;
+                } catch (_) {
+                    // Gracefully handle non-JSON error responses (e.g. HTML 413 from reverse proxy)
+                    try {
+                        const rawText = await resp.text();
+                        if (rawText && rawText.length < 200 && !rawText.includes('<html')) {
+                            errorText = rawText;
+                        }
+                    } catch (_) {}
+                }
+            }
             throw new Error(`تعذر التحليل عبر السيرفر: ${errorText}`);
         }
 

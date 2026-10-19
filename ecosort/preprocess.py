@@ -49,6 +49,8 @@ def load_image(image_bytes: bytes) -> Image.Image:
 
         return img
 
+    except Image.DecompressionBombError as e:
+        raise InvalidImageError("أبعاد الصورة كبيرة جداً وغير آمنة للمعالجة (Decompression Bomb).") from e
     except (UnidentifiedImageError, OSError) as e:
         raise InvalidImageError("الملف المرفوع ليس ملف صورة صالح أو أنه تالف.") from e
 
