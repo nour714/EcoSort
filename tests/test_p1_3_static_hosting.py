@@ -105,3 +105,19 @@ def test_manifest_icons_real_dimensions():
     assert src_512.exists(), f"512 icon file {src_512} must exist"
     im512 = Image.open(src_512)
     assert im512.size == (512, 512), f"Expected 512x512, got {im512.size}"
+
+
+def test_vercelignore_does_not_ignore_static_data():
+    """Verify .vercelignore uses root-anchored paths and does not ignore static/js/data/."""
+    ignore_path = ROOT_DIR / ".vercelignore"
+    assert ignore_path.exists(), ".vercelignore must exist"
+    content = ignore_path.read_text(encoding="utf-8").splitlines()
+    for line in content:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "data" in stripped:
+            assert stripped.startswith("/"), (
+                f"Rule '{stripped}' in .vercelignore must be root-anchored with leading '/' "
+                "to avoid ignoring static/js/data/ during deployment."
+            )

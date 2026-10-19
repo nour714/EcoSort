@@ -7,23 +7,23 @@ __pycache__/
 venv/
 .env
 
-# Large Keras model and training datasets
+# Large Keras model and training datasets at repository root
 *.keras
 models/*.keras
-data/
-training/
-samples/
+/data/
+/training/
+/samples/
 
-# Testing and evaluation scripts
-tests/
-scripts/
-docs/
+# Testing and evaluation scripts at repository root
+/tests/
+/scripts/
+/docs/
 
 # Container & CI artifacts
 Dockerfile
 docker-compose.yml
 .dockerignore
-.github/
+/.github/
 
 # Local server entrypoints & full dependencies (used by Docker/local, not Vercel serverless)
 app.py
