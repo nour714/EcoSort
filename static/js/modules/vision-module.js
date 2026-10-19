@@ -162,7 +162,7 @@ class VisionModule {
             throw new Error('تعذر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والاتصال بالشبكة.');
         }
 
-        // Vercel fallback: if /predict returns 404, retry with /api/predict automatically
+        // Vercel fallback: if /predict returns 404, retry with /api/predict, then /api automatically
         if (!resp.ok && resp.status === 404 && endpoint === '/predict') {
             try {
                 resp = await fetch('/api/predict', {
@@ -170,6 +170,14 @@ class VisionModule {
                     body: formData
                 });
             } catch (_) {}
+            if (!resp.ok && resp.status === 404) {
+                try {
+                    resp = await fetch('/api', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } catch (_) {}
+            }
         }
 
         if (!resp.ok) {

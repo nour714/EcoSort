@@ -41,6 +41,25 @@ try:
     flask_app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
     CORS(flask_app)
 
+    class VercelPathFixer:
+        """WSGI middleware to restore original request path when Vercel rewrites requests."""
+        def __init__(self, wsgi_app):
+            self.wsgi_app = wsgi_app
+
+        def __call__(self, environ, start_response):
+            matched_path = (
+                environ.get('HTTP_X_VERCEL_MATCHED_PATH') or
+                environ.get('HTTP_X_MATCHED_PATH') or
+                environ.get('HTTP_X_FORWARDED_PATH') or
+                environ.get('HTTP_X_REWRITE_URL')
+            )
+            if matched_path:
+                clean_path = matched_path.split('?')[0]
+                environ['PATH_INFO'] = clean_path
+            return self.wsgi_app(environ, start_response)
+
+    flask_app.wsgi_app = VercelPathFixer(flask_app.wsgi_app)
+
     # Basic rate limiter: 30 requests per minute per IP
     rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
 
@@ -212,16 +231,6 @@ try:
     @flask_app.route('/api/', methods=['GET'])
     @flask_app.route('/api/index', methods=['GET'])
     @flask_app.route('/api/index.py', methods=['GET'])
-    def root_api():
-        backend_url = os.environ.get('ECOSORT_BACKEND_URL') or os.environ.get('BACKEND_URL')
-        model_loaded = (engine.interpreter is not None) or bool(backend_url)
-        return jsonify({
-            'status': 'healthy' if model_loaded else 'degraded',
-            'service': 'EcoSort Vercel Serverless API',
-            'model_loaded': model_loaded,
-            'classes': Config.CLASS_NAMES
-        })
-
     @flask_app.route('/health', methods=['GET'])
     @flask_app.route('/api/health', methods=['GET'])
     @flask_app.route('/api/index/health', methods=['GET'])
@@ -241,6 +250,11 @@ try:
     @flask_app.route('/api/predict', methods=['POST'])
     @flask_app.route('/api/index/predict', methods=['POST'])
     @flask_app.route('/api/index.py/predict', methods=['POST'])
+    @flask_app.route('/api', methods=['POST'])
+    @flask_app.route('/api/', methods=['POST'])
+    @flask_app.route('/api/index', methods=['POST'])
+    @flask_app.route('/api/index.py', methods=['POST'])
+    @flask_app.route('/', methods=['POST'])
     def predict():
         # 0. Basic Rate Limiting
         client_ip = get_client_ip(request)
