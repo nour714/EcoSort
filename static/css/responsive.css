@@ -207,6 +207,32 @@ button, input, select, textarea { font: inherit; }
         padding: 0.65rem 1rem;
     }
 
+    /* ----- الخطوة 3: سياق المسار (الموقع والخامة) ----- */
+    .route-context-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+        padding: 0.75rem 0.85rem;
+    }
+    .route-context-bar .route-arrow {
+        display: none;
+    }
+    .route-context-bar .context-pill {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.45rem 0.65rem;
+        background: var(--slate-50);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+    }
+    .route-context-bar #btn-rescan-step3 {
+        width: 100%;
+        margin-inline-start: 0;
+        justify-content: center;
+    }
+
     /* ----- الخطوة 3: الخريطة ----- */
     .canvas-controls-overlay { top: 8px; left: 8px; gap: 0.35rem; }
     .canvas-controls-overlay .btn-icon { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
@@ -230,11 +256,10 @@ button, input, select, textarea { font: inherit; }
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 1rem;
-        padding: 0.5rem 0.85rem;
+        gap: 0.75rem;
+        padding: 0.55rem 0.85rem;
         border-bottom: 1px dashed var(--slate-100);
-        text-align: left;
-        direction: rtl;
+        text-align: start;
     }
     .academic-table td:last-child { border-bottom: none; }
     .academic-table td:first-child {
@@ -242,16 +267,22 @@ button, input, select, textarea { font: inherit; }
         font-weight: 800;
         color: var(--slate-800);
         border-bottom: 1px solid var(--border-light);
+        justify-content: flex-start;
     }
     .academic-table td:not(:first-child)::before {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: var(--slate-500);
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--slate-600);
         flex-shrink: 0;
     }
     .academic-table td:nth-child(2)::before { content: 'Dijkstra'; }
     .academic-table td:nth-child(3)::before { content: 'A* Search'; }
     .academic-table td:nth-child(4)::before { content: 'الاستنتاج'; }
+    html[dir="ltr"] .academic-table td:nth-child(4)::before { content: 'Conclusion'; }
+    .academic-table td code {
+        direction: ltr;
+        display: inline-block;
+    }
 
     /* ----- قائمة الحاويات المرتبة ----- */
     .sorted-bins-list { max-height: none; }

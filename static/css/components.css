@@ -761,6 +761,13 @@
     padding: 0.85rem;
 }
 
+.texture-box p, #cv-texture-description {
+    color: var(--slate-800);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    font-weight: 500;
+}
+
 .cv-confidence-bar {
     width: 100%;
     height: 8px;
@@ -806,24 +813,31 @@
 .handling-step-item {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--slate-700);
+    gap: 0.65rem;
+    font-size: 0.85rem;
+    color: var(--slate-800);
 }
 
 .step-num {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background: var(--primary-100);
     color: var(--primary-800);
     font-weight: 800;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     margin-top: 2px;
+}
+
+.step-text {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.55;
+    word-break: break-word;
 }
 
 .impact-metrics-col {
@@ -838,20 +852,24 @@
     border-radius: var(--radius-md);
     padding: 0.65rem 0.85rem;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    min-width: 0;
 }
 
 .eco-kpi-val {
-    font-size: 1.05rem;
-    font-weight: 900;
+    font-size: 0.95rem;
+    font-weight: 800;
     color: var(--primary-700);
+    line-height: 1.45;
+    word-break: break-word;
 }
 
 .eco-kpi-lbl {
-    font-size: 0.725rem;
+    font-size: 0.75rem;
     color: var(--slate-600);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 
@@ -1115,9 +1133,9 @@
 }
 
 .distance-unit {
-    font-size: 0.725rem;
-    color: var(--slate-500);
-    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--slate-700);
+    font-weight: 700;
 }
 
 /* النافذة المنبثقة (Modal) */

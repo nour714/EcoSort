@@ -30,3 +30,4 @@ app.py
 wsgi.py
 requirements.txt
 requirements-dev.txt
+pyproject.toml

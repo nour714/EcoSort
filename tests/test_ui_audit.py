@@ -65,10 +65,10 @@ def test_viewports_no_horizontal_overflow_and_no_page_errors(live_server, browse
 
         context.close()
 
-def test_stepper_structure_and_two_action_start(live_server, browser_instance):
+def test_step_navigation_and_scan_actions(live_server, browser_instance):
     """Verifies:
-    - Stepper indicators 1, 2, 3 have tab roles and correct initial states.
-    - Two-action start screen (Scan an item vs Where is nearest bin).
+    - Step 1 is active on load.
+    - Direct scan action buttons are visible.
     - Transitioning between steps works smoothly.
     """
     context = browser_instance.new_context(viewport={"width": 390, "height": 844})
@@ -80,21 +80,15 @@ def test_stepper_structure_and_two_action_start(live_server, browser_instance):
     assert not page.is_visible("#wizard-step-2")
     assert not page.is_visible("#wizard-step-3")
 
-    # Stepper indicators
-    assert page.get_attribute("#stepper-step-1", "aria-selected") == "true"
-    assert page.get_attribute("#stepper-step-2", "aria-selected") == "false"
-    assert page.get_attribute("#stepper-step-3", "aria-selected") == "false"
+    # Direct scan action buttons are visible on Step 1
+    assert page.is_visible("#btn-trigger-camera")
+    assert page.is_visible("#btn-trigger-upload")
 
-    # Two hero actions
-    assert page.is_visible("#btn-hero-scan")
-    assert page.is_visible("#btn-hero-find-bin")
-
-    # Click Where is nearest bin -> Step 2
-    page.click("#btn-hero-find-bin")
+    # Transition to Step 2
+    page.evaluate("() => window.app.goToStep(2)")
     page.wait_for_timeout(300)
     assert page.is_visible("#wizard-step-2")
     assert not page.is_visible("#wizard-step-1")
-    assert page.get_attribute("#stepper-step-2", "aria-selected") == "true"
 
     # Click Back to scan -> Step 1
     page.click("#btn-back-to-step-1")
@@ -108,14 +102,13 @@ def test_location_picker_and_persistence(live_server, browser_instance):
     - Step 2 search and faculty selection.
     - Location saved to localStorage.
     - Sticky continue button enabled with faculty name.
-    - Step 1 displays saved location banner.
     """
     context = browser_instance.new_context(viewport={"width": 390, "height": 844})
     page = context.new_page()
     page.goto(live_server, wait_until="networkidle")
 
     # Navigate to Step 2
-    page.click("#btn-hero-find-bin")
+    page.evaluate("() => window.app.goToStep(2)")
     page.wait_for_timeout(200)
 
     # Search for "ai"
@@ -135,17 +128,8 @@ def test_location_picker_and_persistence(live_server, browser_instance):
     is_disabled = page.get_attribute("#btn-go-to-step-3", "disabled")
     assert is_disabled is None
 
-    # Navigate back to Step 1
-    page.click("#btn-back-to-step-1")
-    page.wait_for_timeout(200)
-
-    # Verify saved location banner is visible in Step 1
-    banner_display = page.evaluate("() => window.getComputedStyle(document.getElementById('step1-saved-location-banner')).display")
-    assert banner_display != "none"
-    banner_text = page.inner_text("#step1-saved-location-text")
-    assert len(banner_text) > 0
-
     context.close()
+
 
 def test_decision_gating_and_rejected_handling(live_server, browser_instance):
     """Verifies Decision-First gating (B2):

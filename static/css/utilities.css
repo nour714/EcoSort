@@ -76,3 +76,4 @@
 .confidence-fill-initial { width: 96.8%; }
 .badge-yellow { background: #eab308; color: #ffffff; }
 .card-body-compact { padding: 0.75rem; }
+.whitespace-nowrap { white-space: nowrap; }

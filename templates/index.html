@@ -129,7 +129,7 @@
         </symbol>
     </svg>
 
-    <!-- ==================== 1. الهيدر وشريط التقدم (Header & Stepper) ==================== -->
+    <!-- ==================== 1. الهيدر (Header) ==================== -->
     <header class="app-header" role="banner">
         <div class="header-container">
             <!-- الشعار وعنوان المشروع -->
@@ -155,48 +155,6 @@
                 </button>
             </div>
         </div>
-
-        <!-- شريط التقدم المتسلسل (Progress Stepper) -->
-        <nav class="stepper-nav" aria-label="مراحل استخدام النظام">
-            <div class="stepper-container" role="tablist">
-                <div class="step-indicator active" id="stepper-step-1" data-step="1" role="tab" aria-selected="true" aria-controls="wizard-step-1" tabindex="0">
-                    <div class="step-bubble">
-                        <span class="step-num">1</span>
-                        <span class="step-check">&check;</span>
-                    </div>
-                    <div class="step-label">
-                        <span class="step-title" data-i18n="step1NavTitle">الفحص والتصنيف</span>
-                        <span class="step-desc" data-i18n="step1NavDesc">صوّر أو اختر المادة</span>
-                    </div>
-                </div>
-
-                <div class="stepper-line" id="stepper-line-1"></div>
-
-                <div class="step-indicator" id="stepper-step-2" data-step="2" role="tab" aria-selected="false" aria-controls="wizard-step-2" tabindex="-1">
-                    <div class="step-bubble">
-                        <span class="step-num">2</span>
-                        <span class="step-check">&check;</span>
-                    </div>
-                    <div class="step-label">
-                        <span class="step-title" data-i18n="step2NavTitle">الموقع في الحرم</span>
-                        <span class="step-desc" data-i18n="step2NavDesc">أين أنت الآن؟</span>
-                    </div>
-                </div>
-
-                <div class="stepper-line" id="stepper-line-2"></div>
-
-                <div class="step-indicator" id="stepper-step-3" data-step="3" role="tab" aria-selected="false" aria-controls="wizard-step-3" tabindex="-1">
-                    <div class="step-bubble">
-                        <span class="step-num">3</span>
-                        <span class="step-check">&check;</span>
-                    </div>
-                    <div class="step-label">
-                        <span class="step-title" data-i18n="step3NavTitle">المسار والحاوية</span>
-                        <span class="step-desc" data-i18n="step3NavDesc">أقرب حاوية متاحة</span>
-                    </div>
-                </div>
-            </div>
-        </nav>
     </header>
 
     <!-- ==================== محتوى الخطوات المتسلسلة (Wizard Screens) ==================== -->
@@ -208,40 +166,9 @@
         <!-- ==================== الخطوة 1: فحص وتحديد نوع المخلفات (Start & Inspect) ==================== -->
         <section class="wizard-step active" id="wizard-step-1" aria-labelledby="step-1-title" role="tabpanel">
             
-            <!-- شاشة البداية ذات الإجرائين (Two-Action Start Screen) -->
-            <div class="start-hero-card">
-                <h2 id="step-1-title" class="start-hero-title" data-i18n="startHeroTitle">فرز ذكي بلمسة واحدة</h2>
-                <p class="start-hero-desc" id="step-1-desc" data-i18n="startHeroDesc">صوّر قطعة المخلفات بكاميرا هاتفك لمعرفة الحاوية المناسبة فوراً وإرشادات تجهيزها للتدوير.</p>
+            <!-- عنوان الخطوة 1 لقارئات الشاشة والوصولية -->
+            <h2 id="step-1-title" class="sr-only" data-i18n="step1NavTitle">الفحص والتصنيف</h2>
 
-                <!-- أزرار البداية الرئيسية -->
-                <div class="start-actions-bar">
-                    <button type="button" class="btn btn-primary btn-hero-scan" id="btn-hero-scan">
-                        <svg class="btn-icon-svg" width="22" height="22" aria-hidden="true"><use href="#icon-camera"></use></svg>
-                        <div class="btn-hero-text">
-                            <strong data-i18n="startScanPrimary">فحص قطعة مخلفات</strong>
-                            <span class="btn-subtext" data-i18n="startScanSubtitle">التقط صورة بالكاميرا أو ارفع صورة</span>
-                        </div>
-                    </button>
-                    <button type="button" class="btn btn-outline btn-hero-find-bin" id="btn-hero-find-bin">
-                        <svg class="btn-icon-svg" width="22" height="22" aria-hidden="true"><use href="#icon-map-pin"></use></svg>
-                        <div class="btn-hero-text">
-                            <strong data-i18n="startFindBinSecondary">أين أقرب حاوية؟</strong>
-                            <span class="btn-subtext" data-i18n="startFindBinSubtitle">تصفح الحاويات المتاحة في الحرم</span>
-                        </div>
-                    </button>
-                </div>
-
-                <!-- شريط تذكير الموقع المحفوظ (يظهر إذا كان المستخدم قد اختار موقعاً سابقاً) -->
-                <div class="current-location-banner" id="step1-saved-location-banner" style="display: none;">
-                    <div class="location-banner-info">
-                        <svg width="18" height="18" aria-hidden="true"><use href="#icon-map-pin"></use></svg>
-                        <span><span id="step1-saved-location-label" data-i18n="savedLocBannerPrefix">موقعك الحالي المحدد:</span> <strong id="step1-saved-location-text">كلية الذكاء الاصطناعي</strong></span>
-                    </div>
-                    <button type="button" class="btn btn-outline-sm" id="btn-change-location-step1">
-                        <span data-i18n="btnChangeLoc">تغيير الموقع</span>
-                    </button>
-                </div>
-            </div>
 
             <!-- تخطيط الفحص: عمودان على الديسكتوب وعمود واحد على الموبايل -->
             <div class="scan-desktop-layout">
@@ -461,7 +388,7 @@
                             <!-- وصف الملمس والخصائص -->
                             <div class="texture-box mt-3">
                                 <div class="text-xs font-bold text-gray-800 mb-1" id="cv-texture-label" data-i18n="textureLabel">وصف الملمس والخصائص البصرية:</div>
-                                <p class="text-xs text-gray-600" id="cv-texture-description">
+                                <p class="text-xs text-slate-700 font-medium leading-relaxed" id="cv-texture-description">
                                     سطح أملس شديد الشفافية، مرونة جيدة، قاع مقعر مع نقطة حقن دائرية مميزة، خفيف الوزن.
                                 </p>
                             </div>
@@ -651,7 +578,7 @@
                     <div class="destination-callout">
                         <span class="badge badge-emerald text-sm" id="rec-dest-badge" data-i18n="recDestBadge">🎯 الوجهة الموصى بها:</span>
                         <h3 class="destination-name" id="final-target-bin-name">كلية الذكاء الاصطناعي</h3>
-                        <div class="text-xs text-gray-500" id="final-target-bin-desc">حاوية بلاستيك PET متاحة بنسبة 35% سعة</div>
+                        <div class="text-xs text-slate-700 font-medium mt-0.5" id="final-target-bin-desc">حاوية بلاستيك PET متاحة بنسبة 35% سعة</div>
                     </div>
 
                     <div class="route-kpis-strip">
@@ -794,19 +721,19 @@
                             <span class="kpi-mini-lbl" id="metric-nodes-label" data-i18n="metricVisitedNodes">عقد مستكشفة</span>
                         </div>
                         <div class="kpi-mini-card">
-                            <span class="kpi-mini-val text-amber-700" id="metric-execution-time">0.05 ms</span>
+                            <span class="kpi-mini-val text-amber-700" id="metric-execution-time" dir="ltr">0.05 ms</span>
                             <span class="kpi-mini-lbl" id="metric-exec-label" data-i18n="metricExecTime">زمن تنفيذ الخوارزمية</span>
                         </div>
                     </div>
 
                     <div class="text-xs text-gray-500 mt-3 px-1 flex justify-between items-center">
                         <span id="step3-academic-tip" data-i18n-html="mapAcademicTip">💡 <strong>ميزة أكاديمية:</strong> انقر على أي كلية لتعديل حالة حاوياتها لمشاهدة الخوارزمية تتخطى الممتلئ وتعيد التوجيه لحظياً.</span>
-                        <span class="text-xs text-gray-400" id="step3-scroll-pan-tip" data-i18n="canvasScrollPan">تدعم السحب والتقريب (Scroll & Pan)</span>
+                        <span class="text-xs text-slate-500 font-medium" id="step3-scroll-pan-tip" data-i18n-html="canvasScrollPan">تدعم السحب والتقريب <span class="whitespace-nowrap" dir="ltr">(Scroll & Pan)</span></span>
                     </div>
 
                     <!-- جدول المقارنة الأكاديمية للمناقشة (Dijkstra vs A* & Merge Sort) -->
                     <div class="academic-evaluation-section mt-4">
-                        <h4 class="text-sm font-extrabold text-gray-900 mb-1" id="eval-panel-title" data-i18n="evalPanelTitle">لوحة تقييم الأداء الأكاديمي (Academic Evaluation Panel)</h4>
+                        <h4 class="text-sm font-extrabold text-gray-900 mb-1" id="eval-panel-title" data-i18n-html="evalPanelTitle">لوحة تقييم الأداء الأكاديمي <span class="whitespace-nowrap" dir="ltr">(Academic Evaluation Panel)</span></h4>
                         <p class="text-xs text-gray-500 mb-3" id="eval-panel-subtitle" data-i18n="evalPanelSubtitle">مقارنة زمنية وعقدية دقيقة بين خوارزميات البحث والترتيب للمناقشة الجامعية</p>
                         
                         <div class="table-responsive">
@@ -814,8 +741,8 @@
                                 <thead>
                                     <tr>
                                         <th id="th-criteria" data-i18n="colCriteria">المعيار الأكاديمي</th>
-                                        <th id="th-dijkstra" data-i18n="colDijkstra">خوارزمية ديكسترا (Dijkstra)</th>
-                                        <th id="th-astar" data-i18n="colAStar">خوارزمية إيه ستار (A*)</th>
+                                        <th id="th-dijkstra" data-i18n-html="colDijkstra">خوارزمية ديكسترا <bdi dir="ltr">(Dijkstra)</bdi></th>
+                                        <th id="th-astar" data-i18n-html="colAStar">خوارزمية إيه ستار <bdi dir="ltr">(A*)</bdi></th>
                                         <th id="th-conclusion" data-i18n="colConclusion">الاستنتاج التحليلي لمادة الخوارزميات</th>
                                     </tr>
                                 </thead>
@@ -830,7 +757,7 @@
                                     <h5 class="text-sm font-extrabold text-gray-900" id="merge-sort-title" data-i18n="mergeSortHeading">
                                         جميع الحاويات المتاحة بالجامعة مرتبة تصاعدياً حسب مسافة السير
                                     </h5>
-                                    <p class="text-xs text-gray-500" id="merge-sort-subtitle" data-i18n="mergeSortSubheading">تم الفرز باستخدام خوارزمية الترتيب بالدمج (Merge Sort - Divide & Conquer)</p>
+                                    <p class="text-xs text-gray-500" id="merge-sort-subtitle" data-i18n-html="mergeSortSubheading">تم الفرز باستخدام خوارزمية الترتيب بالدمج <bdi dir="ltr">(Merge Sort - Divide & Conquer)</bdi></p>
                                 </div>
                                 <span class="badge badge-emerald" id="merge-sort-badge" data-i18n="mergeSortBadge">Merge Sort Active</span>
                             </div>

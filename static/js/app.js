@@ -1052,9 +1052,14 @@ class EcoSortApp {
 
         const previewStatusText = document.getElementById('cv-preview-status-text');
         if (previewStatusText) {
-            previewStatusText.textContent = detection.isPreset
-                ? (isEn ? 'Reference sample loaded ✓' : 'تم تحميل العينة المرجعية ✓')
-                : (isEn ? `Classified via ${detection.modelName || 'AI'} ✓` : `تم الاستدلال بنجاح عبر ${detection.modelName || 'الذكاء الاصطناعي'} ✓`);
+            if (detection.isPreset) {
+                previewStatusText.textContent = isEn ? 'Reference sample loaded ✓' : 'تم تحميل العينة المرجعية ✓';
+            } else {
+                const modelLabel = EcoSortApp.escapeHtml(detection.modelName || (isEn ? 'AI' : 'الذكاء الاصطناعي'));
+                previewStatusText.innerHTML = isEn
+                    ? `Classified via <bdi dir="ltr">${modelLabel}</bdi> ✓`
+                    : `تم الاستدلال بنجاح عبر <bdi dir="ltr">${modelLabel}</bdi> ✓`;
+            }
         }
 
         // 2. تحديث خطوات الإعداد الصحيح ومؤشرات توفير الكربون (IR)
@@ -1559,6 +1564,16 @@ class EcoSortApp {
         if (mobileWalkingTime) {
             const mins = totalDistance === Infinity ? '-' : (totalDistance / 80).toFixed(1);
             mobileWalkingTime.textContent = isEn ? `(${mins} min walk)` : `(${mins} د مشي)`;
+        }
+
+        const btnMobileSimulateText = document.getElementById('btn-mobile-simulate-text');
+        const btnDesktopSimulateText = document.getElementById('btn-simulate-route-text');
+        if (totalDistance === 0) {
+            if (btnMobileSimulateText) btnMobileSimulateText.textContent = isEn ? 'Deposit Waste Here (0m)' : 'إيداع المخلفات في موقعك (0 م)';
+            if (btnDesktopSimulateText) btnDesktopSimulateText.textContent = isEn ? 'Deposit Waste (0m)' : 'إيداع المخلفات هنا (0 م)';
+        } else {
+            if (btnMobileSimulateText) btnMobileSimulateText.textContent = isEn ? 'Simulate Path Walk' : 'محاكاة السير في المسار';
+            if (btnDesktopSimulateText) btnDesktopSimulateText.textContent = isEn ? 'Simulate Walk' : 'محاكاة السير';
         }
     }
 
@@ -2079,7 +2094,7 @@ class EcoSortApp {
         if (legendFullText) legendFullText.textContent = t.legendFull;
         if (legendPathText) legendPathText.textContent = t.legendPath;
         if (step3AcademicTip) step3AcademicTip.innerHTML = t.mapAcademicTip;
-        if (step3ScrollPanTip) step3ScrollPanTip.textContent = t.canvasScrollPan;
+        if (step3ScrollPanTip) step3ScrollPanTip.innerHTML = t.canvasScrollPan;
         if (mobileRouteBadge) mobileRouteBadge.textContent = t.mobileRouteBadge;
         if (btnMobileSimulateText) btnMobileSimulateText.textContent = t.mobileSimulate;
         if (recDestBadge) recDestBadge.textContent = t.recDestBadge;
@@ -2088,14 +2103,14 @@ class EcoSortApp {
         if (metricNodesLabel) metricNodesLabel.textContent = t.metricVisitedNodes;
         if (metricExecLabel) metricExecLabel.textContent = t.metricExecTime;
         if (walkingStepsTitle) walkingStepsTitle.textContent = t.walkingStepsTitle;
-        if (evalPanelTitle) evalPanelTitle.textContent = t.evalPanelTitle;
+        if (evalPanelTitle) evalPanelTitle.innerHTML = t.evalPanelTitle;
         if (evalPanelSubtitle) evalPanelSubtitle.textContent = t.evalPanelSubtitle;
         if (thCriteria) thCriteria.textContent = t.colCriteria;
-        if (thDijkstra) thDijkstra.textContent = t.colDijkstra;
-        if (thAStar) thAStar.textContent = t.colAStar;
+        if (thDijkstra) thDijkstra.innerHTML = t.colDijkstra;
+        if (thAStar) thAStar.innerHTML = t.colAStar;
         if (thConclusion) thConclusion.textContent = t.colConclusion;
         if (mergeSortTitle) mergeSortTitle.textContent = t.mergeSortHeading;
-        if (mergeSortSubtitle) mergeSortSubtitle.textContent = t.mergeSortSubheading;
+        if (mergeSortSubtitle) mergeSortSubtitle.innerHTML = t.mergeSortSubheading;
         if (mergeSortBadge) mergeSortBadge.textContent = t.mergeSortBadge;
         if (btnBackStep2Text) btnBackStep2Text.textContent = t.btnBackStep2;
         if (btnRestartStep1Text) btnRestartStep1Text.textContent = t.btnRestart;

@@ -121,7 +121,7 @@ class EvaluationUI {
 
         const isEn = document.documentElement.lang === 'en';
 
-        if (timeElem) timeElem.textContent = `${active.executionTimeMs} ms`;
+        if (timeElem) timeElem.innerHTML = `<span dir="ltr">${active.executionTimeMs} ms</span>`;
         if (nodesElem) nodesElem.textContent = isEn ? `${active.visitedNodesCount} nodes` : `${active.visitedNodesCount} عُقدة`;
         if (distanceElem) {
             const unit = isEn ? 'meters' : 'متر';
@@ -149,7 +149,7 @@ class EvaluationUI {
                     });
                     const binLabel = isEn ? (bin ? (bin.labelEn || bin.label) : 'Available sorting bin') : (bin ? bin.label : 'حاوية متاحة');
                     targetDescElem.textContent = bin 
-                        ? (isEn ? `${binLabel} (Available - Current capacity: ${bin.capacity}%)` : `${bin.label} (متاحة بنسبة سعة ${bin.capacity}%)`)
+                        ? (isEn ? `${binLabel} (Available - Current capacity: ${bin.capacity}%)` : `${bin.label} (متاحة - نسبة الامتلاء الحالية: ${bin.capacity}%)`)
                         : (isEn ? 'Available matching sorting bin' : 'حاوية متاحة ومطابقة للفرز');
                 }
             }
@@ -186,7 +186,7 @@ class EvaluationUI {
         const isEn = document.documentElement.lang === 'en';
 
         const distanceDiff = dijkstra.totalDistance === astar.totalDistance 
-            ? (isEn ? '<span class="badge badge-success">Optimal & Identical (100%)</span>' : '<span class="badge badge-success">متطابقة ومثالية (Optimal 100%)</span>')
+            ? (isEn ? '<span class="badge badge-success">Optimal & Identical (100%)</span>' : '<span class="badge badge-success">متطابقة ومثالية <bdi dir="ltr">(Optimal 100%)</bdi></span>')
             : (isEn ? '<span class="badge badge-warning">Cost discrepancy</span>' : '<span class="badge badge-warning">اختلاف في التكلفة</span>');
 
         const savedNodes = dijkstra.visitedNodesCount - astar.visitedNodesCount;
@@ -205,8 +205,8 @@ class EvaluationUI {
         tableContainer.innerHTML = `
             <tr>
                 <td class="font-bold">${isEn ? 'Calculated Distance' : 'المسافة المحسوبة'}</td>
-                <td class="text-blue-600 font-semibold">${dijkstra.totalDistance} ${meter}</td>
-                <td class="text-purple-600 font-semibold">${astar.totalDistance} ${meter}</td>
+                <td class="text-blue-600 font-semibold"><span dir="ltr">${dijkstra.totalDistance} ${meter}</span></td>
+                <td class="text-purple-600 font-semibold"><span dir="ltr">${astar.totalDistance} ${meter}</span></td>
                 <td>${distanceDiff}</td>
             </tr>
             <tr>
@@ -217,15 +217,15 @@ class EvaluationUI {
             </tr>
             <tr>
                 <td class="font-bold">${isEn ? 'Execution Latency' : 'زمن التنفيذ (Latency)'}</td>
-                <td>${dijkstra.executionTimeMs} ms</td>
-                <td>${astar.executionTimeMs} ms</td>
-                <td class="text-xs text-gray-500">${isEn ? 'Microsecond precision via performance.now()' : 'دقة ميكروثانية عبر performance.now()'}</td>
+                <td><span dir="ltr" class="font-semibold text-slate-800">${dijkstra.executionTimeMs} ms</span></td>
+                <td><span dir="ltr" class="font-semibold text-slate-800">${astar.executionTimeMs} ms</span></td>
+                <td class="text-xs text-slate-700">${isEn ? 'Microsecond precision via performance.now()' : 'دقة ميكروثانية عبر <code dir="ltr">performance.now()</code>'}</td>
             </tr>
             <tr>
                 <td class="font-bold">${isEn ? 'Theoretical Complexity' : 'التعقيد النظري (Complexity)'}</td>
-                <td><code>O((V + E) log V)</code></td>
-                <td><code>O(b^d) / Heuristic</code></td>
-                <td class="text-xs text-gray-500">${isEn ? 'Admissible Euclidean distance heuristic' : 'حساب استرشادي Euclidean'}</td>
+                <td><code dir="ltr">O((V + E) log V)</code></td>
+                <td><code dir="ltr">O(b^d) / Heuristic</code></td>
+                <td class="text-xs text-slate-700">${isEn ? 'Admissible Euclidean distance heuristic' : 'حساب استرشادي <bdi dir="ltr">(Euclidean)</bdi>'}</td>
             </tr>
         `;
     }
@@ -256,7 +256,7 @@ class EvaluationUI {
             const isClosest = index === 0;
             const rankBadge = isClosest 
                 ? (isEn ? '<span class="badge badge-emerald">Closest to You</span>' : '<span class="badge badge-emerald">الأقرب إليك</span>')
-                : (isEn ? `<span class="badge badge-gray">Rank #${index + 1}</span>` : `<span class="badge badge-gray">الترتيب #${index + 1}</span>`);
+                : (isEn ? `<span class="badge badge-gray">Rank #${index + 1}</span>` : `<span class="badge badge-gray">المركز ${index + 1}</span>`);
 
             const nodeObj = window.CAMPUS_GRAPH_DATA ? window.CAMPUS_GRAPH_DATA.nodes.find(n => n.id === bin.nodeId) : null;
             const displayName = isEn && nodeObj ? (nodeObj.nameEn || bin.nodeName) : bin.nodeName;
@@ -269,17 +269,17 @@ class EvaluationUI {
                 <div class="sorted-bin-item ${isClosest ? 'closest-bin' : ''}">
                     <div class="bin-item-info">
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-gray-800">${displayName}</span>
+                            <span class="font-bold text-gray-900">${displayName}</span>
                             ${rankBadge}
                         </div>
-                        <div class="text-xs text-gray-500 mt-0.5">${displaySub} | ${bin.binLabel}</div>
+                        <div class="text-xs text-slate-600 font-medium mt-0.5">${displaySub} | ${bin.binLabel}</div>
                     </div>
                     <div class="bin-item-meta">
                         <div class="distance-metric">
                             <span class="distance-value">${bin.distance}</span>
                             <span class="distance-unit">${unit}</span>
                         </div>
-                        <div class="text-xs text-gray-400">${walkText}</div>
+                        <div class="text-xs text-slate-600 font-medium">${walkText}</div>
                         <button class="btn btn-outline-sm mt-1" onclick="window.app.navigateToTarget('${bin.nodeId}')">
                             ${btnText}
                         </button>

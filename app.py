@@ -20,6 +20,7 @@ logger = logging.getLogger('EcoSortApp')
 # Initialize Flask application
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Configure CORS
 if Config.CORS_ORIGINS == '*':
