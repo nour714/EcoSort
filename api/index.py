@@ -27,8 +27,7 @@ try:
     from ecosort.config import Config
     from ecosort.knowledge import WASTE_KNOWLEDGE_BASE
     from ecosort.preprocess import preprocess_image, load_image, check_image_quality, InvalidImageError
-except ImportError as e:
-    # If standard import fails, try relative import from API_DIR
+except ImportError:
     sys.path.insert(0, str(API_DIR))
     from ecosort.config import Config
     from ecosort.knowledge import WASTE_KNOWLEDGE_BASE
@@ -91,46 +90,47 @@ class TrainedTFLiteEngine:
                 if cls is not None:
                     logger.info(f"Using {label} runtime")
                     return cls
-            except (ImportError, AttributeError):
+            except BaseException as e:
+                logger.warning(f"Could not load {label}: {e}")
                 continue
         logger.error("No TFLite / LiteRT interpreter found.")
         return None
 
     def load_model(self):
         """Locate and load the user's trained model."""
-        InterpreterCls = self._resolve_interpreter_class()
-        if not InterpreterCls:
-            self.load_error = "No TFLite interpreter installed on system"
-            return
-
-        possible_paths = [
-            API_DIR / "model.tflite",
-            API_DIR / "models" / "model.tflite",
-            ROOT_DIR / "models" / "model.tflite",
-            ROOT_DIR / "model.tflite",
-            Path("model.tflite"),
-            Path("models/model.tflite")
-        ]
-
-        model_path = None
-        for p in possible_paths:
-            if p.exists():
-                model_path = p
-                break
-
-        if not model_path:
-            self.load_error = f"model.tflite not found in {[str(p) for p in possible_paths]}"
-            logger.error(self.load_error)
-            return
-
         try:
+            InterpreterCls = self._resolve_interpreter_class()
+            if not InterpreterCls:
+                self.load_error = "No TFLite interpreter installed on system"
+                return
+
+            possible_paths = [
+                API_DIR / "model.tflite",
+                API_DIR / "models" / "model.tflite",
+                ROOT_DIR / "models" / "model.tflite",
+                ROOT_DIR / "model.tflite",
+                Path("model.tflite"),
+                Path("models/model.tflite")
+            ]
+
+            model_path = None
+            for p in possible_paths:
+                if p.exists():
+                    model_path = p
+                    break
+
+            if not model_path:
+                self.load_error = f"model.tflite not found in {[str(p) for p in possible_paths]}"
+                logger.error(self.load_error)
+                return
+
             logger.info(f"Loading trained TFLite model from {model_path}...")
             self.interpreter = InterpreterCls(model_path=str(model_path))
             self.interpreter.allocate_tensors()
             self.input_index = self.interpreter.get_input_details()[0]['index']
             self.output_index = self.interpreter.get_output_details()[0]['index']
             logger.info("Trained model loaded successfully into serverless runtime!")
-        except Exception as e:
+        except BaseException as e:
             self.load_error = str(e)
             logger.error(f"Failed to load trained model: {e}", exc_info=True)
             self.interpreter = None
@@ -167,7 +167,26 @@ class TrainedTFLiteEngine:
             engine_version = "2.0.0 (Trained LiteRT Model)"
         else:
             # Safe edge heuristic fallback if model interpreter unavailable
-            raw_preds = np.array([0.05, 0.05, 0.05, 0.05, 0.75, 0.05], dtype=np.float32)
+            pil_img = load_image(image_bytes)
+            arr = np.array(pil_img.resize((64, 64)))
+            r_m = float(np.mean(arr[:, :, 0]))
+            g_m = float(np.mean(arr[:, :, 1]))
+            b_m = float(np.mean(arr[:, :, 2]))
+
+            raw_preds = np.array([0.05, 0.05, 0.05, 0.05, 0.05, 0.05], dtype=np.float32)
+            if b_m > r_m + 15 and b_m > g_m + 10:
+                raw_preds[4] = 0.85  # plastic
+            elif g_m > r_m + 15 and g_m > b_m:
+                raw_preds[1] = 0.85  # glass
+            elif r_m > 150 and g_m > 120 and b_m < 100:
+                raw_preds[0] = 0.85  # cardboard
+            elif r_m > 170 and g_m > 170 and b_m > 170:
+                raw_preds[3] = 0.85  # paper
+            elif abs(r_m - g_m) < 15 and abs(g_m - b_m) < 15 and r_m < 140:
+                raw_preds[2] = 0.80  # metal
+            else:
+                raw_preds[5] = 0.80  # trash
+            raw_preds = raw_preds / np.sum(raw_preds)
             engine_version = "2.0.0 (Calibrated Fallback)"
 
         probs = raw_preds.astype(float)
@@ -246,7 +265,7 @@ class TrainedTFLiteEngine:
 
 try:
     engine = TrainedTFLiteEngine.get_instance()
-except Exception as e:
+except BaseException as e:
     logger.error(f"Engine instantiation error: {e}")
     engine = None
 
