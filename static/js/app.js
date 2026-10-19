@@ -21,7 +21,7 @@ class EcoSortApp {
     constructor() {
         // إدارة حالة المعالج (Wizard State)
         this.currentStep = 1;                                                    // الخطوة الحالية (1: الفحص، 2: الموقع، 3: المسار)
-        this.currentLocation = localStorage.getItem('ecosort_user_location') || null; // معرف الموقع المحفوظ
+        this.currentLocation = null;                                            // تحديد الموقع إجباري لكل عملية فرز جديدة
         this.currentWasteType = null;                                            // نوع الخامة (يحدد بعد الفحص)
         this.currentWasteItem = null;                                            // كائن المادة المكتشفة
         this.activeAlgorithm = 'dijkstra';                                       // الخوارزمية النشطة
@@ -469,7 +469,7 @@ class EcoSortApp {
             btnChangeLoc1.addEventListener('click', () => this.goToStep(2));
         }
 
-        // الشاشة 1: إظهار الخريطة وأقرب حاوية بعد الفحص
+        // الشاشة 1: الانتقال للخطوة التالية لتحديد الموقع إجبارياً
         const btnGoRoute = document.getElementById('btn-go-to-route');
         if (btnGoRoute) {
             btnGoRoute.addEventListener('click', () => {
@@ -478,11 +478,8 @@ class EcoSortApp {
                     this.showToast(t.toastErrWasteTitle || 'افحص المخلفات أولاً', t.toastErrWasteMsg || 'يرجى التقاط صورة أو اختيار خامة لتحديد أقرب حاوية.', 'uncertain');
                     return;
                 }
-                if (!this.currentLocation) {
-                    this.goToStep(2);
-                } else {
-                    this.goToStep(3);
-                }
+                // إجباري: الانتقال دائماً إلى الخطوة 2 لتحديد الموقع
+                this.goToStep(2);
             });
         }
 
@@ -511,8 +508,14 @@ class EcoSortApp {
         const btnChangeLoc3 = document.getElementById('btn-change-location-step3');
         if (btnChangeLoc3) btnChangeLoc3.addEventListener('click', () => this.goToStep(2));
 
+        const handleRescan = () => {
+            this.currentWasteItem = null;
+            this.currentWasteType = null;
+            this.currentLocation = null;
+            this.goToStep(1);
+        };
         const btnRescanStep3 = document.getElementById('btn-rescan-step3');
-        if (btnRescanStep3) btnRescanStep3.addEventListener('click', () => this.goToStep(1));
+        if (btnRescanStep3) btnRescanStep3.addEventListener('click', handleRescan);
 
         const btnStartWalk = document.getElementById('btn-start-walking-guide');
         if (btnStartWalk) {
@@ -520,10 +523,10 @@ class EcoSortApp {
         }
 
         const btnRestartStep1 = document.getElementById('btn-restart-step-1');
-        if (btnRestartStep1) btnRestartStep1.addEventListener('click', () => this.goToStep(1));
+        if (btnRestartStep1) btnRestartStep1.addEventListener('click', handleRescan);
 
         const btnScanAnotherBottom = document.getElementById('btn-scan-another-bottom');
-        if (btnScanAnotherBottom) btnScanAnotherBottom.addEventListener('click', () => this.goToStep(1));
+        if (btnScanAnotherBottom) btnScanAnotherBottom.addEventListener('click', handleRescan);
     }
 
     /**

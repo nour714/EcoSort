@@ -10,8 +10,8 @@
 const ECOSORT_TRANSLATIONS = {
     ar: {
         pageTitle: "EcoSort - نظام الفرز والتوجيه الذكي بجامعة كفر الشيخ",
-        brandTitleHtml: "| <span>جامعة كفر الشيخ</span>",
-        brandSubtitle: "نظام الفرز والتوجيه الذكي للحرم الجامعي",
+        brandTitleHtml: "",
+        brandSubtitle: "",
         langBtnText: "English",
         skipLink: "تخطي إلى المحتوى الرئيسي",
 
@@ -95,7 +95,11 @@ const ECOSORT_TRANSLATIONS = {
         decisionRejectedDesc: "الصورة غير واضحة أو أن المادة غير مصنفة بدقة. يُرجى إعادة التقاط الصورة أو اختيار الخامة يدوياً.",
         btnRetryScan: "إعادة التقاط الصورة",
         btnManualSelect: "اختيار الخامة من القائمة اليدوية",
-        btnFindNearestBin: "إظهار الخريطة وأقرب حاوية",
+        btnNextToLocation: "الخطوة التالية: تحديد موقعك بالحرم",
+        btnFindNearestBin: "الخطوة التالية: تحديد موقعك بالحرم",
+        step2HeroTitle: "أين موقعك الحالي داخل الحرم؟",
+        step2HeroDesc: "اختر كليتك أو مكان تواجدك الآن لنرشدك إلى أقرب حاوية مخصصة لنوع المخلفات المفحوص بأقصر مسار مشي.",
+        btnContinueToRoute: "عرض المسار إلى أقرب حاوية",
         analyzingPhoto: "جاري تحليل الصورة بواسطة الذكاء الاصطناعي...",
 
         // تحذيرات جودة الصورة والنصائح
@@ -223,8 +227,8 @@ const ECOSORT_TRANSLATIONS = {
 
     en: {
         pageTitle: "EcoSort - Smart Waste Sorting & Campus Route Guidance (Kafrelsheikh University)",
-        brandTitleHtml: "| <span>Kafrelsheikh University</span>",
-        brandSubtitle: "Smart Campus Waste Sorting & Route Guidance System",
+        brandTitleHtml: "",
+        brandSubtitle: "",
         langBtnText: "العربية",
         skipLink: "Skip to main content",
 
@@ -308,7 +312,11 @@ const ECOSORT_TRANSLATIONS = {
         decisionRejectedDesc: "Image is ambiguous or low quality. Please retake the photo or choose the material from the manual list.",
         btnRetryScan: "Retake Photo",
         btnManualSelect: "Select Material Manually",
-        btnFindNearestBin: "Show Map & Nearest Bin",
+        btnNextToLocation: "Next: Select Your Campus Location",
+        btnFindNearestBin: "Next: Select Your Campus Location",
+        step2HeroTitle: "Where is your current campus location?",
+        step2HeroDesc: "Select your faculty or current building so we can guide you to the nearest matching bin along the shortest walking path.",
+        btnContinueToRoute: "Show Route to Nearest Bin",
         analyzingPhoto: "Analyzing photo with deep learning model...",
 
         // Image Quality Warnings & Guidance

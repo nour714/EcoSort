@@ -135,11 +135,10 @@
             <!-- الشعار وعنوان المشروع -->
             <div class="brand-section">
                 <div class="brand-logo-icon" aria-hidden="true">
-                    <img src="static/assets/images/logo-icon.png" alt="شعار نظام EcoSort" class="brand-logo-img" width="44" height="44">
+                    <img src="static/assets/images/logo-icon.png" alt="شعار نظام EcoSort" class="brand-logo-img" width="40" height="40">
                 </div>
                 <div class="brand-title-wrap">
-                    <h1>EcoSort <span id="brand-title-university">| جامعة كفر الشيخ</span></h1>
-                    <div class="brand-subtitle" id="brand-subtitle">نظام الفرز والتوجيه الذكي للحرم الجامعي</div>
+                    <h1 class="brand-name">EcoSort</h1>
                 </div>
             </div>
 
@@ -463,11 +462,11 @@
                             </details>
                         </div>
 
-                        <!-- زر الإجراء الرئيسي: إظهار الخريطة وأقرب حاوية -->
+                        <!-- زر الإجراء الرئيسي: الانتقال للخطوة التالية لتحديد الموقع -->
                         <div class="result-actions-strip">
                             <button type="button" class="btn btn-primary btn-lg w-full" id="btn-go-to-route" disabled>
-                                <span id="btn-go-to-route-text" data-i18n="btnFindNearestBin">إظهار الخريطة وأقرب حاوية متاحة</span>
-                                <svg width="20" height="20" aria-hidden="true"><use href="#icon-route"></use></svg>
+                                <span id="btn-go-to-route-text" data-i18n="btnNextToLocation">الخطوة التالية: تحديد موقعك بالحرم</span>
+                                <svg width="20" height="20" aria-hidden="true"><use href="#icon-map-pin"></use></svg>
                             </button>
                         </div>
                     </article>
@@ -483,9 +482,9 @@
                 <div class="hero-icon-bubble">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 </div>
-                <h2 id="step-2-title" class="step-hero-title" data-i18n="step1HeroTitle">أهلاً بك في نظام EcoSort الذكي</h2>
-                <p class="step-hero-desc" id="step-2-desc" data-i18n="step1HeroDesc">
-                    اختر موقعك الحالي داخل حرم جامعة كفر الشيخ لنتمكن من توجيهك لأقرب حاوية متاحة بأقل مسافة سير.
+                <h2 id="step-2-title" class="step-hero-title" data-i18n="step2HeroTitle">أين موقعك الحالي داخل الحرم؟</h2>
+                <p class="step-hero-desc" id="step-2-desc" data-i18n="step2HeroDesc">
+                    اختر كليتك أو مكان تواجدك الآن لنرشدك إلى أقرب حاوية مخصصة لنوع المخلفات المفحوص بأقصر مسار مشي.
                 </p>
 
                 <!-- زر محاكاة الـ GPS التلقائي -->
@@ -544,7 +543,7 @@
                 </button>
 
                 <button type="button" class="btn btn-primary btn-lg" id="btn-go-to-step-3" disabled>
-                    <span id="btn-go-to-step-3-text" data-i18n="btnContinueToRoute">متابعة إلى المسار الأقرب</span>
+                    <span id="btn-go-to-step-3-text" data-i18n="btnContinueToRoute">عرض المسار إلى أقرب حاوية</span>
                     <svg width="20" height="20" aria-hidden="true"><use href="#icon-route"></use></svg>
                 </button>
             </div>

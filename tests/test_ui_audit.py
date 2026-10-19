@@ -240,15 +240,23 @@ def test_route_summary_card_and_walking_guide(live_server, browser_instance):
     page = context.new_page()
     page.goto(live_server, wait_until="networkidle")
 
-    # Select location and item
+    # 1. Inspect item in Step 1
     page.evaluate("""() => {
-        window.app.selectLocation('gate');
         window.app.visionModule.selectPreset('pet_bottle');
     }""")
     page.wait_for_timeout(200)
 
-    # Click go to route
+    # 2. Click next to location (Step 2 is mandatory)
     page.click("#btn-go-to-route")
+    page.wait_for_timeout(300)
+    assert page.is_visible("#wizard-step-2")
+
+    # In Step 2, select location
+    page.click('.location-card[data-node-id="gate"]')
+    page.wait_for_timeout(200)
+
+    # 3. Click continue to route (Step 3)
+    page.click("#btn-go-to-step-3")
     page.wait_for_timeout(300)
 
     assert page.is_visible("#wizard-step-3")
