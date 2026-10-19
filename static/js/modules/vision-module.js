@@ -221,7 +221,7 @@ class VisionModule {
                     confidenceFormatted: k.confidence_formatted || `${k.confidence}%`
                 };
             }),
-            inferenceTimeMs: data.inference_time_ms || 18.5,
+            inferenceTimeMs: data.inference_time_ms != null ? Number(data.inference_time_ms) : null,
             modelName: data.model_version || (data.backendData && data.backendData.model_version) || 'EcoSort Model',
             texture: data.texture_description_ar || wasteItem.textureDescription,
             opticalFeatures: `موديل Deep Learning: تم تصنيف المادة كـ "${data.material_name_ar || data.material}" بنسبة ثقة ${data.confidence_formatted || (data.confidence + '%')}`,
@@ -294,7 +294,7 @@ class VisionModule {
         } catch (err) {
             this.isProcessing = false;
             console.error('[VisionModule] خطأ أثناء استدعاء الباك اند:', err);
-            throw new Error(`فشل الاتصال بسيرفر الذكاء الاصطناعي (Flask Backend). تأكد من تشغيل python app.py: ${err.message}`);
+            throw new Error(err.message || 'تعذر الاتصال بخدمة الذكاء الاصطناعي. يرجى التأكد من اتصال الإنترنت والمحاولة لاحقاً.');
         }
 
         return new Promise((resolve) => {

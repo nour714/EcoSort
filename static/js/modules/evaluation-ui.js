@@ -282,7 +282,7 @@ class EvaluationUI {
                             <span class="distance-unit">${unit}</span>
                         </div>
                         <div class="text-xs text-slate-600 font-medium">${walkText}</div>
-                        <button class="btn btn-outline-sm mt-1" onclick="window.app.navigateToTarget('${bin.nodeId}')">
+                        <button type="button" class="btn btn-outline-sm mt-1 btn-navigate-target" data-target-node="${bin.nodeId}">
                             ${btnText}
                         </button>
                     </div>
@@ -291,6 +291,15 @@ class EvaluationUI {
         });
 
         container.innerHTML = html;
+
+        container.querySelectorAll('.btn-navigate-target').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetNode = btn.getAttribute('data-target-node');
+                if (window.app && typeof window.app.navigateToTarget === 'function') {
+                    window.app.navigateToTarget(targetNode);
+                }
+            });
+        });
     }
 }
 

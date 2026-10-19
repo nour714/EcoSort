@@ -213,6 +213,12 @@ const ECOSORT_TRANSLATIONS = {
         toastCameraDeniedMsg: "يرجى السماح بالوصول للكاميرا من إعدادات المتصفح أو رفع صورة من الجهاز.",
         toastNetworkErrTitle: "خطأ في الاتصال بالخادم",
         toastNetworkErrMsg: "تعذّر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والمحاولة مجدداً.",
+        toastDijkstraTitle: "تم التبديل إلى Dijkstra",
+        toastDijkstraMsg: "خوارزمية المسافات الكلاسيكية لأقصر مسار.",
+        toastAStarTitle: "تم التبديل إلى A* Search",
+        toastAStarMsg: "خوارزمية التوجيه الذكي باستخدام دالة Heuristic.",
+        toastNoRouteTitle: "لا يوجد مسار محدد",
+        toastNoRouteMsg: "يرجى اختيار موقعك ونوع المخلفات أولاً.",
 
         // الفوتر وتيسير الاستخدام
         footerHtml: "نظام <strong>EcoSort</strong> الذكي &copy; 2026 - جامعة كفر الشيخ | كلية الذكاء الاصطناعي",
@@ -431,6 +437,12 @@ const ECOSORT_TRANSLATIONS = {
         toastCameraDeniedMsg: "Please allow camera access in browser settings or upload an image file.",
         toastNetworkErrTitle: "Server Connection Error",
         toastNetworkErrMsg: "Could not reach the server. Please verify the server is running and try again.",
+        toastDijkstraTitle: "Switched to Dijkstra",
+        toastDijkstraMsg: "Classic shortest-path distance algorithm.",
+        toastAStarTitle: "Switched to A* Search",
+        toastAStarMsg: "Heuristic-guided intelligent pathfinding algorithm.",
+        toastNoRouteTitle: "No route specified",
+        toastNoRouteMsg: "Please select your current location and waste item first.",
 
         // Footer & Accessibility
         footerHtml: "Smart <strong>EcoSort</strong> System &copy; 2026 - Kafrelsheikh University | Faculty of AI",

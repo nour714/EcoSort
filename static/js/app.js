@@ -1369,14 +1369,24 @@ class EcoSortApp {
         if (btnDijkstra) {
             btnDijkstra.addEventListener('click', () => {
                 this.evaluationUI.setAlgorithm('dijkstra');
-                this.showToast('🔍 تم التبديل إلى Dijkstra', 'خوارزمية المسافات الكلاسيكية لأقصر مسار.');
+                const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || {};
+                const isEn = this.currentLang === 'en';
+                this.showToast(
+                    t.toastDijkstraTitle || (isEn ? 'Switched to Dijkstra' : 'تم التبديل إلى Dijkstra'),
+                    t.toastDijkstraMsg || (isEn ? 'Classic shortest-path distance algorithm.' : 'خوارزمية المسافات الكلاسيكية لأقصر مسار.')
+                );
             });
         }
 
         if (btnAStar) {
             btnAStar.addEventListener('click', () => {
                 this.evaluationUI.setAlgorithm('astar');
-                this.showToast('⚡ تم التبديل إلى A* Search', 'خوارزمية التوجيه الذكي باستخدام دالة Heuristic.');
+                const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || {};
+                const isEn = this.currentLang === 'en';
+                this.showToast(
+                    t.toastAStarTitle || (isEn ? 'Switched to A* Search' : 'تم التبديل إلى A* Search'),
+                    t.toastAStarMsg || (isEn ? 'Heuristic-guided intelligent pathfinding algorithm.' : 'خوارزمية التوجيه الذكي باستخدام دالة Heuristic.')
+                );
             });
         }
 
@@ -1482,7 +1492,12 @@ class EcoSortApp {
                 );
             });
         } else {
-            this.showToast('⚠️ لا يوجد مسار محدد', 'يرجى اختيار موقعك ونوع المخلفات أولاً.');
+            const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || {};
+            const isEn = this.currentLang === 'en';
+            this.showToast(
+                t.toastNoRouteTitle || (isEn ? 'No route specified' : 'لا يوجد مسار محدد'),
+                t.toastNoRouteMsg || (isEn ? 'Please select your current location and waste item first.' : 'يرجى اختيار موقعك ونوع المخلفات أولاً.')
+            );
         }
     }
 
@@ -1816,13 +1831,20 @@ class EcoSortApp {
                         </div>
                         <div class="bin-actions">
                             ${statusBadge}
-                            <button class="btn ${btnClass} btn-sm" onclick="window.app.toggleBinInModal('${bin.type}')">
+                            <button type="button" class="btn ${btnClass} btn-sm btn-toggle-modal-bin" data-bin-type="${bin.type}">
                                 ${btnLabel}
                             </button>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            modalBinsList.querySelectorAll('.btn-toggle-modal-bin').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const binType = btn.getAttribute('data-bin-type');
+                    this.toggleBinInModal(binType);
+                });
+            });
         }
 
         modal.classList.remove('hidden');
