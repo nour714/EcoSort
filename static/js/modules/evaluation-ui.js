@@ -11,7 +11,7 @@
  */
 
 class EvaluationUI {
-    constructor({ onAlgorithmChanged, onNavigateToBin }) {
+    constructor({ onAlgorithmChanged, onNavigateToBin } = {}) {
         this.currentAlgorithm = 'dijkstra'; // 'dijkstra' أو 'astar'
         this.onAlgorithmChanged = onAlgorithmChanged;
         this.onNavigateToBin = onNavigateToBin;
@@ -63,26 +63,26 @@ class EvaluationUI {
         // 5. تجميع بيانات الحاويات المتاحة
         const availableBinsList = [];
         targetNodes.forEach(node => {
-            const dist = allDistances.get(node.id) || Infinity;
-            if (dist < Infinity) {
-                // إيجاد الحاوية الخاصة بهذا النوع داخل الكلية
-                const bin = node.bins.find(b => {
-                    if (wasteType === 'plastic' || wasteType === 'pet' || wasteType === 'hdpe') {
-                        return (b.type === 'plastic' || b.type === 'pet' || b.type === 'hdpe') && b.available;
-                    }
-                    return b.type === wasteType && b.available;
-                });
+            const dist = allDistances.get(node.id);
+            if (dist === undefined || dist === Infinity) return;
 
-                availableBinsList.push({
-                    nodeId: node.id,
-                    nodeName: node.name,
-                    subtitle: node.subtitle,
-                    distance: dist,
-                    walkingMinutes: Number((dist / 80).toFixed(1)), // متوسط سرعة مشي 80م/دقيقة
-                    capacity: bin ? bin.capacity : 50,
-                    binLabel: bin ? bin.label : 'حاوية متاحة'
-                });
-            }
+            // إيجاد الحاوية الخاصة بهذا النوع داخل الكلية
+            const bin = node.bins.find(b => {
+                if (wasteType === 'plastic' || wasteType === 'pet' || wasteType === 'hdpe') {
+                    return (b.type === 'plastic' || b.type === 'pet' || b.type === 'hdpe') && b.available;
+                }
+                return b.type === wasteType && b.available;
+            });
+
+            availableBinsList.push({
+                nodeId: node.id,
+                nodeName: node.name,
+                subtitle: node.subtitle,
+                distance: dist,
+                walkingMinutes: Number((dist / 80).toFixed(1)), // متوسط سرعة مشي 80م/دقيقة
+                capacity: bin ? bin.capacity : 50,
+                binLabel: bin ? bin.label : 'حاوية متاحة'
+            });
         });
 
         // 6. تطبيق خوارزمية Merge Sort لترتيب الحاويات تصاعدياً حسب المسافة
@@ -100,9 +100,11 @@ class EvaluationUI {
         };
 
         this.lastEvaluation = evaluationData;
-        this.renderMetrics(evaluationData);
-        this.renderSortedBinsTable(evaluationData.sortedBins);
-        this.renderComparisonTable(dijkstraResult, astarResult);
+        if (typeof document !== 'undefined') {
+            this.renderMetrics(evaluationData);
+            this.renderSortedBinsTable(evaluationData.sortedBins);
+            this.renderComparisonTable(dijkstraResult, astarResult);
+        }
 
         return evaluationData;
     }
