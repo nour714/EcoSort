@@ -3,4 +3,3 @@ Flask-Cors==6.0.2
 Pillow==11.3.0
 numpy==2.2.6
 requests==2.32.3
-ai-edge-litert>=2.1.0

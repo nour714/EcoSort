@@ -477,11 +477,15 @@
     display: flex;
     gap: 0.85rem;
     margin-bottom: 1.25rem;
+    max-width: 620px;
+    margin-inline: auto;
+    width: 100%;
 }
 
 @media (max-width: 600px) {
     .cv-actions-bar {
         flex-direction: column;
+        max-width: 100%;
     }
 }
 
@@ -590,7 +594,8 @@
     display: flex;
     align-items: center;
     gap: 1.25rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
+    width: 100%;
     color: var(--slate-600);
     transition: all 0.3s ease;
 }
@@ -1968,22 +1973,17 @@ html[dir="ltr"] .step-check {
     font-weight: normal;
 }
 
-/* ==================== تخطيط الفحص المكتبي (Desktop Two-Column) ==================== */
+/* ==================== تخطيط الفحص بالعرض الكامل والنتائج تحته ==================== */
 .scan-desktop-layout {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-6);
-    align-items: start;
-}
-
-@media (min-width: 992px) {
-    .scan-desktop-layout {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-    }
+    width: 100%;
 }
 
 .scan-col-viewfinder,
 .scan-col-result {
+    width: 100%;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -1992,19 +1992,37 @@ html[dir="ltr"] .step-check {
 
 /* Aspect-ratio reservation on camera/dropzone to avoid CLS */
 .cv-dropzone {
-    aspect-ratio: 4 / 3;
-    min-height: 260px;
-    max-height: 420px;
+    min-height: 220px;
+    max-height: 380px;
+    width: 100%;
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-lg);
 }
 
-.cv-camera-stream-container video,
-.cv-image-preview-container img {
+.cv-camera-stream-container video {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.cv-image-preview-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+.cv-image-preview-container img {
+    max-height: 300px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    margin: 0 auto;
 }
 
 /* ==================== الهيكل التحميلي (Skeleton Loader) ==================== */
