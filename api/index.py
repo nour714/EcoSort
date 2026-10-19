@@ -328,14 +328,14 @@ except Exception:
 
 
 if STARTUP_ERROR:
+    sys.stderr.write(f"EcoSort Startup Error:\n{STARTUP_ERROR}\n")
+
     def error_app(environ, start_response):
+        sys.stderr.write(f"[ERROR] Service unavailable due to startup error: {STARTUP_ERROR}\n")
         body = json.dumps({
             'status': 'error',
-            'type': 'STARTUP_ERROR',
-            'traceback': STARTUP_ERROR,
-            'python_version': sys.version,
-            'sys_path': sys.path
-        }, indent=2).encode('utf-8')
+            'message': 'Service temporarily unavailable'
+        }).encode('utf-8')
         start_response('500 Internal Server Error', [
             ('Content-Type', 'application/json; charset=utf-8'),
             ('Content-Length', str(len(body)))

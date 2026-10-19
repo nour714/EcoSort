@@ -68,3 +68,34 @@ def test_vercel_security_headers(vercel_client):
     assert res.headers.get('X-Frame-Options') == 'SAMEORIGIN'
     assert res.headers.get('Referrer-Policy') == 'strict-origin-when-cross-origin'
 
+
+def test_vercel_startup_error_forces_500_and_no_leak():
+    """Forces a startup error in api.index and asserts no Traceback or sys_path appears in response."""
+    import json
+    import sys
+    from unittest.mock import patch
+    from werkzeug.test import Client
+    from werkzeug.wrappers import Response
+
+    with patch.dict(sys.modules):
+        sys.modules.pop("api.index", None)
+        with patch("flask.Flask", side_effect=RuntimeError("Simulated critical startup error")):
+            import api.index as error_module
+            assert error_module.STARTUP_ERROR is not None
+
+            client = Client(error_module.app, Response)
+            resp = client.get("/health")
+            assert resp.status_code == 500
+
+            text = resp.get_data(as_text=True)
+            assert "Traceback" not in text
+            assert "sys_path" not in text
+            assert "python_version" not in text
+            assert "Simulated critical startup error" not in text
+
+            payload = json.loads(text)
+            assert payload == {
+                "status": "error",
+                "message": "Service temporarily unavailable"
+            }
+
