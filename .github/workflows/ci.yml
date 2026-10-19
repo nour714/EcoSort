@@ -32,3 +32,22 @@ jobs:
     - name: Run pytest test suite
       run: |
         pytest -v tests/
+
+  vercel-clean-runtime:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Run clean venv test with api/requirements.txt ONLY
+      run: |
+        python -m venv .clean_venv
+        . .clean_venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install -r api/requirements.txt pytest
+        python -m pytest tests/test_vercel_clean_engine.py -v

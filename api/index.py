@@ -30,7 +30,7 @@ try:
 
     from ecosort.config import Config
     from ecosort.knowledge import WASTE_KNOWLEDGE_BASE
-    from ecosort.preprocess import InvalidImageError, load_image, preprocess_image
+    from ecosort.preprocess import InvalidImageError, preprocess_image
 
     # Configure logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
@@ -66,17 +66,21 @@ try:
             return cls._instance
 
         def load_model(self):
-            """Try loading TFLite interpreter safely without crashing on missing C libraries."""
+            """Try loading LiteRT/TFLite interpreter safely."""
             try:
-                from tflite_runtime.interpreter import Interpreter
+                from ai_edge_litert.interpreter import Interpreter
             except BaseException:
                 try:
-                    from tensorflow.lite.python.interpreter import Interpreter
+                    from tflite_runtime.interpreter import Interpreter
                 except BaseException:
-                    Interpreter = None
+                    try:
+                        from tensorflow.lite.python.interpreter import Interpreter
+                    except BaseException:
+                        Interpreter = None
 
             if not Interpreter:
-                logger.info("Running in calibrated edge serverless mode.")
+                logger.warning("No LiteRT/TFLite runtime available.")
+                self.interpreter = None
                 return
 
             possible_paths = [
@@ -87,6 +91,8 @@ try:
 
             model_path = next((p for p in possible_paths if p.exists()), None)
             if not model_path:
+                logger.warning(f"No model.tflite found at paths: {possible_paths}")
+                self.interpreter = None
                 return
 
             try:
@@ -94,12 +100,15 @@ try:
                 self.interpreter.allocate_tensors()
                 self.input_index = self.interpreter.get_input_details()[0]['index']
                 self.output_index = self.interpreter.get_output_details()[0]['index']
-                logger.info("TFLite model loaded successfully!")
+                logger.info("LiteRT/TFLite model loaded successfully!")
             except BaseException as e:
                 logger.warning(f"TFLite interpreter allocation warning: {e}")
                 self.interpreter = None
 
         def predict(self, image_bytes: bytes, use_tta=False) -> dict:
+            if self.interpreter is None:
+                raise RuntimeError("EcoSort AI model interpreter is not available.")
+
             start_time = time.time()
 
             tensor_batch, quality_warnings = preprocess_image(
@@ -109,19 +118,10 @@ try:
                 norm_mode=Config.NORM_MODE
             )
 
-            if self.interpreter is not None:
-                try:
-                    self.interpreter.set_tensor(self.input_index, tensor_batch)
-                    self.interpreter.invoke()
-                    raw_preds = self.interpreter.get_tensor(self.output_index)[0]
-                    model_label = "2.0.0 (LiteRT Neural Model)"
-                except BaseException as e:
-                    logger.warning(f"Interpreter invocation warning: {e}")
-                    raw_preds = self._calibrated_prediction(image_bytes)
-                    model_label = "2.0.0 (Calibrated Edge Engine)"
-            else:
-                raw_preds = self._calibrated_prediction(image_bytes)
-                model_label = "2.0.0 (Calibrated Edge Engine)"
+            self.interpreter.set_tensor(self.input_index, tensor_batch)
+            self.interpreter.invoke()
+            raw_preds = self.interpreter.get_tensor(self.output_index)[0]
+            model_label = "2.0.0 (LiteRT Neural Model)"
 
             probs = raw_preds.astype(float)
             sorted_indices = np.argsort(probs)[::-1]
@@ -176,44 +176,22 @@ try:
                 "inference_time_ms": latency_ms,
                 "material": info["material"],
                 "material_name_ar": info["material_name_ar"],
+                "material_name_en": info.get("material_name_en", ""),
+                "resin_code": info.get("resin_code", ""),
                 "target_bin": info["target_bin"],
-                "recyclable": info["recyclable"],
-                "hazard": info["hazard"],
-                "co2_saved_grams": info["co2_saved_grams"],
-                "water_saved_liters": info["water_saved_liters"],
-                "energy_saved_kwh": info["energy_saved_kwh"],
-                "preparation_steps": info["preparation_steps"],
-                "environmental_fact": info["environmental_fact"],
-                "common_examples": info["common_examples"],
-                "decay_time": info["decay_time"],
-                "resin_code": info["resin_code"],
+                "bin_name_ar": info.get("bin_name_ar", ""),
+                "bin_name_en": info.get("bin_name_en", ""),
+                "bin_color": info.get("bin_color", ""),
+                "co2_saved_grams": info.get("co2_saved_grams", 0),
+                "energy_saved": info.get("energy_saved", ""),
+                "energy_saved_en": info.get("energy_saved_en", ""),
+                "water_saved_liters": info.get("water_saved_liters", 0),
+                "guide": info.get("guide", []),
+                "guide_en": info.get("guide_en", []),
+                "texture_description_ar": info.get("texture_description_ar", ""),
+                "texture_description_en": info.get("texture_description_en", ""),
                 "all_probabilities": all_probs
             }
-
-        def _calibrated_prediction(self, image_bytes: bytes) -> np.ndarray:
-            try:
-                pil_img = load_image(image_bytes)
-                arr = np.array(pil_img.resize((64, 64)))
-                r_m = float(np.mean(arr[:, :, 0]))
-                g_m = float(np.mean(arr[:, :, 1]))
-                b_m = float(np.mean(arr[:, :, 2]))
-
-                scores = np.array([0.05, 0.05, 0.05, 0.05, 0.05, 0.05], dtype=np.float32)
-                if b_m > r_m + 15 and b_m > g_m + 10:
-                    scores[4] = 0.86  # plastic
-                elif g_m > r_m + 15 and g_m > b_m:
-                    scores[1] = 0.88  # glass
-                elif r_m > 150 and g_m > 120 and b_m < 100:
-                    scores[0] = 0.87  # cardboard
-                elif r_m > 170 and g_m > 170 and b_m > 170:
-                    scores[3] = 0.89  # paper
-                elif abs(r_m - g_m) < 15 and abs(g_m - b_m) < 15 and r_m < 140:
-                    scores[2] = 0.84  # metal
-                else:
-                    scores[4] = 0.82  # plastic
-                return scores / np.sum(scores)
-            except Exception:
-                return np.array([0.05, 0.05, 0.05, 0.05, 0.75, 0.05], dtype=np.float32)
 
     engine = EcoSortVercelEngine.get_instance()
 
@@ -223,10 +201,12 @@ try:
     @flask_app.route('/api/index', methods=['GET'])
     @flask_app.route('/api/index.py', methods=['GET'])
     def root_api():
+        backend_url = os.environ.get('ECOSORT_BACKEND_URL') or os.environ.get('BACKEND_URL')
+        model_loaded = (engine.interpreter is not None) or bool(backend_url)
         return jsonify({
-            'status': 'healthy',
+            'status': 'healthy' if model_loaded else 'degraded',
             'service': 'EcoSort Vercel Serverless API',
-            'model_loaded': True,
+            'model_loaded': model_loaded,
             'classes': Config.CLASS_NAMES
         })
 
@@ -236,10 +216,11 @@ try:
     @flask_app.route('/api/index.py/health', methods=['GET'])
     def health():
         backend_url = os.environ.get('ECOSORT_BACKEND_URL') or os.environ.get('BACKEND_URL')
+        model_loaded = (engine.interpreter is not None) or bool(backend_url)
         return jsonify({
-            'status': 'healthy',
+            'status': 'healthy' if model_loaded else 'degraded',
             'service': 'EcoSort Vercel Serverless API',
-            'model_loaded': True,
+            'model_loaded': model_loaded,
             'classes': Config.CLASS_NAMES,
             'backend_proxy_configured': bool(backend_url)
         })
@@ -287,6 +268,12 @@ try:
             except Exception as e:
                 logger.warning(f"External backend proxy failed: {e}")
 
+        if engine.interpreter is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'EcoSort AI model runtime is unavailable. No local inference engine or backend proxy configured.'
+            }), 503
+
         try:
             response_data = engine.predict(image_bytes)
             return jsonify(response_data)
@@ -300,9 +287,8 @@ except Exception:
     STARTUP_ERROR = traceback.format_exc()
 
 
-def app(environ, start_response):
-    """WSGI standard entrypoint for Vercel Serverless."""
-    if STARTUP_ERROR:
+if STARTUP_ERROR:
+    def error_app(environ, start_response):
         body = json.dumps({
             'status': 'error',
             'type': 'STARTUP_ERROR',
@@ -310,30 +296,17 @@ def app(environ, start_response):
             'python_version': sys.version,
             'sys_path': sys.path
         }, indent=2).encode('utf-8')
-        start_response('200 OK', [
+        start_response('500 Internal Server Error', [
             ('Content-Type', 'application/json; charset=utf-8'),
             ('Content-Length', str(len(body)))
         ])
         return [body]
 
-    try:
-        return flask_app(environ, start_response)
-    except Exception:
-        err = traceback.format_exc()
-        body = json.dumps({
-            'status': 'error',
-            'type': 'REQUEST_RUNTIME_ERROR',
-            'traceback': err
-        }, indent=2).encode('utf-8')
-        start_response('200 OK', [
-            ('Content-Type', 'application/json; charset=utf-8'),
-            ('Content-Length', str(len(body)))
-        ])
-        return [body]
-
-
-# Handler for environments looking for handler instead of app
-handler = app
+    app = error_app
+    handler = error_app
+else:
+    app = flask_app
+    handler = flask_app
 
 if __name__ == '__main__':
     if not STARTUP_ERROR:
