@@ -70,11 +70,11 @@ def test_vercel_serverless_routing_and_no_unmatched_functions():
     with open(vercel_path, "r", encoding="utf-8") as fp:
         config = json.load(fp)
 
-    # 1. Ensure /predict, /health and /api/(.*) route to /api
+    # 1. Ensure /predict, /health and /api/(.*) route to /api/index.py
     rewrites = config.get("rewrites", [])
     predict_rewrites = [r for r in rewrites if r.get("source") == "/predict"]
-    assert len(predict_rewrites) == 1, "vercel.json must rewrite /predict to /api"
-    assert predict_rewrites[0]["destination"] in ["/api", "/api/index"]
+    assert len(predict_rewrites) == 1, "vercel.json must rewrite /predict to /api/index.py"
+    assert predict_rewrites[0]["destination"] in ["/api/index.py", "/api", "/api/index"]
 
     # 2. Ensure no unmatched function patterns exist (which cause Vercel build failure)
     funcs = config.get("functions", {})

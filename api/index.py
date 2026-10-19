@@ -38,6 +38,7 @@ try:
     logger = logging.getLogger('EcoSortVercelAPI')
 
     flask_app = Flask(__name__)
+    flask_app.url_map.strict_slashes = False
     flask_app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
     CORS(flask_app)
 
@@ -226,16 +227,18 @@ try:
 
     engine = EcoSortVercelEngine.get_instance()
 
-    @flask_app.route('/', methods=['GET'])
-    @flask_app.route('/api', methods=['GET'])
-    @flask_app.route('/api/', methods=['GET'])
-    @flask_app.route('/api/index', methods=['GET'])
-    @flask_app.route('/api/index.py', methods=['GET'])
-    @flask_app.route('/health', methods=['GET'])
-    @flask_app.route('/api/health', methods=['GET'])
-    @flask_app.route('/api/index/health', methods=['GET'])
-    @flask_app.route('/api/index.py/health', methods=['GET'])
+    @flask_app.route('/', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/api', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/api/', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/api/index', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/api/index.py', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/health', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/api/health', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/api/index/health', methods=['GET', 'HEAD', 'OPTIONS'])
+    @flask_app.route('/api/index.py/health', methods=['GET', 'HEAD', 'OPTIONS'])
     def health():
+        if request.method == 'OPTIONS':
+            return ('', 204)
         backend_url = os.environ.get('ECOSORT_BACKEND_URL') or os.environ.get('BACKEND_URL')
         model_loaded = (engine.interpreter is not None) or bool(backend_url)
         return jsonify({
@@ -246,16 +249,18 @@ try:
             'backend_proxy_configured': bool(backend_url)
         })
 
-    @flask_app.route('/predict', methods=['POST'])
-    @flask_app.route('/api/predict', methods=['POST'])
-    @flask_app.route('/api/index/predict', methods=['POST'])
-    @flask_app.route('/api/index.py/predict', methods=['POST'])
-    @flask_app.route('/api', methods=['POST'])
-    @flask_app.route('/api/', methods=['POST'])
-    @flask_app.route('/api/index', methods=['POST'])
-    @flask_app.route('/api/index.py', methods=['POST'])
-    @flask_app.route('/', methods=['POST'])
+    @flask_app.route('/predict', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/api/predict', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/api/index/predict', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/api/index.py/predict', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/api', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/api/', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/api/index', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/api/index.py', methods=['POST', 'OPTIONS'])
+    @flask_app.route('/', methods=['POST', 'OPTIONS'])
     def predict():
+        if request.method == 'OPTIONS':
+            return ('', 204)
         # 0. Basic Rate Limiting
         client_ip = get_client_ip(request)
         allowed, retry_after = rate_limiter.is_allowed(client_ip)

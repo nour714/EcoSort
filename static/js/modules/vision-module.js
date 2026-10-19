@@ -151,33 +151,33 @@ class VisionModule {
         const formData = new FormData();
         formData.append('file', file);
 
-        const endpoint = (typeof window !== 'undefined' && window.ECOSORT_API_URL) ? window.ECOSORT_API_URL : '/predict';
-        let resp;
-        try {
-            resp = await fetch(endpoint, {
-                method: 'POST',
-                body: formData
-            });
-        } catch (netErr) {
-            throw new Error('تعذر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والاتصال بالشبكة.');
+        const fetchOptions = {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        };
+
+        const candidates = [
+            (typeof window !== 'undefined' && window.ECOSORT_API_URL) ? window.ECOSORT_API_URL : '/predict',
+            '/api/predict',
+            '/api/index.py',
+            '/api'
+        ];
+
+        let resp = null;
+
+        for (const candidateUrl of candidates) {
+            try {
+                resp = await fetch(candidateUrl, fetchOptions);
+                // If OK or a real application response (400 bad image, 413 too large, 429 rate limited, 503 model degraded), accept it
+                if (resp.ok || resp.status === 400 || resp.status === 413 || resp.status === 429 || resp.status === 503) {
+                    break;
+                }
+            } catch (_) {}
         }
 
-        // Vercel fallback: if /predict returns 404, retry with /api/predict, then /api automatically
-        if (!resp.ok && resp.status === 404 && endpoint === '/predict') {
-            try {
-                resp = await fetch('/api/predict', {
-                    method: 'POST',
-                    body: formData
-                });
-            } catch (_) {}
-            if (!resp.ok && resp.status === 404) {
-                try {
-                    resp = await fetch('/api', {
-                        method: 'POST',
-                        body: formData
-                    });
-                } catch (_) {}
-            }
+        if (!resp) {
+            throw new Error('تعذر الاتصال بالخادم. يرجى التأكد من تشغيل الخادم والاتصال بالشبكة.');
         }
 
         if (!resp.ok) {
@@ -186,6 +186,8 @@ class VisionModule {
                 errorText = 'حجم الصورة المرفوعة كبير جداً (تجاوز الحد الأقصى 4 ميجابايت). يرجى اختيار صورة أصغر.';
             } else if (resp.status === 429) {
                 errorText = 'تم تجاوز معدل الطلبات المسموح به. يرجى الانتظار قليلاً ثم إعادة المحاولة.';
+            } else if (resp.status === 405) {
+                errorText = 'طريقة الطلب غير مسموح بها (HTTP 405). يرجى التحقق من إعدادات Vercel أو تعطيل Deployment Protection.';
             } else {
                 try {
                     const errData = await resp.json();
