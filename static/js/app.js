@@ -1095,14 +1095,19 @@ class EcoSortApp {
             const warnings = detection.qualityWarnings || [];
             if (warnings.length > 0) {
                 const warnMap = {
-                    'IMAGE_BLURRY': t.warnBlur || 'الصورة بها غبشة أو اهتزاز حركي (Blur)',
-                    'IMAGE_TOO_DARK': t.warnDark || 'الإضاءة منخفضة جداً (Dark)',
-                    'IMAGE_TOO_BRIGHT': t.warnBright || 'الإضاءة شديدة أو بها سطوع زائد (Overexposed)',
-                    'IMAGE_LOW_VARIANCE': t.warnFlat || 'الصورة فارغة أو شبه موحدة اللون (Low Variance)'
+                    'image_blurry': isEn ? 'Image is slightly blurry or out of focus (Blur).' : (t.warnBlur || 'الصورة بها غبشة أو اهتزاز حركي (Blur)'),
+                    'image_too_dark': isEn ? 'Lighting is too dark or underexposed (Dark).' : (t.warnDark || 'الإضاءة منخفضة جداً (Dark)'),
+                    'image_too_bright': isEn ? 'Lighting is too bright or overexposed (Overexposed).' : (t.warnBright || 'الإضاءة شديدة أو بها سطوع زائد (Overexposed)'),
+                    'image_empty_or_flat': isEn ? 'Image is blank or flat with low color contrast (Low Variance).' : (t.warnFlat || 'الصورة فارغة أو شبه موحدة اللون (Low Variance)'),
+                    'IMAGE_BLURRY': isEn ? 'Image is slightly blurry or out of focus (Blur).' : (t.warnBlur || 'الصورة بها غبشة أو اهتزاز حركي (Blur)'),
+                    'IMAGE_TOO_DARK': isEn ? 'Lighting is too dark or underexposed (Dark).' : (t.warnDark || 'الإضاءة منخفضة جداً (Dark)'),
+                    'IMAGE_TOO_BRIGHT': isEn ? 'Lighting is too bright or overexposed (Overexposed).' : (t.warnBright || 'الإضاءة شديدة أو بها سطوع زائد (Overexposed)'),
+                    'IMAGE_LOW_VARIANCE': isEn ? 'Image is blank or flat with low color contrast (Low Variance).' : (t.warnFlat || 'الصورة فارغة أو شبه موحدة اللون (Low Variance)')
                 };
+                const genericWarning = isEn ? 'Image quality note detected. Please retake photo with good lighting.' : (t.warnGeneric || 'تم رصد ملاحظة على جودة الصورة، يُرجى إعادة التصوير في إضاءة مناسبة.');
                 warnings.forEach(w => {
                     const li = document.createElement('li');
-                    li.textContent = warnMap[w] || w;
+                    li.textContent = warnMap[w] || warnMap[(w || '').toLowerCase()] || genericWarning;
                     warningsList.appendChild(li);
                 });
                 warningsBox.classList.remove('hidden');
@@ -2193,6 +2198,8 @@ class EcoSortApp {
         }
     }
 }
+
+window.EcoSortApp = EcoSortApp;
 
 // تشغيل التطبيق فور اكتمال تحميل المستند
 document.addEventListener('DOMContentLoaded', () => {
