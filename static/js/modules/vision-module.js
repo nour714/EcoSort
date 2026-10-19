@@ -153,16 +153,22 @@ class VisionModule {
 
         const fetchOptions = {
             method: 'POST',
-            body: formData,
-            credentials: 'include'
+            body: formData
         };
 
-        const candidates = [
-            (typeof window !== 'undefined' && window.ECOSORT_API_URL) ? window.ECOSORT_API_URL : '/predict',
-            '/api/predict',
-            '/api/index.py',
-            '/api'
-        ];
+        const isLocalDev = typeof window !== 'undefined' && 
+            (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+
+        const candidates = [];
+        if (typeof window !== 'undefined' && window.ECOSORT_API_URL) {
+            candidates.push(window.ECOSORT_API_URL);
+        }
+        candidates.push('/predict', '/api/predict', '/api/index.py', '/api');
+
+        // If developing locally on a static server (e.g. Live Server on 5500), also probe running Flask server
+        if (isLocalDev && typeof window !== 'undefined' && window.location.port !== '5000') {
+            candidates.push('http://127.0.0.1:5000/predict', 'http://localhost:5000/predict');
+        }
 
         let resp = null;
 
