@@ -96,12 +96,12 @@ def test_manifest_icons_real_dimensions():
     assert "512x512" in sizes_found, "512x512 icon must be in manifest"
 
     # Verify actual image dimensions on disk
-    src_192 = ROOT_DIR / sizes_found["192x192"].lstrip("/").replace("/", "\\")
+    src_192 = ROOT_DIR / sizes_found["192x192"].lstrip("/")
     assert src_192.exists(), f"192 icon file {src_192} must exist"
     im192 = Image.open(src_192)
     assert im192.size == (192, 192), f"Expected 192x192, got {im192.size}"
 
-    src_512 = ROOT_DIR / sizes_found["512x512"].lstrip("/").replace("/", "\\")
+    src_512 = ROOT_DIR / sizes_found["512x512"].lstrip("/")
     assert src_512.exists(), f"512 icon file {src_512} must exist"
     im512 = Image.open(src_512)
     assert im512.size == (512, 512), f"Expected 512x512, got {im512.size}"

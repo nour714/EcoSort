@@ -28,7 +28,7 @@ def live_server():
     yield url
     server.shutdown()
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def browser_instance():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)

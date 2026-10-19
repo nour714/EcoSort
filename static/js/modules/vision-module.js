@@ -157,6 +157,7 @@ class VisionModule {
         };
 
         const isLocalDev = typeof window !== 'undefined' && 
+            Boolean(window.location) &&
             (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
 
         const candidates = [];
@@ -166,7 +167,7 @@ class VisionModule {
         candidates.push('/predict', '/api/predict', '/api/index.py', '/api');
 
         // If developing locally on a static server (e.g. Live Server on 5500), also probe running Flask server
-        if (isLocalDev && typeof window !== 'undefined' && window.location.port !== '5000') {
+        if (isLocalDev && typeof window !== 'undefined' && window.location && window.location.port !== '5000') {
             candidates.push('http://127.0.0.1:5000/predict', 'http://localhost:5000/predict');
         }
 
