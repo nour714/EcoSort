@@ -25,9 +25,9 @@ docker-compose.yml
 .dockerignore
 /.github/
 
-# Local server entrypoints & full dependencies (used by Docker/local, not Vercel serverless)
+# Local server entrypoints (used by Docker/local, not Vercel serverless)
 app.py
 wsgi.py
-requirements.txt
 requirements-dev.txt
+requirements-full.txt
 pyproject.toml

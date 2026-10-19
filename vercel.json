@@ -11,23 +11,27 @@
     },
     {
       "source": "/predict",
-      "destination": "/api/index.py"
+      "destination": "/api"
     },
     {
       "source": "/health",
-      "destination": "/api/index.py"
+      "destination": "/api"
     },
     {
       "source": "/api/predict",
-      "destination": "/api/index.py"
+      "destination": "/api"
     },
     {
       "source": "/api/health",
-      "destination": "/api/index.py"
+      "destination": "/api"
+    },
+    {
+      "source": "/api/index.py",
+      "destination": "/api"
     },
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "destination": "/api"
     }
   ],
   "headers": [
