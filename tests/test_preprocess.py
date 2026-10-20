@@ -43,3 +43,28 @@ def test_preprocess_tensor_shape_and_range(sample_jpeg_bytes):
     assert tensor.dtype == np.float32
     assert np.min(tensor) >= 0.0
     assert np.max(tensor) <= 1.0
+
+
+def test_preprocess_mobile_portrait_image_smart_centering():
+    import io
+    portrait_img = Image.new('RGB', (1080, 1920), color=(150, 150, 150))
+    buf = io.BytesIO()
+    portrait_img.save(buf, format='JPEG')
+    raw_bytes = buf.getvalue()
+
+    tensor, warnings = preprocess_image(raw_bytes, resize_mode='direct')
+    assert tensor.shape == (1, 224, 224, 3)
+    assert tensor.dtype == np.float32
+    assert np.min(tensor) >= 0.0
+    assert np.max(tensor) <= 1.0
+
+def test_preprocess_landscape_image_direct():
+    import io
+    landscape_img = Image.new('RGB', (512, 384), color=(140, 140, 140))
+    buf = io.BytesIO()
+    landscape_img.save(buf, format='JPEG')
+    raw_bytes = buf.getvalue()
+
+    tensor, warnings = preprocess_image(raw_bytes, resize_mode='direct')
+    assert tensor.shape == (1, 224, 224, 3)
+    assert tensor.dtype == np.float32

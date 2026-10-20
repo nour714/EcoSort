@@ -18,6 +18,7 @@ class VisionModule {
         this.onWasteDetected = onWasteDetectedCallback;
         this.currentDetection = null;
         this.isProcessing = false;
+        this.resolvedApiUrl = null;
     }
 
     /**
@@ -28,41 +29,59 @@ class VisionModule {
      * @param {number} quality 
      * @returns {Promise<File|Blob>}
      */
-    async downscaleImage(file, maxDimension = 1024, quality = 0.90) {
+    async downscaleImage(file, maxDimension = 448, quality = 0.82) {
         if (!file || !(file instanceof Blob)) return file;
 
-        // إذا كان الملف صغير الحجم بالفعل (< 150KB)، لا داعي لإعادة ضغطه
-        if (file.size && file.size < 150 * 1024) {
+        // إذا كان الملف صغير الحجم ومناسباً بالفعل (< 60KB)، لا داعي لإعادة ضغطه
+        if (file.size && file.size < 60 * 1024) {
             return file;
         }
 
+        // دالة موحدة للاقتصاص المربع المركزي والتصغير (تضمن هندسة 1:1 بدون أي انضغاط)
+        const cropAndResize = (source, srcWidth, srcHeight) => {
+            let sx = 0, sy = 0, sWidth = srcWidth, sHeight = srcHeight;
+            
+            // في كاميرات الموبايل تكون الصور رأسية (Portrait: الارتفاع > 1.15 * العرض)
+            // نقتص المربع المركزي بدقة لاستبعاد بلاط الأرضية وتشويش الخلفية والحفاظ على النسبة الهندسية 1:1
+            if (srcHeight > 1.15 * srcWidth) {
+                sHeight = srcWidth;
+                sWidth = srcWidth;
+                sx = 0;
+                sy = Math.round((srcHeight - srcWidth) / 2);
+            } else if (srcWidth > 1.35 * srcHeight) {
+                // صورة عريضة جداً أفقياً
+                sWidth = srcHeight;
+                sHeight = srcHeight;
+                sx = Math.round((srcWidth - srcHeight) / 2);
+                sy = 0;
+            }
+
+            const targetDim = Math.min(maxDimension, Math.max(sWidth, sHeight));
+            const canvas = document.createElement('canvas');
+            canvas.width = targetDim;
+            canvas.height = targetDim;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(source, sx, sy, sWidth, sHeight, 0, 0, targetDim, targetDim);
+            }
+            return canvas;
+        };
+
+        // 1. المسار الأساسي عالي السرعة: createImageBitmap مع تصحيح EXIF تلقائياً
         try {
             let bitmap = null;
             if (typeof createImageBitmap === 'function') {
                 try {
                     bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
                 } catch (_) {
-                    bitmap = await createImageBitmap(file);
+                    bitmap = await createImageBitmap(file).catch(() => null);
                 }
             }
 
             if (bitmap) {
-                let { width, height } = bitmap;
-                if (width > maxDimension || height > maxDimension) {
-                    if (width > height) {
-                        height = Math.round((height * maxDimension) / width);
-                        width = maxDimension;
-                    } else {
-                        width = Math.round((width * maxDimension) / height);
-                        height = maxDimension;
-                    }
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(bitmap, 0, 0, width, height);
+                const canvas = cropAndResize(bitmap, bitmap.width, bitmap.height);
                 if (typeof bitmap.close === 'function') {
                     bitmap.close();
                 }
@@ -80,10 +99,37 @@ class VisionModule {
                 });
             }
         } catch (err) {
-            console.warn('[VisionModule] تعذّر تصغير الصورة على جهة العميل، سيتم إرسال الملف الأصلي:', err);
+            console.warn('[VisionModule] تعذّر استخدام createImageBitmap، الانتقال للحل البديل:', err);
         }
 
-        return file;
+        // 2. المسار البديل المضمون لمتصفحات الموبايل (iOS Safari و Android): HTMLImageElement + createObjectURL
+        try {
+            const blobUrl = URL.createObjectURL(file);
+            const img = await new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = (e) => reject(e);
+                image.src = blobUrl;
+            });
+
+            const canvas = cropAndResize(img, img.naturalWidth || img.width, img.naturalHeight || img.height);
+            URL.revokeObjectURL(blobUrl);
+
+            return await new Promise((resolve) => {
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const originalName = file.name || 'capture.jpg';
+                        const newName = originalName.replace(/\.[^.]+$/, '') + '.jpg';
+                        resolve(new File([blob], newName, { type: 'image/jpeg' }));
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/jpeg', quality);
+            });
+        } catch (fallbackErr) {
+            console.warn('[VisionModule] فشل مسار التصغير البديل، إرسال الملف كما هو:', fallbackErr);
+            return file;
+        }
     }
 
     /**
@@ -136,13 +182,10 @@ class VisionModule {
     async classifyWithBackend(file) {
         if (!file) return null;
 
-        // Ensure client upload stays strictly under ~4 MB: always downscale when > 3 MB
-        if (file.size && file.size > 3 * 1024 * 1024) {
+        // Ensure client upload is compact and fast: downscale if size > 60KB
+        if (file.size && file.size > 60 * 1024) {
             try {
-                file = await this.downscaleImage(file, 1024, 0.85);
-                if (file.size && file.size > 3 * 1024 * 1024) {
-                    file = await this.downscaleImage(file, 800, 0.75);
-                }
+                file = await this.downscaleImage(file, 448, 0.82);
             } catch (err) {
                 console.warn('[VisionModule] Downscale before upload failed:', err);
             }
@@ -160,27 +203,39 @@ class VisionModule {
             Boolean(window.location) &&
             (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
 
+        // Use previously resolved endpoint if available to avoid probing latency on mobile networks
         const candidates = [];
-        if (typeof window !== 'undefined' && window.ECOSORT_API_URL) {
+        if (this.resolvedApiUrl) {
+            candidates.push(this.resolvedApiUrl);
+        }
+        if (typeof window !== 'undefined' && window.ECOSORT_API_URL && window.ECOSORT_API_URL !== this.resolvedApiUrl) {
             candidates.push(window.ECOSORT_API_URL);
         }
-        candidates.push('/predict', '/api/predict', '/api/index.py', '/api');
-
-        // If developing locally on a static server (e.g. Live Server on 5500), also probe running Flask server
+        for (const defaultRoute of ['/predict', '/api/predict', '/api/index.py', '/api']) {
+            if (!candidates.includes(defaultRoute)) {
+                candidates.push(defaultRoute);
+            }
+        }
         if (isLocalDev && typeof window !== 'undefined' && window.location && window.location.port !== '5000') {
             candidates.push('http://127.0.0.1:5000/predict', 'http://localhost:5000/predict');
         }
 
         let resp = null;
+        let successfulUrl = null;
 
         for (const candidateUrl of candidates) {
             try {
                 resp = await fetch(candidateUrl, fetchOptions);
                 // If OK or a real application response (400 bad image, 413 too large, 429 rate limited, 503 model degraded), accept it
                 if (resp.ok || resp.status === 400 || resp.status === 413 || resp.status === 429 || resp.status === 503) {
+                    successfulUrl = candidateUrl;
                     break;
                 }
             } catch (_) {}
+        }
+
+        if (successfulUrl && resp && resp.ok) {
+            this.resolvedApiUrl = successfulUrl;
         }
 
         if (!resp) {
@@ -303,7 +358,7 @@ class VisionModule {
         this.isProcessing = true;
 
         // 1. تصغير الصورة على جهة العميل لتسريع الرفع واحترام توجيه EXIF
-        const preparedFile = await this.downscaleImage(file, 1024, 0.90);
+        const preparedFile = await this.downscaleImage(file, 448, 0.82);
 
         // 2. إرسال الصورة للـ Backend
         let analysis;

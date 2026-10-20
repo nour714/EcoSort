@@ -837,11 +837,25 @@ class EcoSortApp {
         const videoElem = document.getElementById('cv-camera-video');
         if (!videoElem || !this.activeCameraStream) return;
 
+        const vw = videoElem.videoWidth || 640;
+        const vh = videoElem.videoHeight || 480;
+
+        // اقتصاص المربع المركزي بدقة يطابق ما يراه المستخدم داخل إطار الاستهداف (Reticle)
+        const cropDim = Math.min(vw, vh);
+        const sx = Math.round((vw - cropDim) / 2);
+        const sy = Math.round((vh - cropDim) / 2);
+
+        // تصغير مباشر وفوري لمقاس 448x448 (ضعف مقاس إدخال الموديل بدقة 1:1 بدون أي تشوه وبحجم ~25KB)
+        const targetDim = 448;
         const canvas = document.createElement('canvas');
-        canvas.width = videoElem.videoWidth || 640;
-        canvas.height = videoElem.videoHeight || 480;
+        canvas.width = targetDim;
+        canvas.height = targetDim;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+        if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(videoElem, sx, sy, cropDim, cropDim, 0, 0, targetDim, targetDim);
+        }
 
         this.stopCameraStream();
 
@@ -850,7 +864,7 @@ class EcoSortApp {
                 const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
                 this.processUploadedFile(file);
             }
-        }, 'image/jpeg', 0.92);
+        }, 'image/jpeg', 0.82);
     }
 
     /**

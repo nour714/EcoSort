@@ -108,7 +108,16 @@ def preprocess_image(image_bytes: bytes, target_size=(224, 224), resize_mode='di
     warnings = check_image_quality(img)
 
     if resize_mode == 'direct':
-        img_resized = img.resize(target_size, Image.Resampling.BILINEAR)
+        # Smart mobile adaptation: if an image is strongly portrait (height > 1.15 * width,
+        # typical for vertical mobile camera captures), direct squashing distorts the item
+        # into a pancake. Centering the square region preserves the natural 1:1 geometry.
+        if img.height > 1.15 * img.width:
+            min_dim = img.width
+            top = (img.height - min_dim) // 2
+            img_crop = img.crop((0, top, min_dim, top + min_dim))
+            img_resized = img_crop.resize(target_size, Image.Resampling.BILINEAR)
+        else:
+            img_resized = img.resize(target_size, Image.Resampling.BILINEAR)
     elif resize_mode == 'crop':
         w, h = img.size
         min_dim = min(w, h)
