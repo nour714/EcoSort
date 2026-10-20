@@ -2189,6 +2189,10 @@ class EcoSortApp {
         if (cvDropzoneText) cvDropzoneText.textContent = t.dropzoneText;
         if (cvDropzoneHint) cvDropzoneHint.textContent = t.dropzoneHint;
         if (btnCameraCaptureText) btnCameraCaptureText.textContent = t.btnCaptureNow;
+        if (btnCameraCapture) {
+            btnCameraCapture.title = t.btnCaptureNow;
+            btnCameraCapture.setAttribute('aria-label', t.btnCaptureNow);
+        }
         if (btnCameraSwitchText) btnCameraSwitchText.textContent = t.btnSwitchCamera;
         if (btnCameraSwitch) {
             btnCameraSwitch.title = t.btnSwitchCamera;
