@@ -1,107 +1,151 @@
-# EcoSort — Smart Waste Classification & Campus Pathfinding System
-### Kafrelsheikh University — Faculty of Artificial Intelligence
+<div align="center">
 
-EcoSort is an intelligent waste sorting and pathfinding platform that bridges Computer Vision, Confidence Gating, Environmental Information Retrieval (IR), and graph routing algorithms (Dijkstra and A*) to direct university students to the nearest available, un-filled recycling bin.
+<img src="static/assets/images/logo.png" alt="EcoSort Logo" width="180">
 
----
+# EcoSort
 
-## Table of Contents
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [System Architecture](#system-architecture)
-- [Wizard User Flow](#wizard-user-flow)
-- [Empirical Evaluation & Benchmarks](#empirical-evaluation--benchmarks)
-- [Confidence Gating & Reliability Policies](#confidence-gating--reliability-policies)
-- [Graph Routing & Ranking Algorithms](#graph-routing--ranking-algorithms)
-- [API Reference](#api-reference)
-- [Repository Structure](#repository-structure)
-- [Getting Started](#getting-started)
-- [Testing & Quality Assurance](#testing--quality-assurance)
-- [Docker Deployment](#docker-deployment)
-- [Deployment: Flask vs Vercel](#deployment-flask-vs-vercel)
-- [Transfer Learning Pipeline](#transfer-learning-pipeline)
-- [Academic Resources](#academic-resources)
+### Smart Waste Classification & Campus Pathfinding System
 
----
+**Snap it. Sort it. Find the nearest free bin.**
 
-## Project Overview
+*Kafrelsheikh University — Faculty of Artificial Intelligence*
 
-Universities face critical waste sorting challenges: recyclable items (plastics, paper, aluminum) are frequently mixed into general trash at the point of disposal, rendering recycling economically unviable. Furthermore, students often find the nearest recycling bin full, leading to improper disposal.
+<br>
 
-**EcoSort resolves this challenge with an end-to-end pipeline:**
-1. **Visual Material Classification**: A deep learning model (`.keras` / `.tflite`) identifies the material category from mobile camera captures.
-2. **Information Retrieval (IR)**: Retrieves resin codes, proper handling procedures, and calculated environmental savings (CO₂ avoided, water conserved, LED lighting equivalent).
-3. **Smart Campus Navigation**: Graph pathfinding calculates the shortest walking route to an available bin, dynamically bypassing full receptacles.
+[![Python](https://img.shields.io/badge/Python-3.10--3.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-Backend-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-Keras_3-FF6F00?logo=tensorflow&logoColor=white)](https://tensorflow.org/)
+[![Vercel](https://img.shields.io/badge/Vercel-Serverless-000000?logo=vercel&logoColor=white)](https://vercel.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Accuracy](https://img.shields.io/badge/Accuracy-81.67%25-brightgreen)](#system-baseline-performance)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+
+<br>
+
+[Overview](#-project-overview) • [Features](#-key-features) • [Screenshots](#-screenshots) • [Architecture](#%EF%B8%8F-system-architecture) • [Benchmarks](#-empirical-evaluation--benchmarks) • [API](#-api-reference) • [Getting Started](#-getting-started) • [Deployment](#%EF%B8%8F-deployment-flask-vs-vercel)
+
+</div>
 
 ---
 
-## Key Features
-
-- **Lightweight Thread-Safe Backend**: Python Flask application hosting a native Keras 3 model via a thread-safe singleton inference engine, with serverless Vercel edge runtime via Google LiteRT.
-- **Dual-Tier Reliability Guardrails**: Pre-inference statistical checks filter motion blur, under/overexposure, and blank captures before neural inference.
-- **Calibrated Confidence Gating**: Classifies predictions into `confident` (`P1 >= 75%`, `margin >= 20%`), `uncertain`, or `rejected` (`P1 < 45%`) states.
-- **Client-Side Image Preprocessing**: Automatic EXIF orientation correction, client-side downscaling (max 1024px), and alpha compositing over white backgrounds.
-- **Dynamic Graph Pathfinding**: Implementation of Dijkstra's algorithm and heuristic A* search over Kafrelsheikh University's 12-landmark pedestrian network with real-time rerouting when bins fill up.
-- **Guaranteed O(n log n) Bin Ranking**: Pure JavaScript Merge Sort ranks campus bins by walking distance.
-- **Complete Bilingual Interface**: Full Arabic (RTL) and English (LTR) language support across UI components, notices, and documentation.
+## 📑 Table of Contents
+- [Project Overview](#-project-overview)
+- [Key Features](#-key-features)
+- [Screenshots](#-screenshots)
+- [System Architecture](#%EF%B8%8F-system-architecture)
+- [Wizard User Flow](#-wizard-user-flow)
+- [Empirical Evaluation & Benchmarks](#-empirical-evaluation--benchmarks)
+- [Confidence Gating & Reliability Policies](#-confidence-gating--reliability-policies)
+- [Limitations & Dataset Provenance](#%EF%B8%8F-limitations--dataset-provenance)
+- [Graph Routing & Ranking Algorithms](#%EF%B8%8F-graph-routing--ranking-algorithms)
+- [API Reference](#-api-reference)
+- [Repository Structure](#-repository-structure)
+- [Getting Started](#-getting-started)
+- [Testing & Quality Assurance](#-testing--quality-assurance)
+- [Docker Deployment](#-docker-deployment)
+- [Deployment: Flask vs Vercel](#%EF%B8%8F-deployment-flask-vs-vercel)
+- [Transfer Learning Pipeline](#-transfer-learning-pipeline)
+- [Academic Resources](#-academic-resources)
+- [Author](#-author)
+- [License](#-license)
 
 ---
 
-## System Architecture
+## 🌍 Project Overview
+
+Universities face a persistent waste-sorting problem: recyclable items (plastic, paper, aluminum) end up mixed with general trash, which makes recycling economically unviable. On top of that, students often find the nearest bin already full and dispose of waste improperly.
+
+EcoSort solves this with an end-to-end pipeline:
+
+| Step | Stage | What it does |
+| :---: | :--- | :--- |
+| **1️⃣** | **Visual Material Classification** | A deep learning model (`.keras` / `.tflite`) identifies the material category from a mobile camera capture. |
+| **2️⃣** | **Information Retrieval (IR)** | Returns resin codes, handling instructions, and environmental savings (CO₂ avoided, water conserved, LED lighting equivalent). |
+| **3️⃣** | **Smart Campus Navigation** | Graph pathfinding finds the shortest walking route to an available bin and automatically bypasses full ones. |
+
+---
+
+## ✨ Key Features
+
+- **🧵 Lightweight, thread-safe backend**: Flask app serving a native Keras 3 model through a thread-safe singleton inference engine, plus a serverless Vercel runtime powered by Google LiteRT.
+- **🛡️ Dual-tier reliability guardrails**: Statistical checks reject blurry, under/over-exposed, and blank captures before neural inference.
+- **🎯 Calibrated confidence gating**: Every prediction is labeled confident (`P1 >= 75%`, `margin >= 20%`), uncertain, or rejected (`P1 < 45%`).
+- **🖼️ Client-side preprocessing**: Automatic EXIF orientation correction, downscaling (max 1024px), and alpha compositing over white.
+- **🗺️ Dynamic graph pathfinding**: Dijkstra and heuristic A* over a 12-landmark pedestrian network of Kafrelsheikh University, with real-time rerouting when bins fill up.
+- **⚡ Guaranteed O(n log n) bin ranking**: Pure JavaScript Merge Sort ranks bins by walking distance.
+- **🌐 Fully bilingual UI**: Complete Arabic (RTL) and English (LTR) support across components, notices, and documentation.
+
+---
+
+## 📸 Screenshots
+
+> Add your screenshots to `docs/screenshots/` and update the paths below.
+
+<div align="center">
+
+| Step 1 — Location | Step 2 — Inspect Waste | Step 3 — Route & Navigate |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/step1.png" width="250" alt="Select location"> | <img src="docs/screenshots/step2.png" width="250" alt="Inspect waste"> | <img src="docs/screenshots/step3.png" width="250" alt="Route and navigate"> |
+
+</div>
+
+---
+
+## 🏗️ System Architecture
 
 ```mermaid
 flowchart TD
-    Client["Client Browser (Vanilla JS + HTML5 Canvas Graph)"]
+    Client["Client Browser<br/>(Vanilla JS + HTML5 Canvas Graph)"]
     Camera["Camera Capture / File Upload / Clipboard"] --> Client
     Client -->|"POST /predict (Multipart Form)"| Flask["Flask Backend Server (app.py)"]
     
     subgraph Backend Pipeline
-        Flask --> Quality["Image Quality Guardrails\n(Blur, Luminance, Flatness)"]
-        Quality --> Preproc["Preprocessing & Normalization\n(EXIF Transpose, Direct Bilinear, [0, 1])"]
-        Preproc --> ModelEngine["ModelEngine Singleton\n(Keras 3 CNN &bull; models/model.keras)"]
+        Flask --> Quality["Image Quality Guardrails<br/>(Blur, Luminance, Flatness)"]
+        Quality --> Preproc["Preprocessing & Normalization<br/>(EXIF Transpose, Direct Bilinear, [0, 1])"]
+        Preproc --> ModelEngine["ModelEngine Singleton<br/>(Keras 3 CNN &bull; models/model.keras)"]
         ModelEngine --> Softmax["Softmax Output Distribution (6 Classes)"]
-        Softmax --> Gating["Confidence Gating Engine\n(Confident &bull; Uncertain &bull; Rejected)"]
-        Gating --> IR["Information Retrieval & Carbon Registry\n(Resin Codes, CO2 Math, Recycling Guide)"]
+        Softmax --> Gating["Confidence Gating Engine<br/>(Confident &bull; Uncertain &bull; Rejected)"]
+        Gating --> IR["Information Retrieval & Carbon Registry<br/>(Resin Codes, CO2 Math, Recycling Guide)"]
     end
     
     IR -->|"JSON Response"| Client
-    Client --> Pathfinding["Graph Pathfinding Engine\n(Dijkstra &bull; A* &bull; Merge Sort)"]
+    Client --> Pathfinding["Graph Pathfinding Engine<br/>(Dijkstra &bull; A* &bull; Merge Sort)"]
     Pathfinding --> MapUI["Interactive Campus Map & Live Step Route"]
 ```
 
 ---
 
-## Wizard User Flow
+## 🧭 Wizard User Flow
 
 ```mermaid
 flowchart LR
-    Step1["Step 1: Select Location\nPick current faculty node or simulate GPS"] --> Step2["Step 2: Inspect Waste\nCapture photo, run CV, verify IR guide"]
-    Step2 --> Step3["Step 3: Route & Navigate\nCalculate shortest path to nearest available bin"]
+    Step1["Step 1: Select Location<br/>Pick current faculty node or simulate GPS"] --> Step2["Step 2: Inspect Waste<br/>Capture photo, run CV, verify IR guide"]
+    Step2 --> Step3["Step 3: Route & Navigate<br/>Shortest path to nearest available bin"]
 ```
 
 ---
 
-## Empirical Evaluation & Benchmarks
+## 📊 Empirical Evaluation & Benchmarks
 
 The deployed baseline configuration was evaluated on 300 samples across the 6 standard TrashNet classes (50 samples per class) using `scripts/evaluate.py`.
 
 ### System Baseline Performance
 
 | Metric | Measured Baseline Value |
-|---|---|
+| :--- | :--- |
 | **Overall Accuracy** | **81.67%** |
 | **Macro Average F1-Score** | **81.67%** |
 | **Weighted Average F1-Score** | **81.67%** |
 | **Expected Calibration Error (ECE)** | **0.0991** |
 | **Average Inference Latency** | **26.04 ms/sample** |
 | **Normalization Mode** | `[0, 1]` (`/255.0`) |
-| **Resize Strategy** | Direct Bilinear (224x224) |
+| **Resize Strategy** | Direct Bilinear (224×224) |
 | **Test-Time Augmentation (TTA)** | Disabled (Production Default) |
 
 ### Per-Class Performance Table
 
 | Class | Precision (%) | Recall (%) | F1-Score (%) | Support |
-|---|---|---|---|---|
+| :--- | :---: | :---: | :---: | :---: |
 | **Cardboard** | 97.87% | 92.00% | 94.85% | 50 |
 | **Glass** | 76.36% | 84.00% | 80.00% | 50 |
 | **Metal** | 92.31% | 72.00% | 80.90% | 50 |
@@ -116,7 +160,7 @@ The deployed baseline configuration was evaluated on 300 samples across the 6 st
 Evaluated counts across actual (rows) versus predicted (columns) classes:
 
 | Actual \ Predicted | Cardboard | Glass | Metal | Paper | Plastic | Trash | Total |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Cardboard** | 46 | 0 | 1 | 0 | 2 | 1 | 50 |
 | **Glass** | 0 | 42 | 1 | 2 | 4 | 1 | 50 |
 | **Metal** | 1 | 6 | 36 | 2 | 2 | 3 | 50 |
@@ -130,66 +174,66 @@ Evaluated counts across actual (rows) versus predicted (columns) classes:
 Automated parameter experiments recorded in `docs/metrics/ab_experiments.json`:
 
 | Configuration | Normalization | Resize Strategy | TTA | Accuracy (%) | F1-Score (%) | ECE |
-|---|---|---|---|---|---|---|
-| **Baseline (Deployed)** | **`zero_one` [0..1]** | **`direct`** | **False** | **81.67%** | **81.67%** | **0.0991** |
-| Raw Pixel Scaling | `raw` [0..255] | `direct` | False | 33.67% | 27.31% | 0.6625 |
-| Signed Normalization | `signed` [-1..1] | `direct` | False | 17.33% | 6.98% | 0.8196 |
-| Center Crop Resize | `zero_one` [0..1] | `crop` | False | 76.00% | 75.99% | 0.0683 |
-| Letterbox Padding | `zero_one` [0..1] | `pad` | False | 62.00% | 61.27% | 0.1107 |
-| Test-Time Augmentation | `zero_one` [0..1] | `direct` | True | 80.33% | 80.40% | 0.1013 |
+| :--- | :--- | :--- | :---: | :---: | :---: | :---: |
+| **✅ Baseline (Deployed)** | **`zero_one` [0..1]** | **`direct`** | **No** | **81.67%** | **81.67%** | **0.0991** |
+| Raw Pixel Scaling | `raw` [0..255] | `direct` | No | 33.67% | 27.31% | 0.6625 |
+| Signed Normalization | `signed` [-1..1] | `direct` | No | 17.33% | 6.98% | 0.8196 |
+| Center Crop Resize | `zero_one` [0..1] | `crop` | No | 76.00% | 75.99% | 0.0683 |
+| Letterbox Padding | `zero_one` [0..1] | `pad` | No | 62.00% | 61.27% | 0.1107 |
+| Test-Time Augmentation | `zero_one` [0..1] | `direct` | Yes | 80.33% | 80.40% | 0.1013 |
 
 ---
 
-## Confidence Gating & Reliability Policies
+## 🚦 Confidence Gating & Reliability Policies
 
 ### Empirical Gating Distribution
 
 Dual-threshold confidence gating isolates automated decisions from ambiguous or low-confidence inputs:
 
 | Decision State | Threshold Criteria | Sample Count | Coverage (%) | Selective Accuracy (%) |
-|---|---|---|---|---|
-| **`confident`** | `P1 >= 75.0%` and `margin >= 20.0%` | 149 | 49.67% | **93.96%** |
-| **`uncertain`** | `45.0% <= P1 < 75.0%` or `margin < 20.0%` | 107 | 35.67% | 71.03% |
-| **`rejected`** | `P1 < 45.0%` or `image_empty_or_flat` | 44 | 14.67% | 65.91% |
+| :--- | :--- | :---: | :---: | :---: |
+| **🟢 `confident`** | `P1 >= 75.0%` and `margin >= 20.0%` | 149 | 49.67% | **93.96%** |
+| **🟡 `uncertain`** | `45.0% <= P1 < 75.0%` or `margin < 20.0%` | 107 | 35.67% | 71.03% |
+| **🔴 `rejected`** | `P1 < 45.0%` or `image_empty_or_flat` | 44 | 14.67% | 65.91% |
 | **Overall** | — | 300 | 100.0% | 81.67% |
 
 Within the automated `confident` partition, accuracy reaches **93.96%**, effectively suppressing erroneous routing actions.
 
 ### Pre-Inference Quality Thresholds
 
-Statistical descriptors evaluated on a 128x128 grayscale thumbnail prior to neural execution:
+Statistical descriptors evaluated on a 128×128 grayscale thumbnail prior to neural execution:
 
-| Threshold Constant | Config Variable | Default Value | Condition & Warning |
-|---|---|---|---|
-| `BLUR_VAR_MIN` | `BLUR_VAR_MIN` | `35.0` | Laplacian variance < 35.0 -> `image_blurry` |
-| `DARK_MEAN_MAX` | `DARK_MEAN_MAX` | `30.0` | Mean intensity < 30.0 -> `image_too_dark` |
-| `BRIGHT_MEAN_MIN` | `BRIGHT_MEAN_MIN` | `230.0` | Mean intensity > 230.0 -> `image_too_bright` |
-| `FLAT_STD_MIN` | `FLAT_STD_MIN` | `15.0` | Standard deviation < 15.0 -> `image_empty_or_flat` |
+| Constant | Config Variable | Default Value | Condition & Warning |
+| :--- | :--- | :---: | :--- |
+| `BLUR_VAR_MIN` | `BLUR_VAR_MIN` | `35.0` | Laplacian variance < 35.0 &rarr; `image_blurry` |
+| `DARK_MEAN_MAX` | `DARK_MEAN_MAX` | `30.0` | Mean intensity < 30.0 &rarr; `image_too_dark` |
+| `BRIGHT_MEAN_MIN` | `BRIGHT_MEAN_MIN` | `230.0` | Mean intensity > 230.0 &rarr; `image_too_bright` |
+| `FLAT_STD_MIN` | `FLAT_STD_MIN` | `15.0` | Standard deviation < 15.0 &rarr; `image_empty_or_flat` |
 
 ---
 
-## Limitations & Dataset Provenance
+## ⚠️ Limitations & Dataset Provenance
 
 > [!WARNING]
-> **Dataset Provenance**: The 300 benchmark samples originate from the standard TrashNet dataset. The exact train/test split of the original legacy `models/model.keras` cannot be independently verified; therefore, these metrics reflect in-distribution performance and should be considered optimistic upper bounds.
+> **Dataset provenance**: The 300 benchmark samples come from the standard TrashNet dataset. The exact train/test split of the original legacy `models/model.keras` cannot be independently verified, so these metrics reflect in-distribution performance and should be treated as optimistic upper bounds.
 >
-> **Domain Shift on Campus**: Real-world smartphone captures in cafeteria and hallway lighting differ substantially from clean, white-background laboratory datasets. Performance on real campus photos is likely lower; evaluate with `data/campus_photos/`.
+> **Domain shift on campus**: Real smartphone photos taken in cafeterias and hallways differ substantially from clean, white-background lab images. Real-world performance is likely lower.
 >
-> **Campus Photo Collection**: To validate real-world performance, a dedicated directory structure has been created in `data/campus_photos/`. Once local photos are deposited, run:
+> **Campus photo collection**: A dedicated directory exists at `data/campus_photos/`. Once local photos are added, run:
 > ```bash
 > python scripts/evaluate.py --data data/campus_photos --output-dir docs/metrics/campus_benchmark
 > ```
 
 ---
 
-## Graph Routing & Ranking Algorithms
+## 🛣️ Graph Routing & Ranking Algorithms
 
 EcoSort models the pedestrian network of Kafrelsheikh University campus as an illustrative, weighted graph spanning 12 landmark faculties and facilities. Edge weights are derived from real geographical coordinates (lat/lng) calculated via the Haversine formula scaled with a realistic pedestrian detour factor (1.15), ensuring `weight >= haversine` across all edges.
 
 ### Dijkstra vs A* Algorithm Comparison
 
 | Dimension | Dijkstra's Algorithm | A* Search Algorithm |
-|---|---|---|
+| :--- | :--- | :--- |
 | **Search Strategy** | Uniform Cost Search (uninformed) | Best-First Search with Admissible Heuristic |
 | **Cost Formulation** | `f(n) = g(n)` | `f(n) = g(n) + h(n)` |
 | **Heuristic Function** | None (`h(n) = 0`) | Haversine distance to target bin (`h(n) <= h*(n)`, consistent) |
@@ -198,23 +242,24 @@ EcoSort models the pedestrian network of Kafrelsheikh University campus as an il
 | **Time Complexity** | `O((V + E) log V)` with priority queue | `O(b^d)` worst case; approaches `O(d)` |
 
 ### Merge Sort for Distance Ranking
-To display all candidate bins campus-wide in strictly ascending order:
+Used to display all candidate bins campus-wide in strictly ascending distance order:
 - **Paradigm**: Divide and Conquer (bisect list, sort sub-lists, merge linearly).
 - **Time Complexity**: Guaranteed `O(n log n)` across worst, average, and best cases.
 - **Stability**: Stable sorting preserves the geographical index order of equidistant bins.
 
 ---
 
-## API Reference
+## 🔌 API Reference
 
-### 1. Model Inference Endpoint: `POST /predict`
+### `POST /predict` — Classify an image
 Submits an image for computer vision classification and routing metadata extraction.
 
-**Request:**
-- Content-Type: `multipart/form-data`
-- Body: `file` (JPEG, PNG, or WEBP binary)
+- **Content-Type**: `multipart/form-data`
+- **Body**: `file` (JPEG, PNG, or WEBP binary)
 
-**Response (`application/json`):**
+<details>
+<summary><strong>Example response (click to expand)</strong></summary>
+
 ```json
 {
   "status": "success",
@@ -271,11 +316,11 @@ Submits an image for computer vision classification and routing metadata extract
   "texture_description_en": "Various polymer plastic, flexible or rigid, smooth finish with elastic deformation."
 }
 ```
+</details>
 
-### 2. Health & Readiness Endpoint: `GET /health`
-Returns runtime status and model loading confirmation.
+### `GET /health` — Readiness check
+Returns runtime status and model-loading confirmation.
 
-**Response (`application/json`):**
 ```json
 {
   "status": "healthy",
@@ -288,111 +333,111 @@ Returns runtime status and model loading confirmation.
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 <details>
-<summary><strong>Click to expand project directory tree</strong></summary>
+<summary><strong>Click to expand the project directory tree</strong></summary>
 
-```text
+```
 EcoSort/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                     # GitHub Actions CI workflow (lint + test)
-├── api/                               # Vercel serverless deployment
-│   ├── index.py                       # Serverless WSGI/LiteRT entrypoint & proxy
-│   └── requirements.txt               # Serverless Python dependencies (ai-edge-litert)
-├── app.py                             # Flask application routes (/predict, /health)
-├── wsgi.py                            # Production WSGI application entrypoint
-├── index.html                         # Root static entrypoint for Vercel deployment
-├── vercel.json                        # Vercel routing, rewrites, and security headers
-├── ecosort/                           # Core Python backend package
+│       └── ci.yml               # GitHub Actions CI (lint + test)
+├── api/                         # Vercel serverless deployment
+│   ├── index.py                 # Serverless WSGI/LiteRT entrypoint & proxy
+│   └── requirements.txt         # Serverless Python dependencies (ai-edge-litert)
+├── app.py                       # Flask routes (/predict, /health)
+├── wsgi.py                      # Production WSGI entrypoint
+├── index.html                   # Root static entrypoint for Vercel
+├── vercel.json                  # Vercel routing, rewrites, security headers
+├── ecosort/                     # Core Python backend package
 │   ├── __init__.py
-│   ├── config.py                      # Centralized configuration with env overrides
-│   ├── inference.py                   # Thread-safe model singleton engine & gating
-│   ├── knowledge.py                   # Environmental IR & carbon savings registry
-│   ├── preprocess.py                  # EXIF correction, quality checks, scaling
-│   └── rate_limiter.py                # Sliding-window in-memory IP rate limiter
+│   ├── config.py                # Centralized configuration with env overrides
+│   ├── inference.py             # Thread-safe model singleton & gating
+│   ├── knowledge.py             # Environmental IR & carbon savings registry
+│   ├── preprocess.py            # EXIF correction, quality checks, scaling
+│   └── rate_limiter.py          # Sliding-window in-memory IP rate limiter
 ├── models/
-│   ├── model.keras                    # Pre-trained deep learning CNN model
-│   └── model.tflite                   # Flatbuffer model for LiteRT inference
+│   ├── model.keras              # Pre-trained CNN model
+│   └── model.tflite             # Flatbuffer model for LiteRT inference
 ├── data/
-│   ├── README.md                      # Dataset documentation and evaluation guide
-│   ├── benchmark/                     # 300 TrashNet evaluation samples across 6 classes
-│   └── campus_photos/                 # Real-world campus photographs
-│       ├── README.md                  # Collection instructions & domain shift guide
+│   ├── README.md                # Dataset documentation & evaluation guide
+│   ├── benchmark/               # 300 TrashNet evaluation samples (6 classes)
+│   └── campus_photos/           # Real-world campus photographs
+│       ├── README.md            # Collection instructions & domain-shift guide
 │       └── {cardboard,glass,metal,paper,plastic,trash}/
 ├── docs/
-│   ├── DEFENSE_GUIDE.md               # Academic viva defense questions & answers
-│   ├── THRESHOLDS.md                  # Statistical & confidence thresholds reference
+│   ├── DEFENSE_GUIDE.md         # Academic viva Q&A
+│   ├── THRESHOLDS.md            # Statistical & confidence thresholds reference
 │   └── metrics/
-│       ├── ab_experiments.json        # Systematic A/B experiments log
-│       └── per_class_metrics.json     # Complete verified baseline metrics
+│       ├── ab_experiments.json  # A/B experiments log
+│       └── per_class_metrics.json # Verified baseline metrics
 ├── scripts/
-│   ├── download_dataset.py            # Dataset acquisition utility
-│   ├── evaluate.py                    # Comprehensive benchmarking script
-│   ├── run_experiments.py             # Systematic A/B experiment runner
-│   └── sync_sources.py                # Single-source verification & sync utility
+│   ├── download_dataset.py      # Dataset acquisition utility
+│   ├── evaluate.py              # Benchmarking script
+│   ├── run_experiments.py       # A/B experiment runner
+│   └── sync_sources.py          # Single-source verification & sync utility
 ├── static/
-│   ├── assets/images/                 # Favicons, icons, and branding
+│   ├── assets/images/           # Logo, favicons, icons, branding
 │   ├── css/
-│   │   ├── components.css             # UI components, modals, toasts
-│   │   ├── responsive.css             # Mobile-first media queries
-│   │   ├── style.css                  # Core CSS & layout definitions
-│   │   └── utilities.css              # Logical properties & RTL utilities
-│   └── js/                            # Client-side routing, algorithms, and CV modules
+│   │   ├── components.css       # UI components, modals, toasts
+│   │   ├── responsive.css       # Mobile-first media queries
+│   │   ├── style.css            # Core CSS & layout
+│   │   └── utilities.css        # Logical properties & RTL utilities
+│   └── js/                      # Client-side routing, algorithms, CV modules
 ├── templates/
-│   └── index.html                     # Responsive single-page application wizard
-├── tests/                             # Comprehensive automated test suite (Pytest + Node)
+│   └── index.html               # Responsive single-page wizard
+├── tests/                       # Automated test suite (Pytest + Node)
 ├── training/
-│   ├── README.md                      # Transfer learning documentation
-│   └── train_transfer.py              # Two-stage MobileNetV2 / EfficientNet training
+│   ├── README.md                # Transfer learning documentation
+│   └── train_transfer.py        # Two-stage MobileNetV2 / EfficientNet training
 ├── .dockerignore
-├── .env.example                       # Environment configuration template
+├── .env.example                 # Environment configuration template
 ├── .gitignore
-├── Dockerfile                         # Production single-stage Docker container (python:3.11-slim)
-├── docker-compose.yml                 # Local Docker Compose setup
+├── Dockerfile                   # Production container (python:3.11-slim)
+├── docker-compose.yml           # Local Docker Compose setup
 ├── LICENSE
-├── pyproject.toml                     # Ruff linter and tool configuration
+├── pyproject.toml               # Ruff linter & tool configuration
 ├── README.md
-├── requirements.txt                   # Vercel serverless runtime dependencies (LiteRT, Flask, Pillow, numpy)
-├── requirements-full.txt              # Dedicated Flask server & Docker production dependencies (TensorFlow & Keras)
-└── requirements-dev.txt               # Development & testing dependencies (inherits requirements-full.txt)
+├── requirements.txt             # Vercel serverless runtime deps
+├── requirements-full.txt        # Flask server & Docker deps (TensorFlow, Keras)
+└── requirements-dev.txt         # Dev & testing deps (inherits requirements-full.txt)
 ```
 </details>
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 - Python 3.10, 3.11, 3.12, or 3.13
-- Modern web browser (Chrome, Firefox, Safari, Edge)
+- A modern web browser (Chrome, Firefox, Safari, Edge)
 
-### Dependency Split Overview
+### Dependency Files
+EcoSort uses a three-way split, one file per deployment target:
 
-EcoSort maintains a clear three-way dependency split tailored for different deployment targets:
-
-| File | Target Environment | Key Components |
-|---|---|---|
-| **`requirements.txt`** | **Vercel Serverless Functions** only | Lightweight runtime (`Flask`, `Pillow`, `numpy`, `ai-edge-litert`) staying strictly within Vercel's serverless size constraints. |
-| **`requirements-full.txt`** | **Docker Containers & Dedicated Flask Server** | Full deep learning runtime (`tensorflow==2.20.0`, `keras==3.13.2`, `gunicorn==23.0.0`, `Pillow`, `Flask`). |
-| **`requirements-dev.txt`** | **Testing & CI / Quality Assurance** | Extends `-r requirements-full.txt` with test frameworks (`pytest`, `ruff`, `scikit-learn`, `playwright`). |
+| File | Target | Contents |
+| :--- | :--- | :--- |
+| **`requirements.txt`** | **Vercel Serverless only** | Flask, Pillow, numpy, ai-edge-litert — kept within Vercel's size limits |
+| **`requirements-full.txt`** | **Docker Containers & Dedicated Flask Server** | Full deep learning runtime (`tensorflow==2.20.0`, `keras==3.13.2`, `gunicorn==23.0.0`, `Pillow`, `Flask`) |
+| **`requirements-dev.txt`** | **Testing, CI & QA** | Extends `requirements-full.txt` with test frameworks (`pytest`, `ruff`, `scikit-learn`, `playwright`) |
 
 ### Installation
 ```bash
-# 1. Clone repository
+# 1. Clone the repository
 git clone https://github.com/nour714/EcoSort.git
 cd EcoSort
 
-# 2. Create and activate virtual environment
+# 2. Create and activate a virtual environment
 python -m venv venv
-# On Windows:
+
+# Windows
 venv\Scripts\activate
-# On Linux/macOS:
+# Linux / macOS
 source venv/bin/activate
 
 # 3. Install dependencies:
-# For full local development or Docker with TensorFlow:
+# For full local development or Docker:
 pip install -r requirements-full.txt
 
 # Or for running the complete test suite:
@@ -401,21 +446,21 @@ pip install -r requirements-dev.txt
 # Note: requirements.txt is used exclusively for Vercel serverless functions.
 ```
 
-### Running the Application
+### Run the App
 ```bash
 # Start Flask server
 python app.py
 ```
-Open your browser and navigate to:
+Then open your browser and navigate to:
 ```
 http://localhost:5000
 ```
 
 ---
 
-## Testing & Quality Assurance
+## 🧪 Testing & Quality Assurance
 
-EcoSort maintains an automated test suite verifying API contracts, preprocessing behavior, image quality checks, and metric consistency:
+The automated test suite verifies API contracts, preprocessing behavior, image-quality checks, confidence gating, graph algorithms, and metric consistency:
 
 ```bash
 # Install development and testing dependencies
@@ -427,15 +472,13 @@ ruff check .
 # Run complete pytest suite
 pytest -v
 
-# Run Node.js graph algorithm & client unit tests
+# Run Node.js graph-algorithm & client tests
 node --test tests/*.test.js
 ```
 
-Automated unit, integration, and regression suites run across both Python (`pytest`) and Node.js (`node --test`), verifying model inference, confidence gating, graph algorithms, and environmental metrics.
-
 ---
 
-## Docker Deployment
+## 🐳 Docker Deployment
 
 To build and run EcoSort in an isolated container:
 
@@ -454,7 +497,7 @@ docker compose up --build
 
 ---
 
-## Deployment: Flask vs Vercel
+## ☁️ Deployment: Flask vs Vercel
 
 EcoSort supports two production deployment topologies depending on operational requirements:
 
@@ -477,8 +520,7 @@ ECOSORT_BACKEND_URL=https://api.ecosort.example.com
 ```
 When `ECOSORT_BACKEND_URL` is set, `api/index.py` transparently streams multipart requests directly to the dedicated Flask instance, bypassing serverless size and execution limits.
 
-### Post-Deployment Verification & Serverless Bundle Confirmation
-
+### Post-Deployment Verification
 After deploying to Vercel, run the automated verification script:
 ```bash
 python scripts/check_deployment.py --url https://ecosort.vercel.app
@@ -488,7 +530,7 @@ The script verifies:
 1. **Health Check (`GET /health`)**: Confirms HTTP 200 and `model_loaded: true`, verifying the LiteRT interpreter has initialized successfully in the serverless instance.
 2. **Inference Execution (`POST /predict`)**: Submits a sample image and verifies that `model_version` contains `LiteRT` (confirming real neural inference, not a degraded fallback).
 
-#### Serverless Function Bundle Confirmation
+#### Serverless Bundle Confirmation
 Vercel zero-config Python builds bundle the workspace files required by the serverless handler (`api/index.py`). Build logs and function file inspections confirm:
 - `ecosort/` package (`config.py`, `knowledge.py`, `preprocess.py`, `rate_limiter.py`) is bundled directly.
 - `models/model.tflite` (~1.4 MB) is bundled at `models/model.tflite`.
@@ -496,7 +538,7 @@ Vercel zero-config Python builds bundle the workspace files required by the serv
 
 ---
 
-## Transfer Learning Pipeline
+## 🧠 Transfer Learning Pipeline
 
 To train an updated model using MobileNetV2 or EfficientNetB0:
 ```bash
@@ -512,13 +554,29 @@ See [training/README.md](training/README.md) for full instructions.
 
 ---
 
-## Academic Resources
+## 🎓 Academic Resources
 
-- **[Academic Defense Guide (DEFENSE_GUIDE.md)](docs/DEFENSE_GUIDE.md)**: 15 questions and model answers covering model architecture, EXIF orientation, A* vs Dijkstra, thread safety, and ECE.
-- **[System Thresholds Reference (THRESHOLDS.md)](docs/THRESHOLDS.md)**: Precise mathematical definitions and environment variables for all quality guardrails and confidence thresholds.
+| Document | Description |
+| :--- | :--- |
+| **[DEFENSE_GUIDE.md](docs/DEFENSE_GUIDE.md)** | 15 questions and model answers covering model architecture, EXIF orientation, A* vs Dijkstra, thread safety, and ECE |
+| **[THRESHOLDS.md](docs/THRESHOLDS.md)** | Precise mathematical definitions and environment variables for all quality guardrails and confidence thresholds |
 
 ---
 
-## License
+## 👤 Author
 
-This project is licensed under the MIT License — see the LICENSE file for details.
+**Nour** — Faculty of Artificial Intelligence, Kafrelsheikh University  
+GitHub: [@nour714](https://github.com/nour714)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+<div align="center">
+<br>
+
+♻️ **Sort smarter. Walk shorter. Recycle better.** ♻️
+
+</div>
