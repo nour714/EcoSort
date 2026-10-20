@@ -155,9 +155,9 @@ Dual-threshold confidence gating isolates automated decisions from ambiguous or 
 
 | Decision State | Threshold Criteria | Sample Count | Coverage (%) | Selective Accuracy (%) |
 | :--- | :--- | :---: | :---: | :---: |
-| **🟢 `confident`** | `P1 >= 75.0%` and `margin >= 20.0%` | 149 | 49.67% | **93.96%** |
-| **🟡 `uncertain`** | `45.0% <= P1 < 75.0%` or `margin < 20.0%` | 107 | 35.67% | 71.03% |
-| **🔴 `rejected`** | `P1 < 45.0%` or `image_empty_or_flat` | 44 | 14.67% | 65.91% |
+| **`confident`** | `P1 >= 75.0%` and `margin >= 20.0%` | 149 | 49.67% | **93.96%** |
+| **`uncertain`** | `45.0% <= P1 < 75.0%` or `margin < 20.0%` | 107 | 35.67% | 71.03% |
+| **`rejected`** | `P1 < 45.0%` or `image_empty_or_flat` | 44 | 14.67% | 65.91% |
 | **Overall** | — | 300 | 100.0% | 81.67% |
 
 Within the automated `confident` partition, accuracy reaches **93.96%**, effectively suppressing erroneous routing actions.

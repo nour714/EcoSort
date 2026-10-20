@@ -2147,6 +2147,8 @@ class EcoSortApp {
         const btnCameraCaptureText = document.getElementById('btn-camera-capture-text');
         const btnCameraSwitchText = document.getElementById('btn-camera-switch-text');
         const btnCameraCloseText = document.getElementById('btn-camera-close-text');
+        const btnCameraSwitch = document.getElementById('btn-camera-switch');
+        const btnCameraClose = document.getElementById('btn-camera-close');
         const previewStatusText = document.getElementById('cv-preview-status-text');
         const btnRescanCameraText = document.getElementById('btn-rescan-camera-text');
         const btnReuploadText = document.getElementById('btn-reupload-image-text') || document.getElementById('btn-reupload-text');
@@ -2188,7 +2190,15 @@ class EcoSortApp {
         if (cvDropzoneHint) cvDropzoneHint.textContent = t.dropzoneHint;
         if (btnCameraCaptureText) btnCameraCaptureText.textContent = t.btnCaptureNow;
         if (btnCameraSwitchText) btnCameraSwitchText.textContent = t.btnSwitchCamera;
+        if (btnCameraSwitch) {
+            btnCameraSwitch.title = t.btnSwitchCamera;
+            btnCameraSwitch.setAttribute('aria-label', t.btnSwitchCamera);
+        }
         if (btnCameraCloseText) btnCameraCloseText.textContent = t.btnCloseCamera;
+        if (btnCameraClose) {
+            btnCameraClose.title = t.btnCloseCamera;
+            btnCameraClose.setAttribute('aria-label', t.btnCloseCamera);
+        }
         if (previewStatusText && !this.lastDetection) previewStatusText.textContent = t.previewStatus;
         if (btnRescanCameraText) btnRescanCameraText.textContent = t.btnRescanCamera;
         if (btnReuploadText) btnReuploadText.textContent = t.btnReupload;
