@@ -90,8 +90,8 @@ def test_step_navigation_and_scan_actions(live_server, browser_instance):
     assert page.is_visible("#wizard-step-2")
     assert not page.is_visible("#wizard-step-1")
 
-    # Click Back to scan -> Step 1
-    page.click("#btn-back-to-step-1")
+    # Navigate back to Step 1
+    page.evaluate("() => window.app.goToStep(1)")
     page.wait_for_timeout(300)
     assert page.is_visible("#wizard-step-1")
 

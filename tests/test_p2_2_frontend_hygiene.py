@@ -51,3 +51,17 @@ def test_translations_contain_step3_toasts():
     assert "toastDijkstraTitle" in content
     assert "toastAStarTitle" in content
     assert "toastNoRouteTitle" in content
+
+def test_cancel_scan_button_and_translations_present():
+    """Verify cancel scan button is present in HTML templates, localized, and handled in JS."""
+    index_html = (ROOT / "index.html").read_text(encoding="utf-8")
+    tmpl_html = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    app_js = (ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    trans_js = (ROOT / "static" / "js" / "data" / "translations.js").read_text(encoding="utf-8")
+    css = (ROOT / "static" / "css" / "components.css").read_text(encoding="utf-8")
+
+    assert 'id="btn-cancel-scan"' in index_html
+    assert 'id="btn-cancel-scan"' in tmpl_html
+    assert 'btnCancelScan' in trans_js
+    assert 'cancelScan()' in app_js
+    assert '.btn-cancel-scan' in css

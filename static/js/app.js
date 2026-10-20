@@ -612,6 +612,7 @@ class EcoSortApp {
         const btnTriggerUpload = document.getElementById('btn-trigger-upload');
         const btnRescanCamera = document.getElementById('btn-rescan-camera');
         const btnReuploadImage = document.getElementById('btn-reupload-image');
+        const btnCancelScan = document.getElementById('btn-cancel-scan');
 
         // عناصر التحكم في الكاميرا الحية
         const btnCameraCapture = document.getElementById('btn-camera-capture');
@@ -681,6 +682,13 @@ class EcoSortApp {
                 e.stopPropagation();
                 this.stopCameraStream();
                 if (fileInput) fileInput.click();
+            });
+        }
+
+        if (btnCancelScan) {
+            btnCancelScan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.cancelScan();
             });
         }
 
@@ -866,6 +874,68 @@ class EcoSortApp {
         const videoElem = document.getElementById('cv-camera-video');
         if (videoElem) videoElem.srcObject = null;
         if (camContainer) camContainer.classList.add('hidden');
+
+        const previewContainer = document.getElementById('cv-image-preview-container');
+        const placeholder = document.getElementById('cv-upload-placeholder');
+        if (!previewContainer || previewContainer.classList.contains('hidden')) {
+            if (placeholder) placeholder.classList.remove('hidden');
+        }
+    }
+
+    /**
+     * إلغاء الفحص الحالي وإعادة تهيئة منطقة الرفع ونتائج الفحص إلى الحالة المبدئية
+     */
+    cancelScan() {
+        this.stopCameraStream();
+
+        const fileInput = document.getElementById('waste-image-input');
+        const cameraInput = document.getElementById('waste-camera-input');
+        if (fileInput) fileInput.value = '';
+        if (cameraInput) cameraInput.value = '';
+
+        this.lastUploadedFile = null;
+        this.lastDetection = null;
+        this.currentWasteItem = null;
+        this.currentWasteType = null;
+
+        const previewContainer = document.getElementById('cv-image-preview-container');
+        const previewImg = document.getElementById('cv-uploaded-image');
+        const placeholder = document.getElementById('cv-upload-placeholder');
+        const dropzone = document.getElementById('cv-dropzone');
+
+        if (previewContainer) previewContainer.classList.add('hidden');
+        if (previewImg) {
+            previewImg.src = '';
+            previewImg.removeAttribute('src');
+        }
+        if (placeholder) placeholder.classList.remove('hidden');
+        if (dropzone) {
+            dropzone.classList.remove('scanning', 'dragover');
+        }
+
+        const skeletonCard = document.getElementById('card-inspection-skeleton');
+        const errorCard = document.getElementById('card-inspection-error');
+        const resultCard = document.getElementById('card-inspection-result');
+        const awaitingNotice = document.getElementById('awaiting-scan-notice');
+        const btnGoRoute = document.getElementById('btn-go-to-route');
+
+        if (skeletonCard) {
+            skeletonCard.classList.add('hidden');
+            skeletonCard.setAttribute('aria-hidden', 'true');
+        }
+        if (errorCard) errorCard.classList.add('hidden');
+        if (resultCard) {
+            resultCard.classList.add('hidden');
+            resultCard.classList.remove('card-fade-in');
+        }
+        if (awaitingNotice) awaitingNotice.classList.remove('hidden');
+        if (btnGoRoute) btnGoRoute.disabled = true;
+
+        const manualSelect = document.getElementById('manual-waste-selector');
+        if (manualSelect) {
+            manualSelect.value = '';
+            manualSelect.classList.remove('highlight-pulse');
+        }
     }
 
     async processUploadedFile(file) {
@@ -926,6 +996,14 @@ class EcoSortApp {
                 const t = (window.ECOSORT_TRANSLATIONS && window.ECOSORT_TRANSLATIONS[this.currentLang]) || window.ECOSORT_TRANSLATIONS?.ar || {};
                 const itemName = (isEn && detection.item.nameEn) ? detection.item.nameEn : (detection.item.name || '');
                 const confVal = detection.confidence != null ? detection.confidence : '--';
+
+                // إذا كانت نسبة الثقة عالية وفارق التمييز كافٍ (>= 60% مع هامش أمان >= 15%)، يتم اعتمادها كمؤكدة
+                const confNum = Number(detection.confidence) || 0;
+                const marginNum = detection.margin != null ? Number(detection.margin) : null;
+                const isStrongLeadingPrediction = confNum >= 60.0 && (marginNum == null || marginNum >= 15.0);
+                if (detection.decision === 'uncertain' && isStrongLeadingPrediction) {
+                    detection.decision = 'confident';
+                }
 
                 let toastTitle, toastMsg, toastType;
                 if (detection.decision === 'rejected') {
@@ -1191,6 +1269,13 @@ class EcoSortApp {
         if (decisionBanner) {
             decisionBanner.classList.remove('hidden', 'decision-banner-confident', 'decision-banner-uncertain', 'decision-banner-rejected');
             if (manualSelect) manualSelect.classList.remove('highlight-pulse');
+
+            // إذا كانت نسبة الثقة واضحة وكبيرة (>= 60% مع هامش أمان كافٍ >= 15%)، يتم اعتمادها كمؤكدة فوراً
+            const confValNum = Number(detection.confidence) || 0;
+            const marginValNum = detection.margin != null ? Number(detection.margin) : null;
+            if (detection.decision === 'uncertain' && confValNum >= 60.0 && (marginValNum == null || marginValNum >= 15.0)) {
+                detection.decision = 'confident';
+            }
 
             if (detection.isPreset || detection.decision === 'confident') {
                 decisionBanner.classList.add('decision-banner-confident');
@@ -2051,6 +2136,8 @@ class EcoSortApp {
         const previewStatusText = document.getElementById('cv-preview-status-text');
         const btnRescanCameraText = document.getElementById('btn-rescan-camera-text');
         const btnReuploadText = document.getElementById('btn-reupload-image-text') || document.getElementById('btn-reupload-text');
+        const btnCancelScanText = document.getElementById('btn-cancel-scan-text');
+        const btnCancelScan = document.getElementById('btn-cancel-scan');
         const awaitingTitle = document.getElementById('awaiting-scan-title');
         const awaitingDesc = document.getElementById('awaiting-scan-desc');
         const inspectionResultTitle = document.getElementById('inspection-result-title');
@@ -2091,6 +2178,8 @@ class EcoSortApp {
         if (previewStatusText && !this.lastDetection) previewStatusText.textContent = t.previewStatus;
         if (btnRescanCameraText) btnRescanCameraText.textContent = t.btnRescanCamera;
         if (btnReuploadText) btnReuploadText.textContent = t.btnReupload;
+        if (btnCancelScanText) btnCancelScanText.textContent = t.btnCancelScan;
+        if (btnCancelScan) btnCancelScan.title = t.btnCancelScanTitle || t.btnCancelScan;
         if (awaitingTitle) awaitingTitle.textContent = t.awaitingTitle;
         if (awaitingDesc) awaitingDesc.textContent = t.awaitingDesc;
         if (inspectionResultTitle) inspectionResultTitle.textContent = t.resultTitle;

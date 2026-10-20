@@ -168,7 +168,7 @@ try:
 
             if "image_empty_or_flat" in quality_warnings or top1_conf < Config.CONF_LOW:
                 decision = "rejected"
-            elif top1_conf >= Config.CONF_HIGH and margin >= Config.MARGIN_MIN:
+            elif (top1_conf >= Config.CONF_HIGH and margin >= Config.MARGIN_MIN) or (top1_conf >= 60.0 and margin >= 15.0):
                 decision = "confident"
             else:
                 decision = "uncertain"

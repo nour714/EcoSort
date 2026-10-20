@@ -24,7 +24,7 @@ def decide(top1: float, margin: float, quality_warnings: list | None = None) -> 
     warnings = quality_warnings or []
     if "image_empty_or_flat" in warnings or top1 < Config.CONF_LOW:
         return "rejected"
-    if top1 >= Config.CONF_HIGH and margin >= Config.MARGIN_MIN:
+    if (top1 >= Config.CONF_HIGH and margin >= Config.MARGIN_MIN) or (top1 >= 60.0 and margin >= 15.0):
         return "confident"
     return "uncertain"
 

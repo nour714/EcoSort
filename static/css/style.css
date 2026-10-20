@@ -477,7 +477,11 @@ body {
 .wizard-step.active {
     display: block;
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
+}
+
+#wizard-step-2.active {
+    padding-bottom: 5.5rem;
 }
 
 /* أشرطة الإجراءات السفلية */
