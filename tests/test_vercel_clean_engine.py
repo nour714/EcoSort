@@ -5,7 +5,11 @@ without fallback/calibrated heuristics and achieves >= 75% accuracy on the
 fixed 60-image benchmark subset.
 """
 import os
+import sys
 import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from api.index import engine, flask_app
 
 

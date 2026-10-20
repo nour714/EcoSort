@@ -16,22 +16,6 @@
     {
       "source": "/health",
       "destination": "/api"
-    },
-    {
-      "source": "/api/predict",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/health",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/index.py",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
     }
   ],
   "headers": [
