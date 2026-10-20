@@ -1,4 +1,4 @@
--r requirements.txt
+-r requirements-full.txt
 pytest==9.1.1
 scikit-learn==1.7.2
 matplotlib==3.10.7

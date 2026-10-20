@@ -354,8 +354,9 @@ EcoSort/
 ├── LICENSE
 ├── pyproject.toml                     # Ruff linter and tool configuration
 ├── README.md
-├── requirements.txt                   # Production dependencies
-└── requirements-dev.txt               # Development & testing dependencies
+├── requirements.txt                   # Vercel serverless runtime dependencies (LiteRT, Flask, Pillow, numpy)
+├── requirements-full.txt              # Dedicated Flask server & Docker production dependencies (TensorFlow & Keras)
+└── requirements-dev.txt               # Development & testing dependencies (inherits requirements-full.txt)
 ```
 </details>
 
@@ -366,6 +367,16 @@ EcoSort/
 ### Prerequisites
 - Python 3.10, 3.11, 3.12, or 3.13
 - Modern web browser (Chrome, Firefox, Safari, Edge)
+
+### Dependency Split Overview
+
+EcoSort maintains a clear three-way dependency split tailored for different deployment targets:
+
+| File | Target Environment | Key Components |
+|---|---|---|
+| **`requirements.txt`** | **Vercel Serverless Functions** only | Lightweight runtime (`Flask`, `Pillow`, `numpy`, `ai-edge-litert`) staying strictly within Vercel's serverless size constraints. |
+| **`requirements-full.txt`** | **Docker Containers & Dedicated Flask Server** | Full deep learning runtime (`tensorflow==2.20.0`, `keras==3.13.2`, `gunicorn==23.0.0`, `Pillow`, `Flask`). |
+| **`requirements-dev.txt`** | **Testing & CI / Quality Assurance** | Extends `-r requirements-full.txt` with test frameworks (`pytest`, `ruff`, `scikit-learn`, `playwright`). |
 
 ### Installation
 ```bash
@@ -380,8 +391,14 @@ venv\Scripts\activate
 # On Linux/macOS:
 source venv/bin/activate
 
-# 3. Install dependencies
-pip install -r requirements.txt
+# 3. Install dependencies:
+# For full local development or Docker with TensorFlow:
+pip install -r requirements-full.txt
+
+# Or for running the complete test suite:
+pip install -r requirements-dev.txt
+
+# Note: requirements.txt is used exclusively for Vercel serverless functions.
 ```
 
 ### Running the Application
@@ -459,6 +476,23 @@ When deploying frontend static assets to Vercel while running deep neural infere
 ECOSORT_BACKEND_URL=https://api.ecosort.example.com
 ```
 When `ECOSORT_BACKEND_URL` is set, `api/index.py` transparently streams multipart requests directly to the dedicated Flask instance, bypassing serverless size and execution limits.
+
+### Post-Deployment Verification & Serverless Bundle Confirmation
+
+After deploying to Vercel, run the automated verification script:
+```bash
+python scripts/check_deployment.py --url https://ecosort.vercel.app
+```
+
+The script verifies:
+1. **Health Check (`GET /health`)**: Confirms HTTP 200 and `model_loaded: true`, verifying the LiteRT interpreter has initialized successfully in the serverless instance.
+2. **Inference Execution (`POST /predict`)**: Submits a sample image and verifies that `model_version` contains `LiteRT` (confirming real neural inference, not a degraded fallback).
+
+#### Serverless Function Bundle Confirmation
+Vercel zero-config Python builds bundle the workspace files required by the serverless handler (`api/index.py`). Build logs and function file inspections confirm:
+- `ecosort/` package (`config.py`, `knowledge.py`, `preprocess.py`, `rate_limiter.py`) is bundled directly.
+- `models/model.tflite` (~1.4 MB) is bundled at `models/model.tflite`.
+- Heavy assets (`models/*.keras`, `/data/`, `/training/`, `/tests/`) are excluded via `.vercelignore`, keeping the function package well below Vercel's serverless size limits.
 
 ---
 

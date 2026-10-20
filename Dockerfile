@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+COPY requirements-full.txt .
+RUN pip install --no-cache-dir -r requirements-full.txt
 
 # Copy application files
 COPY . .

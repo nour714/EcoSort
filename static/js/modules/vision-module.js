@@ -194,7 +194,8 @@ class VisionModule {
             } else if (resp.status === 429) {
                 errorText = 'تم تجاوز معدل الطلبات المسموح به. يرجى الانتظار قليلاً ثم إعادة المحاولة.';
             } else if (resp.status === 405) {
-                errorText = 'طريقة الطلب غير مسموح بها (HTTP 405). يرجى التحقق من إعدادات Vercel أو تعطيل Deployment Protection.';
+                console.warn(`[VisionModule] Inference endpoint returned HTTP ${resp.status}`);
+                errorText = 'خدمة التحليل غير متوفرة حالياً.';
             } else {
                 try {
                     const errData = await resp.json();

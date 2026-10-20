@@ -50,3 +50,20 @@ def test_readme_no_hardcoded_test_count():
     readme_path = Path("README.md")
     content = readme_path.read_text(encoding="utf-8")
     assert "All 21 test cases" not in content, "README.md still contains hardcoded 'All 21 test cases'"
+
+
+def test_deployment_check_script_and_readme_doc():
+    """Verify scripts/check_deployment.py exists and README documents LiteRT and bundle confirmation."""
+    check_script = Path("scripts/check_deployment.py")
+    assert check_script.exists(), "scripts/check_deployment.py must exist"
+
+    readme_content = Path("README.md").read_text(encoding="utf-8")
+    assert "check_deployment.py" in readme_content
+    assert "model_loaded" in readme_content
+    assert "LiteRT" in readme_content
+    assert "models/model.tflite" in readme_content
+    assert "ecosort/" in readme_content
+
+    from scripts.check_deployment import generate_sample_image_bytes
+    img_bytes = generate_sample_image_bytes()
+    assert len(img_bytes) > 0
