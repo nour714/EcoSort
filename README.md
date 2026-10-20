@@ -22,32 +22,9 @@
 
 <br>
 
-[Overview](#-project-overview) • [Features](#-key-features) • [Screenshots](#-screenshots) • [Architecture](#%EF%B8%8F-system-architecture) • [Benchmarks](#-empirical-evaluation--benchmarks) • [API](#-api-reference) • [Getting Started](#-getting-started) • [Deployment](#%EF%B8%8F-deployment-flask-vs-vercel)
+[Overview](#-project-overview) • [Features](#-key-features) • [Architecture](#%EF%B8%8F-system-architecture) • [Benchmarks](#-empirical-evaluation--benchmarks) • [API](#-api-reference) • [Getting Started](#-getting-started) • [Deployment](#%EF%B8%8F-deployment-flask-vs-vercel)
 
 </div>
-
----
-
-## 📑 Table of Contents
-- [Project Overview](#-project-overview)
-- [Key Features](#-key-features)
-- [Screenshots](#-screenshots)
-- [System Architecture](#%EF%B8%8F-system-architecture)
-- [Wizard User Flow](#-wizard-user-flow)
-- [Empirical Evaluation & Benchmarks](#-empirical-evaluation--benchmarks)
-- [Confidence Gating & Reliability Policies](#-confidence-gating--reliability-policies)
-- [Limitations & Dataset Provenance](#%EF%B8%8F-limitations--dataset-provenance)
-- [Graph Routing & Ranking Algorithms](#%EF%B8%8F-graph-routing--ranking-algorithms)
-- [API Reference](#-api-reference)
-- [Repository Structure](#-repository-structure)
-- [Getting Started](#-getting-started)
-- [Testing & Quality Assurance](#-testing--quality-assurance)
-- [Docker Deployment](#-docker-deployment)
-- [Deployment: Flask vs Vercel](#%EF%B8%8F-deployment-flask-vs-vercel)
-- [Transfer Learning Pipeline](#-transfer-learning-pipeline)
-- [Academic Resources](#-academic-resources)
-- [Author](#-author)
-- [License](#-license)
 
 ---
 
@@ -74,20 +51,6 @@ EcoSort solves this with an end-to-end pipeline:
 - **🗺️ Dynamic graph pathfinding**: Dijkstra and heuristic A* over a 12-landmark pedestrian network of Kafrelsheikh University, with real-time rerouting when bins fill up.
 - **⚡ Guaranteed O(n log n) bin ranking**: Pure JavaScript Merge Sort ranks bins by walking distance.
 - **🌐 Fully bilingual UI**: Complete Arabic (RTL) and English (LTR) support across components, notices, and documentation.
-
----
-
-## 📸 Screenshots
-
-> Add your screenshots to `docs/screenshots/` and update the paths below.
-
-<div align="center">
-
-| Step 1 — Location | Step 2 — Inspect Waste | Step 3 — Route & Navigate |
-| :---: | :---: | :---: |
-| <img src="docs/screenshots/step1.png" width="250" alt="Select location"> | <img src="docs/screenshots/step2.png" width="250" alt="Inspect waste"> | <img src="docs/screenshots/step3.png" width="250" alt="Route and navigate"> |
-
-</div>
 
 ---
 
