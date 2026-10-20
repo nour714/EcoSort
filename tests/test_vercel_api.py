@@ -67,6 +67,7 @@ def test_vercel_security_headers(vercel_client):
     assert res.headers.get('X-Content-Type-Options') == 'nosniff'
     assert res.headers.get('X-Frame-Options') == 'SAMEORIGIN'
     assert res.headers.get('Referrer-Policy') == 'strict-origin-when-cross-origin'
+    assert res.headers.get('Permissions-Policy') == 'camera=(self), geolocation=(), microphone=()'
 
 
 def test_vercel_startup_error_forces_500_and_no_leak():

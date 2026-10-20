@@ -65,6 +65,7 @@ def test_security_headers(client):
     assert res.headers.get('X-Content-Type-Options') == 'nosniff'
     assert res.headers.get('X-Frame-Options') == 'SAMEORIGIN'
     assert res.headers.get('Referrer-Policy') == 'strict-origin-when-cross-origin'
+    assert res.headers.get('Permissions-Policy') == 'camera=(self), geolocation=(), microphone=()'
 
 def test_robots_and_sitemap(client):
     res_robots = client.get('/robots.txt')

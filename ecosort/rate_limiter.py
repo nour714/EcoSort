@@ -49,11 +49,20 @@ class RateLimiter:
 def get_client_ip(request) -> str:
     """
     Extract reliable client IP taking into account reverse proxies / Vercel headers.
+    Note: On serverless platforms (such as Vercel), this in-memory rate limiter is per-instance
+    (isolated to the warm container lifecycle) and not globally distributed across edge regions.
     """
-    forwarded = request.headers.get('X-Forwarded-For')
-    if forwarded:
-        return forwarded.split(',')[0].strip()
-    real_ip = request.headers.get('X-Real-IP')
+    # Prefer Vercel's trusted headers (x-real-ip / x-vercel-forwarded-for) over user-controlled X-Forwarded-For
+    real_ip = request.headers.get('x-real-ip') or request.headers.get('X-Real-IP')
     if real_ip:
         return real_ip.strip()
-    return request.remote_addr or '127.0.0.1'
+
+    vercel_fwd = request.headers.get('x-vercel-forwarded-for') or request.headers.get('X-Vercel-Forwarded-For')
+    if vercel_fwd:
+        return vercel_fwd.split(',')[0].strip()
+
+    forwarded = request.headers.get('x-forwarded-for') or request.headers.get('X-Forwarded-For')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+
+    return getattr(request, 'remote_addr', None) or '127.0.0.1'

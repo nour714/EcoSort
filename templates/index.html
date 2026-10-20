@@ -3,15 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <script>
-    (function() {
-        try {
-            var lang = localStorage.getItem('ecosort_lang') || 'ar';
-            document.documentElement.lang = lang;
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-        } catch(e) {}
-    })();
-    </script>
+    <script src="static/js/head-init.js"></script>
     <meta name="theme-color" content="#047857">
     <link rel="manifest" href="static/manifest.webmanifest" crossorigin="use-credentials">
     <title>EcoSort - نظام الفرز الذكي بجامعة كفر الشيخ</title>
@@ -39,26 +31,7 @@
     <link rel="preload" href="static/fonts/outfit-latin-800.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- البيانات المنظمة لمحركات البحث (Schema.org JSON-LD) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "EcoSort",
-      "alternateName": "نظام الفرز والتوجيه الذكي بجامعة كفر الشيخ",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "All",
-      "description": "منظومة جامعية ذكية لإدارة وفرز المخلفات وإيجاد أقصر مسار للحاويات المتاحة باستخدام الذكاء الاصطناعي وخوارزميات الرؤية الحاسوبية",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "EGP"
-      },
-      "provider": {
-        "@type": "CollegeOrUniversity",
-        "name": "جامعة كفر الشيخ - Kafrelsheikh University"
-      }
-    }
-    </script>
+    <script type="application/ld+json" src="static/js/structured-data.json"></script>
 </head>
 <body>
 

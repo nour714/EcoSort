@@ -173,3 +173,59 @@ def test_request_entity_too_large_413():
         json_data = resp.get_json()
         assert json_data["status"] == "error"
         assert "4 ميجابايت" in json_data["message"]
+
+
+def test_get_client_ip_prefers_trusted_headers():
+    """Verify rate_limiter.get_client_ip prefers Vercel edge headers over user X-Forwarded-For."""
+    from ecosort.rate_limiter import get_client_ip
+
+    class DummyRequest:
+        def __init__(self, headers, remote_addr="127.0.0.1"):
+            self.headers = headers
+            self.remote_addr = remote_addr
+
+    # 1. x-real-ip preferred over x-forwarded-for
+    req1 = DummyRequest({"X-Real-IP": "198.51.100.1", "X-Forwarded-For": "203.0.113.195, 10.0.0.1"})
+    assert get_client_ip(req1) == "198.51.100.1"
+
+    # 2. x-vercel-forwarded-for preferred over x-forwarded-for
+    req2 = DummyRequest({"X-Vercel-Forwarded-For": "198.51.100.2", "X-Forwarded-For": "203.0.113.195"})
+    assert get_client_ip(req2) == "198.51.100.2"
+
+    # 3. Fallback to first x-forwarded-for
+    req3 = DummyRequest({"X-Forwarded-For": "203.0.113.50, 10.0.0.1"})
+    assert get_client_ip(req3) == "203.0.113.50"
+
+    # 4. Fallback to remote_addr
+    req4 = DummyRequest({}, remote_addr="192.168.1.5")
+    assert get_client_ip(req4) == "192.168.1.5"
+
+
+def test_vercel_path_fixer_trusts_only_vercel_headers():
+    """Verify VercelPathFixer trusts only Vercel headers and ignores spoofable rewrite headers."""
+    from api.index import VercelPathFixer
+
+    def dummy_app(environ, start_response):
+        return [b"OK"]
+
+    fixer = VercelPathFixer(dummy_app)
+
+    # Trust x-vercel-matched-path
+    env1 = {"PATH_INFO": "/api", "HTTP_X_VERCEL_MATCHED_PATH": "/predict?foo=bar"}
+    fixer(env1, None)
+    assert env1["PATH_INFO"] == "/predict"
+
+    # Trust x-matched-path
+    env2 = {"PATH_INFO": "/api", "HTTP_X_MATCHED_PATH": "/health"}
+    fixer(env2, None)
+    assert env2["PATH_INFO"] == "/health"
+
+    # Do NOT trust x-forwarded-path
+    env3 = {"PATH_INFO": "/api", "HTTP_X_FORWARDED_PATH": "/admin-secret"}
+    fixer(env3, None)
+    assert env3["PATH_INFO"] == "/api"
+
+    # Do NOT trust x-rewrite-url
+    env4 = {"PATH_INFO": "/api", "HTTP_X_REWRITE_URL": "/admin-secret"}
+    fixer(env4, None)
+    assert env4["PATH_INFO"] == "/api"

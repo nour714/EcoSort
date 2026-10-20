@@ -48,11 +48,10 @@ try:
             self.wsgi_app = wsgi_app
 
         def __call__(self, environ, start_response):
+            # Trust only Vercel's own headers, not spoofable forward/rewrite headers
             matched_path = (
                 environ.get('HTTP_X_VERCEL_MATCHED_PATH') or
-                environ.get('HTTP_X_MATCHED_PATH') or
-                environ.get('HTTP_X_FORWARDED_PATH') or
-                environ.get('HTTP_X_REWRITE_URL')
+                environ.get('HTTP_X_MATCHED_PATH')
             )
             if matched_path:
                 clean_path = matched_path.split('?')[0]
@@ -78,7 +77,7 @@ try:
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response.headers['Permissions-Policy'] = 'camera=(self), geolocation=()'
+        response.headers['Permissions-Policy'] = 'camera=(self), geolocation=(), microphone=()'
         return response
 
     class EcoSortVercelEngine:

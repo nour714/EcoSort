@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "EcoSort",
+  "alternateName": "نظام الفرز والتوجيه الذكي بجامعة كفر الشيخ",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "All",
+  "description": "منظومة جامعية ذكية لإدارة وفرز المخلفات وإيجاد أقصر مسار للحاويات المتاحة باستخدام الذكاء الاصطناعي وخوارزميات الرؤية الحاسوبية",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EGP"
+  },
+  "provider": {
+    "@type": "CollegeOrUniversity",
+    "name": "جامعة كفر الشيخ - Kafrelsheikh University"
+  }
+}

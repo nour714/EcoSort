@@ -36,12 +36,15 @@ def test_vercel_json_rewrites_and_headers():
     assert "strict-origin" in all_headers["referrer-policy"]
 
     assert "permissions-policy" in all_headers
-    assert "camera" in all_headers["permissions-policy"]
+    assert all_headers["permissions-policy"] == "camera=(self), geolocation=(), microphone=()"
 
     assert "content-security-policy" in all_headers
     csp = all_headers["content-security-policy"]
     assert "default-src" in csp
     assert "object-src 'none'" in csp
+    assert "'unsafe-inline'" not in csp.split("script-src")[1].split(";")[0], (
+        "script-src must not contain 'unsafe-inline'"
+    )
 
 
 def test_robots_and_sitemap_exist():
